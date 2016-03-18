@@ -23,6 +23,17 @@ import (
 	"time"
 )
 
+// Message wraps an IRC message
+type Message struct {
+	ID        int64  `json:"id"`
+	Network   string `json:"network"`
+	Channel   string `json:"channel"`
+	Timestamp int64  `json:"timestamp"`
+	Sender    string `json:"sender"`
+	Command   string `json:"command"`
+	Message   string `json:"message"`
+}
+
 var db *sql.DB
 
 // Load the database
@@ -37,7 +48,7 @@ func Load(username, password, ip string, port int, database string) error {
 
 	_, err = db.Exec("CREATE TABLE IF NOT EXISTS messages (" +
 		"id BIGINT PRIMARY KEY AUTO_INCREMENT," +
-		"user VARCHAR(255) NOT NULL," +
+		"email VARCHAR(255) NOT NULL," +
 		"network VARCHAR(255) NOT NULL," +
 		"channel VARCHAR(255) NOT NULL," +
 		"timestamp BIGINT NOT NULL," +
@@ -62,9 +73,46 @@ func Load(username, password, ip string, port int, database string) error {
 	return nil
 }
 
+// GetUnread gets all the unread messages of the given user
+func GetUnread(email string) ([]Message, error) {
+	result := db.QueryRow("SELECT lastfetch FROM users WHERE email=?", email)
+	var lastfetch int64
+	result.Scan(&lastfetch)
+
+	results, err := db.Query("SELECT id, network, channel, timestamp, sender, command, message FROM messages WHERE email=? AND timestamp>?", email, lastfetch)
+	if err != nil {
+		return nil, err
+	}
+	var messages []Message
+	for results.Next() {
+		if results.Err() != nil {
+			return messages, results.Err()
+		}
+
+		var network, channel, sender, command, message string
+		var id, timestamp int64
+
+		results.Scan(&id, &network, &channel, &timestamp, &sender, &command, &message)
+
+		messages = append(messages, Message{
+			ID:        id,
+			Network:   network,
+			Channel:   channel,
+			Timestamp: timestamp,
+			Sender:    sender,
+			Command:   command,
+			Message:   message,
+		})
+	}
+
+	db.Exec("UPDATE users SET lastfetch=? WHERE email=?", time.Now().Unix(), email)
+
+	return messages, nil
+}
+
 // Insert a message into the database
-func Insert(user, network, channel, sender, command, message string) error {
-	_, err := db.Exec("INSERT INTO messages (user, network, channel, timestamp, sender, command, message) VALUES (?, ?, ?, ?, ?, ?, ?);",
-		user, network, channel, time.Now().Unix(), sender, command, message)
+func Insert(email, network, channel, sender, command, message string) error {
+	_, err := db.Exec("INSERT INTO messages (email, network, channel, timestamp, sender, command, message) VALUES (?, ?, ?, ?, ?, ?, ?);",
+		email, network, channel, time.Now().Unix(), sender, command, message)
 	return err
 }
