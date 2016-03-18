@@ -25,6 +25,9 @@ import (
 	"maunium.net/go/mauircd/plugin"
 )
 
+// TmpNet ...
+var TmpNet *Network
+
 // Network is a mauircd network connection
 type Network struct {
 	IRC     *irc.Connection

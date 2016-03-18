@@ -17,11 +17,16 @@ package main
 
 import (
 	_ "github.com/go-sql-driver/mysql"
-	_ "maunium.net/go/mauircd/database"
-	_ "maunium.net/go/mauircd/irc"
-	_ "maunium.net/go/mauircd/plugin"
+	flag "github.com/ogier/pflag"
+	"maunium.net/go/mauircd/database"
+	"maunium.net/go/mauircd/irc"
+	"maunium.net/go/mauircd/web"
 )
 
 func main() {
+	flag.Parse()
 
+	database.Load("root", flag.Arg(1), "127.0.0.1", 3306, "mauircd")
+	irc.TmpNet = irc.Create("pvlnet", "mauircd", "mauircd", "mauircd@maunium.net", "", "irc.fixme.fi", 6697, true)
+	web.Load("127.0.0.1", 29304)
 }
