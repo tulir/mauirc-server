@@ -42,7 +42,7 @@ func Load(username, password, ip string, port int, database string) error {
 		"channel VARCHAR(255) NOT NULL," +
 		"timestamp BIGINT NOT NULL," +
 		"sender VARCHAR(255) NOT NULL," +
-		"action VARCHAR(255) NOT NULL," +
+		"command VARCHAR(255) NOT NULL," +
 		"message TEXT NOT NULL" +
 		");")
 	if err != nil {
@@ -63,8 +63,8 @@ func Load(username, password, ip string, port int, database string) error {
 }
 
 // Insert a message into the database
-func Insert(user, network, channel, sender, action, message string) error {
-	_, err := db.Exec("INSERT INTO messages (user, network, channel, timestamp, sender, action, message) VALUES (?, ?, ?, ?, ?, ?, ?);",
-		user, network, channel, time.Now().Unix(), sender, action, message)
+func Insert(user, network, channel, sender, command, message string) error {
+	_, err := db.Exec("INSERT INTO messages (user, network, channel, timestamp, sender, command, message) VALUES (?, ?, ?, ?, ?, ?, ?);",
+		user, network, channel, time.Now().Unix(), sender, command, message)
 	return err
 }
