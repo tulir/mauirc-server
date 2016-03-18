@@ -83,6 +83,26 @@ func GetUnread(email string) ([]Message, error) {
 	if err != nil {
 		return nil, err
 	}
+	messages, err := scanMessages(results)
+	if err != nil {
+		return messages, err
+	}
+
+	db.Exec("UPDATE users SET lastfetch=? WHERE email=?", time.Now().Unix(), email)
+
+	return messages, nil
+}
+
+// GetHistory gets the last n messages
+func GetHistory(email string, n int) ([]Message, error) {
+	results, err := db.Query("SELECT id, network, channel, timestamp, sender, command, message FROM messages WHERE email=? ORDER BY id DESC LIMIT ?", email, n)
+	if err != nil {
+		return nil, err
+	}
+	return scanMessages(results)
+}
+
+func scanMessages(results *sql.Rows) ([]Message, error) {
 	var messages []Message
 	for results.Next() {
 		if results.Err() != nil {
@@ -104,9 +124,6 @@ func GetUnread(email string) ([]Message, error) {
 			Message:   message,
 		})
 	}
-
-	db.Exec("UPDATE users SET lastfetch=? WHERE email=?", time.Now().Unix(), email)
-
 	return messages, nil
 }
 
