@@ -25,29 +25,33 @@ func split(message string) []string {
 	if strings.ContainsRune(message, '\n') {
 		return strings.Split(message, "\n")
 	} else if len(message) > 250 {
-		lastIndex := -1
-		for i := 0; i < 250; i++ {
-			if message[i] == ' ' {
-				lastIndex = i
-			}
-		}
-
-		if lastIndex == -1 {
-			for i := 0; i < 250; i++ {
-				if message[i] == '-' || message[i] == '.' || message[i] == ',' {
-					lastIndex = i
-				}
-			}
-		} else {
-			return []string{message[:lastIndex], message[lastIndex+1:]}
-		}
-
-		if lastIndex != -1 {
-			return []string{message[:lastIndex+1], message[lastIndex+1:]}
-		}
-
-		return []string{message[:250], message[250:]}
+		return splitLen(message)
 	} else {
 		return nil
 	}
+}
+
+func splitLen(message string) []string {
+	lastIndex := -1
+	for i := 0; i < 250; i++ {
+		if message[i] == ' ' {
+			lastIndex = i
+		}
+	}
+
+	if lastIndex == -1 {
+		for i := 0; i < 250; i++ {
+			if message[i] == '-' || message[i] == '.' || message[i] == ',' {
+				lastIndex = i
+			}
+		}
+	} else {
+		return []string{message[:lastIndex], message[lastIndex+1:]}
+	}
+
+	if lastIndex != -1 {
+		return []string{message[:lastIndex+1], message[lastIndex+1:]}
+	}
+
+	return []string{message[:250], message[250:]}
 }
