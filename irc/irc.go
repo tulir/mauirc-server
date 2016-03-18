@@ -20,14 +20,14 @@ package irc
 import (
 	"fmt"
 
-	goirc "github.com/thoj/go-ircevent"
+	"github.com/thoj/go-ircevent"
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/plugin"
 )
 
 // Network is a mauircd network connection
 type Network struct {
-	IRC     *goirc.Connection
+	IRC     *irc.Connection
 	Owner   string
 	Name    string
 	Nick    string
@@ -36,7 +36,7 @@ type Network struct {
 
 // Create an IRC connection
 func Create(name, nick, user, password, ip string, port int, ssl bool) *Network {
-	i := goirc.IRC(nick, user)
+	i := irc.IRC(nick, user)
 
 	i.UseTLS = ssl
 	if len(password) > 0 {
@@ -70,10 +70,10 @@ func (net *Network) sendMessage(channel, message string) {
 	database.Insert(net.Owner, net.Name, channel, sender, command, message)
 }
 
-func (net *Network) privmsg(evt *goirc.Event) {
+func (net *Network) privmsg(evt *irc.Event) {
 	net.message(evt.Arguments[0], evt.Nick, "privmsg", evt.Message())
 }
 
-func (net *Network) action(evt *goirc.Event) {
+func (net *Network) action(evt *irc.Event) {
 	net.message(evt.Arguments[0], evt.Nick, "action", evt.Message())
 }
