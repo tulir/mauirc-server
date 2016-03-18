@@ -59,7 +59,8 @@ func (net *Network) message(channel, sender, command, message string) {
 	database.Insert(net.Owner, net.Name, channel, sender, command, message)
 }
 
-func (net *Network) sendMessage(channel, message string) {
+// SendMessage sends the given message to the given channel
+func (net *Network) SendMessage(channel, message string) {
 	command := "privmsg"
 	sender := net.Nick
 	for _, s := range net.Scripts {
