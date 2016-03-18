@@ -5,17 +5,19 @@ import (
 
 	goirc "github.com/thoj/go-ircevent"
 	"maunium.net/go/mauircd/database"
+	"maunium.net/go/mauircd/plugin"
 )
 
-// MauIRCon is a mauircd connection
-type MauIRCon struct {
+// Network is a mauircd network connection
+type Network struct {
 	IRC     *goirc.Connection
-	User    string
-	Network string
+	Owner   string
+	Name    string
+	Scripts []plugin.Script
 }
 
 // Create an IRC connection
-func Create(name, nick, user, password, ip string, port int, ssl bool) *MauIRCon {
+func Create(name, nick, user, password, ip string, port int, ssl bool) *Network {
 	i := goirc.IRC(nick, user)
 
 	i.UseTLS = ssl
@@ -23,7 +25,7 @@ func Create(name, nick, user, password, ip string, port int, ssl bool) *MauIRCon
 		i.Password = password
 	}
 	i.Connect(fmt.Sprintf("%s:%d", ip, port))
-	mauirc := &MauIRCon{IRC: i, User: user, Network: name}
+	mauirc := &Network{IRC: i, Owner: user, Name: name}
 
 	i.AddCallback("PRIVMSG", mauirc.privmsg)
 	i.AddCallback("CTCP_ACTION", mauirc.action)
@@ -31,10 +33,18 @@ func Create(name, nick, user, password, ip string, port int, ssl bool) *MauIRCon
 	return mauirc
 }
 
-func (i *MauIRCon) privmsg(event *goirc.Event) {
-    database.
+func (net *Network) message(channel, sender, command, message string) {
+	for _, s := range net.Scripts {
+		channel, sender, command, message = s.Run(channel, sender, command, message)
+	}
+
+	database.Insert(net.Owner, net.Name, channel, sender, command, message)
 }
 
-func (i *MauIRCon) action(event *goirc.Event) {
+func (net *Network) privmsg(evt *goirc.Event) {
+	net.message(evt.Arguments[0], evt.Nick, "privmsg", evt.Message())
+}
 
+func (net *Network) action(evt *goirc.Event) {
+	net.message(evt.Arguments[0], evt.Nick, "action", evt.Message())
 }
