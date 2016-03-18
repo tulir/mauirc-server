@@ -30,6 +30,7 @@ type Network struct {
 	IRC     *goirc.Connection
 	Owner   string
 	Name    string
+	Nick    string
 	Scripts []plugin.Script
 }
 
@@ -55,6 +56,17 @@ func (net *Network) message(channel, sender, command, message string) {
 		channel, sender, command, message = s.Run(channel, sender, command, message)
 	}
 
+	database.Insert(net.Owner, net.Name, channel, sender, command, message)
+}
+
+func (net *Network) sendMessage(channel, message string) {
+	command := "privmsg"
+	sender := net.Nick
+	for _, s := range net.Scripts {
+		channel, sender, command, message = s.Run(channel, sender, command, message)
+	}
+
+	net.IRC.Privmsg(channel, message)
 	database.Insert(net.Owner, net.Name, channel, sender, command, message)
 }
 
