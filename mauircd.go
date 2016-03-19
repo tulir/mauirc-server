@@ -26,7 +26,7 @@ import (
 func main() {
 	flag.Parse()
 
-	database.Load("root", flag.Arg(1), "127.0.0.1", 3306, "mauircd")
+	database.Load("root", flag.Arg(0), "127.0.0.1", 3306, "mauircd")
 	irc.TmpNet = irc.Create("pvlnet", "mauircd", "mauircd", "mauircd@maunium.net", "", "irc.fixme.fi", 6697, true)
 	web.Load("127.0.0.1", 29304)
 }

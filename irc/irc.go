@@ -23,6 +23,7 @@ import (
 	"github.com/thoj/go-ircevent"
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/plugin"
+	"time"
 )
 
 // TmpNet ...
@@ -30,11 +31,12 @@ var TmpNet *Network
 
 // Network is a mauircd network connection
 type Network struct {
-	IRC     *irc.Connection
-	Owner   string
-	Name    string
-	Nick    string
-	Scripts []plugin.Script
+	IRC         *irc.Connection
+	Owner       string
+	Name        string
+	Nick        string
+	Scripts     []plugin.Script
+	NewMessages chan database.Message
 }
 
 // Create an IRC connection
@@ -51,7 +53,7 @@ func Create(name, nick, user, email, password, ip string, port int, ssl bool) *N
 		panic(err)
 	}
 
-	mauirc := &Network{IRC: i, Owner: email, Name: name, Nick: nick}
+	mauirc := &Network{IRC: i, Owner: email, Name: name, Nick: nick, NewMessages: make(chan database.Message, 256)}
 
 	i.AddCallback("PRIVMSG", mauirc.privmsg)
 	i.AddCallback("CTCP_ACTION", mauirc.action)
@@ -67,7 +69,9 @@ func (net *Network) message(channel, sender, command, message string) {
 		channel, sender, command, message = s.Run(channel, sender, command, message)
 	}
 
-	database.Insert(net.Owner, net.Name, channel, sender, command, message)
+	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
+	net.NewMessages <- msg
+	database.Insert(net.Owner, msg)
 }
 
 // SendMessage sends the given message to the given channel
@@ -87,7 +91,9 @@ func (net *Network) SendMessage(channel, message string) {
 	}
 
 	net.IRC.Privmsg(channel, message)
-	database.Insert(net.Owner, net.Name, channel, sender, command, message)
+	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
+	net.NewMessages <- msg
+	database.Insert(net.Owner, msg)
 }
 
 func (net *Network) privmsg(evt *irc.Event) {

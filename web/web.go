@@ -22,10 +22,12 @@ import (
 	"net/http"
 )
 
-// Load the HTTP server
+// Load the web server
 func Load(ip string, port int) {
-	http.HandleFunc("/send", send)
-	http.HandleFunc("/get/history", history)
-	http.HandleFunc("/get/unread", unread)
-	http.ListenAndServe(fmt.Sprintf("%s:%d", ip, port), nil)
+	go h.run()
+	http.HandleFunc("/socket", serveWs)
+	err := http.ListenAndServe(fmt.Sprintf("%s:%d", ip, port), nil)
+	if err != nil {
+		panic(err)
+	}
 }

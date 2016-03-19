@@ -17,33 +17,29 @@
 // Package web contains the HTTP server
 package web
 
-import (
-	"encoding/json"
-	"maunium.net/go/mauircd/database"
-	"maunium.net/go/mauircd/irc"
-	"net/http"
-	//"strings"
-)
+type hub struct {
+	connections map[*connection]bool
+	broadcast   chan []byte
+	register    chan *connection
+	unregister  chan *connection
+}
 
-func unread(w http.ResponseWriter, r *http.Request) {
-	//var ip = strings.Split(r.RemoteAddr, ":")[0]
-	if r.Method != "POST" {
-		w.Header().Add("Allow", "POST")
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
+var h = hub{
+	broadcast:   make(chan []byte),
+	register:    make(chan *connection),
+	unregister:  make(chan *connection),
+	connections: make(map[*connection]bool),
+}
 
-	results, err := database.GetUnread(irc.TmpNet.Owner)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+func (h *hub) run() {
+	for {
+		select {
+		case c := <-h.register:
+			h.connections[c] = true
+		case c := <-h.unregister:
+			if _, ok := h.connections[c]; ok {
+				delete(h.connections, c)
+			}
+		}
 	}
-
-	json, err := json.Marshal(results)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-	w.Write(json)
 }

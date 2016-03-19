@@ -25,7 +25,6 @@ import (
 
 // Message wraps an IRC message
 type Message struct {
-	ID        int64  `json:"id"`
 	Network   string `json:"network"`
 	Channel   string `json:"channel"`
 	Timestamp int64  `json:"timestamp"`
@@ -79,7 +78,7 @@ func GetUnread(email string) ([]Message, error) {
 	var lastfetch int64
 	result.Scan(&lastfetch)
 
-	results, err := db.Query("SELECT id, network, channel, timestamp, sender, command, message FROM messages WHERE email=? AND timestamp>?", email, lastfetch)
+	results, err := db.Query("SELECT network, channel, timestamp, sender, command, message FROM messages WHERE email=? AND timestamp>?", email, lastfetch)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +94,7 @@ func GetUnread(email string) ([]Message, error) {
 
 // GetHistory gets the last n messages
 func GetHistory(email string, n int) ([]Message, error) {
-	results, err := db.Query("SELECT id, network, channel, timestamp, sender, command, message FROM messages WHERE email=? ORDER BY id DESC LIMIT ?", email, n)
+	results, err := db.Query("SELECT network, channel, timestamp, sender, command, message FROM messages WHERE email=? ORDER BY id DESC LIMIT ?", email, n)
 	if err != nil {
 		return nil, err
 	}
@@ -110,12 +109,11 @@ func scanMessages(results *sql.Rows) ([]Message, error) {
 		}
 
 		var network, channel, sender, command, message string
-		var id, timestamp int64
+		var timestamp int64
 
-		results.Scan(&id, &network, &channel, &timestamp, &sender, &command, &message)
+		results.Scan(&network, &channel, &timestamp, &sender, &command, &message)
 
 		messages = append(messages, Message{
-			ID:        id,
 			Network:   network,
 			Channel:   channel,
 			Timestamp: timestamp,
@@ -128,8 +126,8 @@ func scanMessages(results *sql.Rows) ([]Message, error) {
 }
 
 // Insert a message into the database
-func Insert(email, network, channel, sender, command, message string) error {
+func Insert(email string, msg Message) error {
 	_, err := db.Exec("INSERT INTO messages (email, network, channel, timestamp, sender, command, message) VALUES (?, ?, ?, ?, ?, ?, ?);",
-		email, network, channel, time.Now().Unix(), sender, command, message)
+		email, msg.Network, msg.Channel, msg.Timestamp, msg.Sender, msg.Command, msg.Message)
 	return err
 }
