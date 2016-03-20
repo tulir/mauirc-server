@@ -14,24 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-// Package irc contains the IRC client
-package irc
+// Package util contains utilities
+package util
 
 import (
 	"strings"
 )
 
-func split(message string) []string {
+// Split ...
+func Split(message string) []string {
 	if strings.ContainsRune(message, '\n') {
 		return strings.Split(message, "\n")
 	} else if len(message) > 250 {
-		return splitLen(message)
+		return SplitLen(message)
 	} else {
 		return nil
 	}
 }
 
-func splitLen(message string) []string {
+// SplitLen ...
+func SplitLen(message string) []string {
 	lastIndex := -1
 	for i := 0; i < 250; i++ {
 		if message[i] == ' ' {

@@ -19,29 +19,39 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	flag "github.com/ogier/pflag"
+	"maunium.net/go/mauircd/config"
 	"maunium.net/go/mauircd/database"
-	"maunium.net/go/mauircd/irc"
 	"maunium.net/go/mauircd/web"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
+var nws = flag.StringP("config", "c", "/etc/mauircd/", "The path to mauIRCd configurations")
+
 func main() {
 	flag.Parse()
 
+	err := config.Load(*nws)
+	if err != nil {
+		panic(err)
+	}
+
 	database.Load("root", flag.Arg(0), "127.0.0.1", 3306, "mauircd")
-	irc.TmpNet = irc.Create("pvlnet", "mauircd", "mauircd", "mauircd@maunium.net", "", "irc.fixme.fi", 6697, true)
+	web.Load("127.0.0.1", 29304)
+	//irc.Create("pvlnet", "mauircd", "mauircd", "mauircd@maunium.net", "", "irc.fixme.fi", 6697, true)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-c
 		fmt.Println("\nClosing mauIRCd")
-		irc.TmpNet.Close()
+		for _, user := range config.GetUsers() {
+			for _, network := range user.Networks {
+				network.Close()
+			}
+		}
 		database.Close()
 		os.Exit(0)
 	}()
-
-	web.Load("127.0.0.1", 29304)
 }

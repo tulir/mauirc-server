@@ -18,16 +18,17 @@
 package web
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
-	"maunium.net/go/mauircd/irc"
+	"maunium.net/go/mauircd/config"
+	"maunium.net/go/mauircd/database"
 	"net/http"
 	"time"
 )
 
 type sendform struct {
+	Network string `json:"network"`
 	Channel string `json:"channel"`
 	Command string `json:"command"`
 	Message string `json:"message"`
@@ -51,17 +52,14 @@ var upgrader = websocket.Upgrader{
 }
 
 type connection struct {
-	ws *websocket.Conn
+	ws   *websocket.Conn
+	user *config.User
 }
 
 func (c *connection) readPump() {
 	defer func() {
-		h.unregister <- c
 		c.ws.Close()
 	}()
-	c.ws.SetReadLimit(maxMessageSize)
-	c.ws.SetReadDeadline(time.Now().Add(pongWait))
-	c.ws.SetPongHandler(func(string) error { c.ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
 		_, message, err := c.ws.ReadMessage()
 		if err != nil {
@@ -71,14 +69,13 @@ func (c *connection) readPump() {
 			break
 		}
 
-		decoder := json.NewDecoder(bytes.NewReader(message))
 		var sf sendform
-		err = decoder.Decode(&sf)
-		if err != nil || len(sf.Channel) == 0 || len(sf.Command) == 0 || len(sf.Message) == 0 {
+		err = json.Unmarshal(message, &sf)
+		if err != nil || len(sf.Network) == 0 || len(sf.Channel) == 0 || len(sf.Command) == 0 || len(sf.Message) == 0 {
 			continue
 		}
 
-		irc.TmpNet.SendMessage(sf.Channel, sf.Command, sf.Message)
+		c.user.GetNetwork(sf.Network).SendMessage(sf.Channel, sf.Command, sf.Message)
 	}
 }
 
@@ -92,23 +89,39 @@ func (c *connection) writeJSON(payload interface{}) error {
 	return c.ws.WriteJSON(payload)
 }
 
+type aggregate struct {
+	val    database.Message
+	source *config.Network
+}
+
 func (c *connection) writePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
 		c.ws.Close()
 	}()
+	agg := make(chan aggregate)
+	for i := 0; i < len(c.user.Networks); i++ {
+		var ii = i
+		go func() {
+			ch := c.user.Networks[ii]
+			for val := range ch.NewMessages {
+				agg <- aggregate{val, ch}
+			}
+		}()
+	}
+
 	for {
 		select {
-		case new, ok := <-irc.TmpNet.NewMessages:
+		case new, ok := <-agg:
 			if !ok {
 				c.write(websocket.CloseMessage, []byte{})
-				irc.TmpNet.NewMessages <- new
+				new.source.NewMessages <- new.val
 				return
 			}
-			if err := c.writeJSON(new); err != nil {
+			if err := c.writeJSON(new.val); err != nil {
 				fmt.Println("Disconnected:", err)
-				irc.TmpNet.NewMessages <- new
+				new.source.NewMessages <- new.val
 				return
 			}
 		case <-ticker.C:
@@ -119,6 +132,35 @@ func (c *connection) writePump() {
 	}
 }
 
+func (c *connection) waitAuth() bool {
+	_, message, err := c.ws.ReadMessage()
+	if err != nil {
+		if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
+			fmt.Println("Unexpected close:", err)
+		}
+		return false
+	}
+
+	var af authform
+	err = json.Unmarshal(message, &af)
+	if err != nil || len(af.Email) == 0 || len(af.Password) == 0 {
+		c.write(websocket.TextMessage, []byte("{\"auth\": true, \"success\": false}"))
+		c.write(websocket.CloseMessage, []byte{})
+		return false
+	}
+
+	user := config.GetUser(af.Email)
+	if user.CheckPassword(af.Password) {
+		c.user = user
+		c.write(websocket.TextMessage, []byte("{\"auth\": true, \"success\": true}"))
+		return true
+	}
+
+	c.write(websocket.TextMessage, []byte("{\"auth\": true, \"success\": false}"))
+	c.write(websocket.CloseMessage, []byte{})
+	return false
+}
+
 func serveWs(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -126,7 +168,15 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	c := &connection{ws: ws}
-	h.register <- c
+
+	c.ws.SetReadLimit(maxMessageSize)
+	c.ws.SetReadDeadline(time.Now().Add(pongWait))
+	c.ws.SetPongHandler(func(string) error { c.ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+
+	if !c.waitAuth() {
+		return
+	}
+
 	go c.writePump()
 	c.readPump()
 }

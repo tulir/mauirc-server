@@ -20,7 +20,6 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"time"
 )
 
 // Message wraps an IRC message
@@ -78,7 +77,7 @@ func Close() {
 }
 
 // GetUnread gets all the unread messages of the given user
-func GetUnread(email string) ([]Message, error) {
+/*func GetUnread(email string) ([]Message, error) {
 	result := db.QueryRow("SELECT lastfetch FROM users WHERE email=?", email)
 	var lastfetch int64
 	result.Scan(&lastfetch)
@@ -95,7 +94,7 @@ func GetUnread(email string) ([]Message, error) {
 	db.Exec("UPDATE users SET lastfetch=? WHERE email=?", time.Now().Unix(), email)
 
 	return messages, nil
-}
+}*/
 
 // GetHistory gets the last n messages
 func GetHistory(email string, n int) ([]Message, error) {

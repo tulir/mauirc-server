@@ -14,63 +14,56 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-// Package irc contains the IRC client
-package irc
+// Package config contains configurations
+package config
 
 import (
 	"fmt"
 
 	"github.com/thoj/go-ircevent"
 	"maunium.net/go/mauircd/database"
-	"maunium.net/go/mauircd/plugin"
+	"maunium.net/go/mauircd/util"
 	"time"
 )
 
-// Network is a mauircd network connection
-type Network struct {
-	IRC         *irc.Connection
-	Owner       string
-	Name        string
-	Nick        string
-	Scripts     []plugin.Script
-	NewMessages chan database.Message
-}
+// Open an IRC connection
+func (net *Network) Open(user *User) {
+	i := irc.IRC(user.Nick, user.User)
 
-// Create an IRC connection
-func Create(name, nick, user, email, password, ip string, port int, ssl bool) *Network {
-	i := irc.IRC(nick, user)
-
-	i.UseTLS = ssl
+	i.UseTLS = net.SSL
 	i.QuitMessage = "mauIRCd shutting down..."
-	if len(password) > 0 {
-		i.Password = password
+	if len(net.Password) > 0 {
+		i.Password = net.Password
 	}
-	err := i.Connect(fmt.Sprintf("%s:%d", ip, port))
+	err := i.Connect(fmt.Sprintf("%s:%d", net.IP, net.Port))
 	if err != nil {
 		panic(err)
 	}
 
-	mauirc := &Network{IRC: i, Owner: email, Name: name, Nick: nick, NewMessages: make(chan database.Message, 256)}
+	net.IRC = i
+	net.Owner = user
+	net.Nick = user.Nick
+	net.NewMessages = make(chan database.Message, 256)
 
-	i.AddCallback("PRIVMSG", mauirc.privmsg)
-	i.AddCallback("CTCP_ACTION", mauirc.action)
-	i.AddCallback("JOIN", mauirc.join)
-	i.AddCallback("PART", mauirc.part)
+	i.AddCallback("PRIVMSG", net.privmsg)
+	i.AddCallback("CTCP_ACTION", net.action)
+	i.AddCallback("JOIN", net.join)
+	i.AddCallback("PART", net.part)
 	i.AddCallback("001", func(evt *irc.Event) {
-		i.Join("#mau")
+		for _, channel := range net.Channels {
+			i.Join(channel)
+		}
 	})
 
 	i.AddCallback("NICK", func(evt *irc.Event) {
-		if evt.Nick == mauirc.Nick {
-			mauirc.Nick = evt.Message()
+		if evt.Nick == net.Nick {
+			net.Nick = evt.Message()
 		}
 	})
 
 	i.AddCallback("DISCONNECTED", func(event *irc.Event) {
-		fmt.Printf("Disconnected from %s:%d\n", ip, port)
+		fmt.Printf("Disconnected from %s:%d\n", net.IP, net.Port)
 	})
-
-	return mauirc
 }
 
 func (net *Network) message(channel, sender, command, message string) {
@@ -84,12 +77,12 @@ func (net *Network) message(channel, sender, command, message string) {
 
 	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
 	net.NewMessages <- msg
-	database.Insert(net.Owner, msg)
+	database.Insert(net.Owner.Email, msg)
 }
 
 // SendMessage sends the given message to the given channel
 func (net *Network) SendMessage(channel, command, message string) {
-	splitted := split(message)
+	splitted := util.Split(message)
 	if splitted != nil && len(splitted) > 1 {
 		for _, piece := range splitted {
 			net.SendMessage(channel, command, piece)
@@ -109,7 +102,7 @@ func (net *Network) SendMessage(channel, command, message string) {
 	}
 	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
 	net.NewMessages <- msg
-	database.Insert(net.Owner, msg)
+	database.Insert(net.Owner.Email, msg)
 }
 
 // Close the IRC connection.
