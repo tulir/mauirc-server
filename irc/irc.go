@@ -57,6 +57,8 @@ func Create(name, nick, user, email, password, ip string, port int, ssl bool) *N
 
 	i.AddCallback("PRIVMSG", mauirc.privmsg)
 	i.AddCallback("CTCP_ACTION", mauirc.action)
+	i.AddCallback("JOIN", mauirc.join)
+	i.AddCallback("PART", mauirc.part)
 	i.AddCallback("001", func(evt *irc.Event) {
 		i.Join("#mau")
 	})
@@ -65,6 +67,10 @@ func Create(name, nick, user, email, password, ip string, port int, ssl bool) *N
 		if evt.Nick == mauirc.Nick {
 			mauirc.Nick = evt.Message()
 		}
+	})
+
+	i.AddCallback("DISCONNECTED", func(event *irc.Event) {
+		fmt.Printf("Disconnected from %s:%d\n", ip, port)
 	})
 
 	return mauirc
@@ -107,6 +113,19 @@ func (net *Network) SendMessage(channel, command, message string) {
 	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
 	net.NewMessages <- msg
 	database.Insert(net.Owner, msg)
+}
+
+// Close the IRC connection.
+func (net *Network) Close() {
+	net.IRC.Quit()
+}
+
+func (net *Network) join(evt *irc.Event) {
+	go net.message(evt.Arguments[0], evt.Nick, "join", evt.Message())
+}
+
+func (net *Network) part(evt *irc.Event) {
+	go net.message(evt.Arguments[0], evt.Nick, "part", evt.Message())
 }
 
 func (net *Network) privmsg(evt *irc.Event) {
