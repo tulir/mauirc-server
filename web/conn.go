@@ -70,11 +70,10 @@ func (c *connection) readPump() {
 		var sf sendform
 		err = decoder.Decode(&sf)
 		if err != nil || len(sf.Channel) == 0 || len(sf.Command) == 0 || len(sf.Message) == 0 {
-			fmt.Println(err)
-			return
+			continue
 		}
 
-		irc.TmpNet.SendMessage(sf.Channel, sf.Message)
+		irc.TmpNet.SendMessage(sf.Channel, sf.Command, sf.Message)
 	}
 }
 

@@ -61,6 +61,12 @@ func Create(name, nick, user, email, password, ip string, port int, ssl bool) *N
 		i.Join("#mau")
 	})
 
+	i.AddCallback("NICK", func(evt *irc.Event) {
+		if evt.Nick == mauirc.Nick {
+			mauirc.Nick = evt.Message()
+		}
+	})
+
 	return mauirc
 }
 
@@ -75,31 +81,34 @@ func (net *Network) message(channel, sender, command, message string) {
 }
 
 // SendMessage sends the given message to the given channel
-func (net *Network) SendMessage(channel, message string) {
+func (net *Network) SendMessage(channel, command, message string) {
 	splitted := split(message)
 	if splitted != nil && len(splitted) > 1 {
 		for _, piece := range splitted {
-			net.SendMessage(channel, piece)
+			net.SendMessage(channel, command, piece)
 		}
 		return
 	}
 
-	command := "privmsg"
 	sender := net.Nick
 	for _, s := range net.Scripts {
 		channel, sender, command, message = s.Run(channel, sender, command, message)
 	}
 
-	net.IRC.Privmsg(channel, message)
+	if command == "privmsg" {
+		net.IRC.Privmsg(channel, message)
+	} else if command == "action" {
+		net.IRC.Action(channel, message)
+	}
 	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
 	net.NewMessages <- msg
 	database.Insert(net.Owner, msg)
 }
 
 func (net *Network) privmsg(evt *irc.Event) {
-	net.message(evt.Arguments[0], evt.Nick, "privmsg", evt.Message())
+	go net.message(evt.Arguments[0], evt.Nick, "privmsg", evt.Message())
 }
 
 func (net *Network) action(evt *irc.Event) {
-	net.message(evt.Arguments[0], evt.Nick, "action", evt.Message())
+	go net.message(evt.Arguments[0], evt.Nick, "action", evt.Message())
 }
