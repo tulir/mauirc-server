@@ -72,6 +72,11 @@ func Load(username, password, ip string, port int, database string) error {
 	return nil
 }
 
+// Close the database connection
+func Close() {
+	db.Close()
+}
+
 // GetUnread gets all the unread messages of the given user
 func GetUnread(email string) ([]Message, error) {
 	result := db.QueryRow("SELECT lastfetch FROM users WHERE email=?", email)
