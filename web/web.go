@@ -25,6 +25,7 @@ import (
 // Load the web server
 func Load(ip string, port int) {
 	go h.run()
+	http.HandleFunc("/history", history)
 	http.HandleFunc("/socket", serveWs)
 	err := http.ListenAndServe(fmt.Sprintf("%s:%d", ip, port), nil)
 	if err != nil {
