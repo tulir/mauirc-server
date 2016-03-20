@@ -99,10 +99,12 @@ func (c *connection) writePump() {
 		case new, ok := <-irc.TmpNet.NewMessages:
 			if !ok {
 				c.write(websocket.CloseMessage, []byte{})
+				irc.TmpNet.NewMessages <- new
 				return
 			}
 			if err := c.writeJSON(new); err != nil {
 				fmt.Println(err)
+				irc.TmpNet.NewMessages <- new
 				return
 			}
 		case <-ticker.C:
