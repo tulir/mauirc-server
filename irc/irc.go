@@ -75,6 +75,10 @@ func (net *Network) message(channel, sender, command, message string) {
 		channel, sender, command, message = s.Run(channel, sender, command, message)
 	}
 
+	if len(channel) == 0 || len(command) == 0 {
+		return
+	}
+
 	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
 	net.NewMessages <- msg
 	database.Insert(net.Owner, msg)
