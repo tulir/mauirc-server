@@ -26,9 +26,6 @@ import (
 	"time"
 )
 
-// TmpNet ...
-var TmpNet *Network
-
 // Network is a mauircd network connection
 type Network struct {
 	IRC         *irc.Connection
