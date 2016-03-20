@@ -37,12 +37,12 @@ const (
 	writeWait      = 10 * time.Second
 	pongWait       = 30 * time.Second
 	pingPeriod     = 25 * time.Second
-	maxMessageSize = 512
+	maxMessageSize = 1024
 )
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
+	ReadBufferSize:  2048,
+	WriteBufferSize: 2048,
 }
 
 type connection struct {
