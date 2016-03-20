@@ -33,6 +33,11 @@ type sendform struct {
 	Message string `json:"message"`
 }
 
+type authform struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 const (
 	writeWait      = 10 * time.Second
 	pongWait       = 30 * time.Second
