@@ -61,7 +61,7 @@ func (c *connection) readPump() {
 		_, message, err := c.ws.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
-				fmt.Printf("Unexpected close: %s\n", err)
+				fmt.Println("Unexpected close:", err)
 			}
 			break
 		}
@@ -103,7 +103,7 @@ func (c *connection) writePump() {
 				return
 			}
 			if err := c.writeJSON(new); err != nil {
-				fmt.Println(err)
+				fmt.Println("Disconnected:", err)
 				irc.TmpNet.NewMessages <- new
 				return
 			}
@@ -118,7 +118,7 @@ func (c *connection) writePump() {
 func serveWs(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		fmt.Printf("Failed to connect: %s\n", err)
+		fmt.Println("Failed to connect:", err)
 		return
 	}
 	c := &connection{ws: ws}
