@@ -75,7 +75,6 @@ func (c *connection) readPump() {
 		}
 
 		irc.TmpNet.SendMessage(sf.Channel, sf.Message)
-		h.broadcast <- message
 	}
 }
 
