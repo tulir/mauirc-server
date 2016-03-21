@@ -25,6 +25,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 var nws = flag.StringP("config", "c", "/etc/mauircd/", "The path to mauIRCd configurations")
@@ -39,8 +40,6 @@ func main() {
 
 	sqlStr := fmt.Sprintf("%[1]s:%[2]s@tcp(%[3]s:%[4]d)/%[5]s", "root", flag.Arg(0), "127.0.0.1", 3306, "mauircd")
 	database.Load(sqlStr)
-	web.Load("127.0.0.1", "127.0.0.1", 29304)
-	//irc.Create("pvlnet", "mauircd", "mauircd", "mauircd@maunium.net", "", "irc.fixme.fi", 6697, true)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -52,7 +51,10 @@ func main() {
 				network.Close()
 			}
 		}
+		time.Sleep(2 * time.Second)
 		database.Close()
+		config.Save()
 		os.Exit(0)
 	}()
+	web.Load("127.0.0.1", "127.0.0.1", 29304)
 }
