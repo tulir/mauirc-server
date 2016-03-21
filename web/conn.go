@@ -89,9 +89,22 @@ type aggregate struct {
 	source *config.Network
 }
 
+func drain(commch chan database.Message) {
+	for {
+		select {
+		case <-commch:
+		default:
+			return
+		}
+	}
+}
+
 func (c *connection) startAggregating() (chan aggregate, chan bool) {
 	agg := make(chan aggregate)
 	stop := make(chan bool, 1)
+	for _, ch := range c.user.Networks {
+		drain(ch.NewMessages)
+	}
 	for i := 0; i < len(c.user.Networks); i++ {
 		var ii = i
 		go func() {
