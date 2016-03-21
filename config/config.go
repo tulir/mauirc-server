@@ -51,7 +51,7 @@ func Load(path string) error {
 
 // Save the configuration file
 func Save() error {
-	data, err := json.Marshal(config)
+	data, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
 		return err
 	}
