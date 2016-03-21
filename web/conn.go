@@ -89,22 +89,38 @@ type aggregate struct {
 	source *config.Network
 }
 
+func (c *connection) startAggregating() (chan aggregate, chan bool) {
+	agg := make(chan aggregate)
+	stop := make(chan bool, 1)
+	for i := 0; i < len(c.user.Networks); i++ {
+		var ii = i
+		go func() {
+			ch := c.user.Networks[ii]
+
+			for {
+				select {
+				case val, ok := <-ch.NewMessages:
+					if ok {
+						agg <- aggregate{val, ch}
+					}
+				case _, _ = <-stop:
+					stop <- true
+					return
+				}
+			}
+		}()
+	}
+	return agg, stop
+}
+
 func (c *connection) writePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
 		c.ws.Close()
 	}()
-	agg := make(chan aggregate)
-	for i := 0; i < len(c.user.Networks); i++ {
-		var ii = i
-		go func() {
-			ch := c.user.Networks[ii]
-			for val := range ch.NewMessages {
-				agg <- aggregate{val, ch}
-			}
-		}()
-	}
+
+	agg, stop := c.startAggregating()
 
 	for {
 		select {
@@ -116,44 +132,17 @@ func (c *connection) writePump() {
 			} else {
 				continue
 			}
+			stop <- true
 			new.source.NewMessages <- new.val
 			return
 		case <-ticker.C:
 			if err := c.write(websocket.PingMessage, []byte{}); err != nil {
+				stop <- true
 				return
 			}
 		}
 	}
 }
-
-/*func (c *connection) waitAuth() bool {
-	_, message, err := c.ws.ReadMessage()
-	if err != nil {
-		if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
-			fmt.Println("Unexpected close:", err)
-		}
-		return false
-	}
-
-	var af authform
-	err = json.Unmarshal(message, &af)
-	if err != nil || len(af.Email) == 0 || len(af.Password) == 0 {
-		c.write(websocket.TextMessage, []byte("{\"auth\": true, \"success\": false}"))
-		c.write(websocket.CloseMessage, []byte{})
-		return false
-	}
-
-	user := config.GetUser(af.Email)
-	if user.CheckPassword(af.Password) {
-		c.user = user
-		c.write(websocket.TextMessage, []byte("{\"auth\": true, \"success\": true}"))
-		return true
-	}
-
-	c.write(websocket.TextMessage, []byte("{\"auth\": true, \"success\": false}"))
-	c.write(websocket.CloseMessage, []byte{})
-	return false
-}*/
 
 func serveWs(w http.ResponseWriter, r *http.Request) {
 	success, user := checkAuth(w, r)
@@ -173,10 +162,6 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 	c.ws.SetReadLimit(maxMessageSize)
 	c.ws.SetReadDeadline(time.Now().Add(pongWait))
 	c.ws.SetPongHandler(func(string) error { c.ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
-
-	/*if !c.waitAuth() {
-		return
-	}*/
 
 	go c.writePump()
 	c.readPump()
