@@ -71,6 +71,10 @@ func (net *Network) message(channel, sender, command, message string) {
 		channel, sender, command, message = s.Run(channel, sender, command, message)
 	}
 
+	if channel == net.Nick {
+		channel = sender
+	}
+
 	if len(channel) == 0 || len(command) == 0 {
 		return
 	}
@@ -112,10 +116,29 @@ func (net *Network) Close() {
 
 func (net *Network) join(evt *irc.Event) {
 	go net.message(evt.Arguments[0], evt.Nick, "join", evt.Message())
+
+	if evt.Nick == net.Nick {
+		for _, ch := range net.Channels {
+			if ch == evt.Arguments[0] {
+				return
+			}
+		}
+		net.Channels = append(net.Channels, evt.Arguments[0])
+	}
 }
 
 func (net *Network) part(evt *irc.Event) {
 	go net.message(evt.Arguments[0], evt.Nick, "part", evt.Message())
+
+	if evt.Nick == net.Nick {
+		for i, ch := range net.Channels {
+			if ch == evt.Arguments[0] {
+				net.Channels[i] = net.Channels[len(net.Channels)-1]
+				net.Channels = net.Channels[:len(net.Channels)-1]
+				return
+			}
+		}
+	}
 }
 
 func (net *Network) privmsg(evt *irc.Event) {
