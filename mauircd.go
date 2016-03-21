@@ -37,8 +37,9 @@ func main() {
 		panic(err)
 	}
 
-	database.Load("root", flag.Arg(0), "127.0.0.1", 3306, "mauircd")
-	web.Load("127.0.0.1", 29304)
+	sqlStr := fmt.Sprintf("%[1]s:%[2]s@tcp(%[3]s:%[4]d)/%[5]s", "root", flag.Arg(0), "127.0.0.1", 3306, "mauircd")
+	database.Load(sqlStr)
+	web.Load("127.0.0.1", "127.0.0.1", 29304)
 	//irc.Create("pvlnet", "mauircd", "mauircd", "mauircd@maunium.net", "", "irc.fixme.fi", 6697, true)
 
 	c := make(chan os.Signal, 1)

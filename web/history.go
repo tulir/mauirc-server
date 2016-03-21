@@ -19,40 +19,30 @@ package web
 
 import (
 	"encoding/json"
-	"maunium.net/go/mauircd/config"
 	"maunium.net/go/mauircd/database"
 	"net/http"
+	"strconv"
 )
 
-type historyform struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	N        int    `json:"n"`
-}
-
 func history(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		w.Header().Add("Allow", "POST")
+	if r.Method != "GET" {
+		w.Header().Add("Allow", "GET")
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
-
-	dec := json.NewDecoder(r.Body)
-	var hf historyform
-	err := dec.Decode(&hf)
-
-	if err != nil || len(hf.Email) == 0 || len(hf.Password) == 0 || hf.N <= 0 {
-		w.WriteHeader(http.StatusInternalServerError)
+	n, err := strconv.Atoi(r.Form.Get("n"))
+	if err != nil || n <= 0 {
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	user := config.GetUser(hf.Email)
-	if !user.CheckPassword(hf.Password) {
+	success, user := checkAuth(w, r)
+	if !success {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	results, err := database.GetHistory(user.Email, hf.N)
+	results, err := database.GetHistory(user.Email, n)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

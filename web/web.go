@@ -19,14 +19,19 @@ package web
 
 import (
 	"fmt"
+	"github.com/gorilla/context"
 	"net/http"
 )
 
 // Load the web server
-func Load(ip string, port int) {
+func Load(address string, ip string, port int) {
+	initStore(address)
+
 	http.HandleFunc("/history", history)
+	http.HandleFunc("/auth", auth)
+	http.HandleFunc("/authcheck", httpAuthCheck)
 	http.HandleFunc("/socket", serveWs)
-	err := http.ListenAndServe(fmt.Sprintf("%s:%d", ip, port), nil)
+	err := http.ListenAndServe(fmt.Sprintf("%s:%d", ip, port), context.ClearHandler(http.DefaultServeMux))
 	if err != nil {
 		panic(err)
 	}

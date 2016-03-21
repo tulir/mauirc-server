@@ -19,7 +19,7 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
+	"errors"
 )
 
 // Message wraps an IRC message
@@ -35,13 +35,13 @@ type Message struct {
 var db *sql.DB
 
 // Load the database
-func Load(username, password, ip string, port int, database string) error {
+func Load(sqlStr string) error {
 	var err error
-	db, err = sql.Open("mysql", fmt.Sprintf("%[1]s:%[2]s@tcp(%[3]s:%[4]d)/%[5]s", username, password, ip, port, database))
+	db, err = sql.Open("mysql", sqlStr)
 	if err != nil {
 		return err
 	} else if db == nil {
-		return fmt.Errorf("Failed to open SQL connection!")
+		return errors.New("Failed to open SQL connection!")
 	}
 
 	_, err = db.Exec("CREATE TABLE IF NOT EXISTS messages (" +
@@ -54,47 +54,13 @@ func Load(username, password, ip string, port int, database string) error {
 		"command VARCHAR(255) NOT NULL," +
 		"message TEXT NOT NULL" +
 		");")
-	if err != nil {
-		return err
-	}
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS users (" +
-		"email VARCHAR(255) PRIMARY KEY," +
-		"password BINARY(60) NOT NULL," +
-		"lastfetch BIGINT NOT NULL," +
-		"user VARCHAR(255) NOT NULL," +
-		"nick VARCHAR(255) NOT NULL," +
-		"realname VARCHAR(255) NOT NULL" +
-		");")
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // Close the database connection
 func Close() {
 	db.Close()
 }
-
-// GetUnread gets all the unread messages of the given user
-/*func GetUnread(email string) ([]Message, error) {
-	result := db.QueryRow("SELECT lastfetch FROM users WHERE email=?", email)
-	var lastfetch int64
-	result.Scan(&lastfetch)
-
-	results, err := db.Query("SELECT network, channel, timestamp, sender, command, message FROM messages WHERE email=? AND timestamp>?", email, lastfetch)
-	if err != nil {
-		return nil, err
-	}
-	messages, err := scanMessages(results)
-	if err != nil {
-		return messages, err
-	}
-
-	db.Exec("UPDATE users SET lastfetch=? WHERE email=?", time.Now().Unix(), email)
-
-	return messages, nil
-}*/
 
 // GetHistory gets the last n messages
 func GetHistory(email string, n int) ([]Message, error) {

@@ -37,6 +37,14 @@ type User struct {
 	User     string     `json:"user"`
 	Nick     string     `json:"nick"`
 	Realname string     `json:"realname"`
+
+	AuthTokens []AuthToken `json:"-"`
+}
+
+// AuthToken is a simple wrapper for an auth token string and a timestamp
+type AuthToken struct {
+	Token string
+	Time  int64
 }
 
 // Network is a single IRC network owned by a single mauIRCd user

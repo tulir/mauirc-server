@@ -34,11 +34,6 @@ type sendform struct {
 	Message string `json:"message"`
 }
 
-type authform struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
 const (
 	writeWait      = 10 * time.Second
 	pongWait       = 30 * time.Second
@@ -116,14 +111,13 @@ func (c *connection) writePump() {
 		case new, ok := <-agg:
 			if !ok {
 				c.write(websocket.CloseMessage, []byte{})
-				new.source.NewMessages <- new.val
-				return
-			}
-			if err := c.writeJSON(new.val); err != nil {
+			} else if err := c.writeJSON(new.val); err != nil {
 				fmt.Println("Disconnected:", err)
-				new.source.NewMessages <- new.val
-				return
+			} else {
+				continue
 			}
+			new.source.NewMessages <- new.val
+			return
 		case <-ticker.C:
 			if err := c.write(websocket.PingMessage, []byte{}); err != nil {
 				return
@@ -132,7 +126,7 @@ func (c *connection) writePump() {
 	}
 }
 
-func (c *connection) waitAuth() bool {
+/*func (c *connection) waitAuth() bool {
 	_, message, err := c.ws.ReadMessage()
 	if err != nil {
 		if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
@@ -159,23 +153,30 @@ func (c *connection) waitAuth() bool {
 	c.write(websocket.TextMessage, []byte("{\"auth\": true, \"success\": false}"))
 	c.write(websocket.CloseMessage, []byte{})
 	return false
-}
+}*/
 
 func serveWs(w http.ResponseWriter, r *http.Request) {
+	success, user := checkAuth(w, r)
+	if !success {
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Println("Auth fail")
+		return
+	}
+
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println("Failed to connect:", err)
 		return
 	}
-	c := &connection{ws: ws}
+	c := &connection{ws: ws, user: user}
 
 	c.ws.SetReadLimit(maxMessageSize)
 	c.ws.SetReadDeadline(time.Now().Add(pongWait))
 	c.ws.SetPongHandler(func(string) error { c.ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 
-	if !c.waitAuth() {
+	/*if !c.waitAuth() {
 		return
-	}
+	}*/
 
 	go c.writePump()
 	c.readPump()
