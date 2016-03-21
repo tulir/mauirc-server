@@ -103,6 +103,12 @@ func (net *Network) SendMessage(channel, command, message string) {
 		net.IRC.Privmsg(channel, message)
 	} else if command == "action" {
 		net.IRC.Action(channel, message)
+	} else if command == "join" {
+		net.IRC.Join(channel)
+		return
+	} else if command == "part" {
+		net.IRC.Part(channel)
+		return
 	}
 	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
 	net.NewMessages <- msg
