@@ -31,14 +31,13 @@ type Configuration struct {
 
 // User is a single mauIRCd user
 type User struct {
-	Networks []*Network `json:"networks"`
-	Email    string     `json:"email"`
-	Password string     `json:"password"`
-	User     string     `json:"user"`
-	Nick     string     `json:"nick"`
-	Realname string     `json:"realname"`
-
-	AuthTokens []AuthToken `json:"-"`
+	Networks   []*Network  `json:"networks"`
+	Email      string      `json:"email"`
+	Password   string      `json:"password"`
+	User       string      `json:"user"`
+	Nick       string      `json:"nick"`
+	Realname   string      `json:"realname"`
+	AuthTokens []AuthToken `json:"authtokens,omitempty"`
 }
 
 // AuthToken is a simple wrapper for an auth token string and a timestamp
