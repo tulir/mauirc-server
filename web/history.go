@@ -30,7 +30,7 @@ func history(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
-	n, err := strconv.Atoi(r.Form.Get("n"))
+	n, err := strconv.Atoi(r.URL.Query().Get("n"))
 	if err != nil || n <= 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		return
