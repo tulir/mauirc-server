@@ -95,6 +95,24 @@ func scanMessages(results *sql.Rows) ([]Message, error) {
 	return messages, nil
 }
 
+// ClearChannel clears all the messages in the given channel.
+func ClearChannel(email, network, channel string) error {
+	_, err := db.Exec("DELETE FROM messages WHERE email=?,network=?,channel=?", email, network, channel)
+	return err
+}
+
+// ClearNetwork clears all the messages in the channels that are in the given network.
+func ClearNetwork(email, network string) error {
+	_, err := db.Exec("DELETE FROM messages WHERE email=?,network=?", email, network)
+	return err
+}
+
+// ClearUser clears all messages owned by the given user.
+func ClearUser(email string) error {
+	_, err := db.Exec("DELETE FROM messages WHERE email=?", email)
+	return err
+}
+
 // Insert a message into the database
 func Insert(email string, msg Message) error {
 	_, err := db.Exec("INSERT INTO messages (email, network, channel, timestamp, sender, command, message) VALUES (?, ?, ?, ?, ?, ?, ?);",
