@@ -141,6 +141,7 @@ func (net *Network) part(evt *irc.Event) {
 			if ch == evt.Arguments[0] {
 				net.Channels[i] = net.Channels[len(net.Channels)-1]
 				net.Channels = net.Channels[:len(net.Channels)-1]
+				database.ClearChannel(net.Owner.Email, net.Name, ch)
 				return
 			}
 		}
