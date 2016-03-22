@@ -85,6 +85,10 @@ func (net *Network) joinpart(channel string, part bool) {
 }
 
 func (net *Network) message(channel, sender, command, message string) {
+	if channel == "AUTH" {
+		return
+	}
+
 	for _, s := range net.Scripts {
 		channel, sender, command, message = s.Run(channel, sender, command, message)
 	}
