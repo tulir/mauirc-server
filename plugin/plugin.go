@@ -30,7 +30,7 @@ func (s Script) String() string {
 }
 
 // Run the script with the given values.
-func (s Script) Run(channel, sender, command, message string) (string, string, string, string) {
+func (s Script) Run(channel, sender, command, message string, cancelled bool) (string, string, string, string, bool) {
 	L := lua.NewState()
 	L.OpenLibs()
 
@@ -38,6 +38,7 @@ func (s Script) Run(channel, sender, command, message string) (string, string, s
 	L.SetGlobal("sender", lua.LString(sender))
 	L.SetGlobal("command", lua.LString(command))
 	L.SetGlobal("message", lua.LString(message))
+	L.SetGlobal("cancelled", lua.LBool(cancelled))
 
 	defer L.Close()
 	if err := L.DoString(s.String()); err != nil {
@@ -45,5 +46,6 @@ func (s Script) Run(channel, sender, command, message string) (string, string, s
 	}
 
 	return L.GetGlobal("channel").String(), L.GetGlobal("sender").String(),
-		L.GetGlobal("command").String(), L.GetGlobal("message").String()
+		L.GetGlobal("command").String(), L.GetGlobal("message").String(),
+		L.GetGlobal("cancelled").(bool)
 }

@@ -28,7 +28,7 @@ func Split(message string) []string {
 	} else if len(message) > 250 {
 		return SplitLen(message)
 	} else {
-		return nil
+		return []string{}
 	}
 }
 
