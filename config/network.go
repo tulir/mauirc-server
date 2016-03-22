@@ -105,7 +105,7 @@ func (net *Network) SendMessage(channel, command, message string) {
 		case "privmsg":
 			net.IRC.Privmsg(channel, message)
 		case "action":
-			net.IRC.Action(channel, messages)
+			net.IRC.Action(channel, message)
 		case "join":
 			net.IRC.Join(channel)
 			return
