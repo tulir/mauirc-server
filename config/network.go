@@ -113,18 +113,26 @@ func (net *Network) message(channel, sender, command, message string) {
 
 // SendMessage sends the given message to the given channel
 func (net *Network) SendMessage(channel, command, message string) {
+	sender := net.Nick
+	cancelled := false
+	for _, s := range net.Scripts {
+		channel, sender, command, message, cancelled = s.Run(channel, sender, command, message, cancelled)
+	}
+
+	if cancelled {
+		return
+	}
+
+	if channel == "*mauirc" && command == "privmsg" {
+		net.handleCommand(sender, message)
+	}
+
 	splitted := util.Split(message)
 	if len(splitted) > 1 {
 		for _, piece := range splitted {
 			net.SendMessage(channel, command, piece)
 		}
 		return
-	}
-
-	sender := net.Nick
-	cancelled := false
-	for _, s := range net.Scripts {
-		channel, sender, command, message, cancelled = s.Run(channel, sender, command, message, cancelled)
 	}
 
 	if !strings.HasPrefix(channel, "*") {
@@ -140,8 +148,6 @@ func (net *Network) SendMessage(channel, command, message string) {
 			net.IRC.Part(channel)
 			return
 		}
-	} else if channel == "*mauirc" && command == "privmsg" {
-		net.handleCommand(sender, message)
 	}
 
 	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
