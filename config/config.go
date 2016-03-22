@@ -28,6 +28,12 @@ var config *Configuration
 
 // Load the config at the given path
 func Load(path string) error {
+	var err error
+	path, err = filepath.Abs(path)
+	if err != nil {
+		return err
+	}
+
 	config = &Configuration{}
 	data, err := ioutil.ReadFile(filepath.Join(path, "config.json"))
 	if err != nil {
