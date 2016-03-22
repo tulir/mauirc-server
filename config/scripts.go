@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"maunium.net/go/mauircd/plugin"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -28,6 +29,15 @@ import (
 // LoadScripts loads the scripts of this network
 func (net *Network) LoadScripts(path string) error {
 	path = filepath.Join(path, net.Owner.Email, net.Name)
+
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		err = os.MkdirAll(path, 0755)
+		if err != nil {
+			return err
+		}
+	}
+
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
 		return err
@@ -44,12 +54,22 @@ func (net *Network) LoadScripts(path string) error {
 }
 
 // SaveScripts saves the scripts of this network
-func (net *Network) SaveScripts(path string) {
+func (net *Network) SaveScripts(path string) error {
 	path = filepath.Join(path, net.Owner.Email, net.Name)
+
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		err = os.MkdirAll(path, 0755)
+		if err != nil {
+			return err
+		}
+	}
+
 	for _, script := range net.Scripts {
 		err := ioutil.WriteFile(filepath.Join(path, script.Name+".lua"), []byte(script.TheScript), 0644)
 		if err != nil {
 			fmt.Printf("Failed to save script \"%s\" for network %s owned by %s\n", script.Name+".lua", net.Name, net.Owner.Email)
 		}
 	}
+	return nil
 }
