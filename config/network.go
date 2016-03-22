@@ -124,7 +124,13 @@ func (net *Network) SendMessage(channel, command, message string) {
 	}
 
 	if channel == "*mauirc" && command == "privmsg" {
+		msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
+		net.NewMessages <- msg
+		database.Insert(net.Owner.Email, msg)
+
 		net.handleCommand(sender, message)
+
+		return
 	}
 
 	splitted := util.Split(message)
