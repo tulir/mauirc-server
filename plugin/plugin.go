@@ -47,5 +47,5 @@ func (s Script) Run(channel, sender, command, message string, cancelled bool) (s
 
 	return L.GetGlobal("channel").String(), L.GetGlobal("sender").String(),
 		L.GetGlobal("command").String(), L.GetGlobal("message").String(),
-		L.GetGlobal("cancelled").(bool)
+		bool(L.GetGlobal("cancelled").(lua.LBool))
 }
