@@ -67,6 +67,20 @@ func (net *Network) Open(user *User) {
 	})
 }
 
+func (net *Network) joinpart(channel string, part bool) {
+	for i, ch := range net.Channels {
+		if ch == channel {
+			if part {
+				net.Channels[i] = net.Channels[len(net.Channels)-1]
+				net.Channels = net.Channels[:len(net.Channels)-1]
+				database.ClearChannel(net.Owner.Email, net.Name, ch)
+			}
+			return
+		}
+	}
+	net.Channels = append(net.Channels, channel)
+}
+
 func (net *Network) message(channel, sender, command, message string) {
 	for _, s := range net.Scripts {
 		channel, sender, command, message = s.Run(channel, sender, command, message)
@@ -83,6 +97,12 @@ func (net *Network) message(channel, sender, command, message string) {
 	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
 	net.NewMessages <- msg
 	database.Insert(net.Owner.Email, msg)
+
+	if sender == net.Nick && command == "join" {
+		net.joinpart(channel, false)
+	} else if sender == net.Nick && command == "part" {
+		net.joinpart(channel, true)
+	}
 }
 
 // SendMessage sends the given message to the given channel
@@ -126,30 +146,10 @@ func (net *Network) Close() {
 
 func (net *Network) join(evt *irc.Event) {
 	go net.message(evt.Arguments[0], evt.Nick, "join", evt.Message())
-
-	if evt.Nick == net.Nick {
-		for _, ch := range net.Channels {
-			if ch == evt.Arguments[0] {
-				return
-			}
-		}
-		net.Channels = append(net.Channels, evt.Arguments[0])
-	}
 }
 
 func (net *Network) part(evt *irc.Event) {
 	go net.message(evt.Arguments[0], evt.Nick, "part", evt.Message())
-
-	if evt.Nick == net.Nick {
-		for i, ch := range net.Channels {
-			if ch == evt.Arguments[0] {
-				net.Channels[i] = net.Channels[len(net.Channels)-1]
-				net.Channels = net.Channels[:len(net.Channels)-1]
-				database.ClearChannel(net.Owner.Email, net.Name, ch)
-				return
-			}
-		}
-	}
 }
 
 func (net *Network) privmsg(evt *irc.Event) {
