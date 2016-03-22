@@ -87,14 +87,13 @@ func (net *Network) joinpart(channel string, part bool) {
 func (net *Network) message(channel, sender, command, message string) {
 	if channel == "AUTH" {
 		return
-	}
-
-	for _, s := range net.Scripts {
-		channel, sender, command, message = s.Run(channel, sender, command, message)
-	}
-
-	if channel == net.Nick {
+	} else if channel == net.Nick {
 		channel = sender
+	}
+
+	cancelled := false
+	for _, s := range net.Scripts {
+		channel, sender, command, message, cancelled = s.Run(channel, sender, command, message, cancelled)
 	}
 
 	if len(channel) == 0 || len(command) == 0 {
@@ -142,7 +141,7 @@ func (net *Network) SendMessage(channel, command, message string) {
 			return
 		}
 	} else if channel == "*mauirc" && command == "privmsg" {
-		handleCommand(sender, command, args)
+		net.handleCommand(sender, message)
 	}
 
 	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
@@ -152,8 +151,8 @@ func (net *Network) SendMessage(channel, command, message string) {
 
 func (net *Network) handleCommand(sender, msg string) {
 	split := strings.SplitN(msg, " ", 2)
-	command = strings.ToLower(split[0])
-	args = strings.Split(split[1], " ")
+	command := strings.ToLower(split[0])
+	args := strings.Split(split[1], " ")
 
 	switch command {
 	case "clearbuffer":
