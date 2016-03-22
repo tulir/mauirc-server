@@ -129,7 +129,10 @@ func auth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := config.GetUser(af.Email)
-	if !user.CheckPassword(af.Password) {
+	if user == nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	} else if !user.CheckPassword(af.Password) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
