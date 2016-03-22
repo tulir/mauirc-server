@@ -23,3 +23,4 @@ build:
         paths:
         - mauircd_amd64
         - mauircd_arm
+        - LICENSE
