@@ -38,8 +38,13 @@ func main() {
 		panic(err)
 	}
 
-	sqlStr := fmt.Sprintf("%[1]s:%[2]s@tcp(%[3]s:%[4]d)/%[5]s", "root", flag.Arg(0), "127.0.0.1", 3306, "mauircd")
-	database.Load(sqlStr)
+	database.Load(fmt.Sprintf("%[1]s:%[2]s@tcp(%[3]s:%[4]d)/%[5]s",
+		config.GetSQLConfig().Username,
+		config.GetSQLConfig().Password,
+		config.GetSQLConfig().IP,
+		config.GetSQLConfig().Port,
+		config.GetSQLConfig().Database,
+	))
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)

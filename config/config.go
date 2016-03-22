@@ -74,3 +74,8 @@ func GetUser(email string) *User {
 func GetUsers() []*User {
 	return config.Users
 }
+
+// GetSQLConfig gets the SQL configuration
+func GetSQLConfig() SQLConfig {
+	return config.SQL
+}
