@@ -155,20 +155,6 @@ func (net *Network) SendMessage(channel, command, message string) {
 	database.Insert(net.Owner.Email, msg)
 }
 
-func (net *Network) handleCommand(sender, msg string) {
-	split := strings.SplitN(msg, " ", 2)
-	command := strings.ToLower(split[0])
-	args := strings.Split(split[1], " ")
-
-	switch command {
-	case "clearbuffer":
-		if len(args) > 0 {
-			database.ClearChannel(net.Owner.Email, net.Name, args[0])
-			net.message("*mauirc", "mauIRCd", "privmsg", "Successfully cleared buffer of "+args[0]+" on "+net.Name)
-		}
-	}
-}
-
 // Close the IRC connection.
 func (net *Network) Close() {
 	net.IRC.Quit()
