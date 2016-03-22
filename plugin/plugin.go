@@ -22,11 +22,14 @@ import (
 )
 
 // Script wraps a Lua script.
-type Script string
+type Script struct {
+	TheScript string
+	Name      string
+}
 
-// String turns the script into a string.
-func (s Script) String() string {
-	return string(s)
+// Script gets the actual lua script
+func (s Script) Script() string {
+	return string(s.TheScript)
 }
 
 // Run the script with the given values.
@@ -41,7 +44,7 @@ func (s Script) Run(channel, sender, command, message string, cancelled bool) (s
 	L.SetGlobal("cancelled", lua.LBool(cancelled))
 
 	defer L.Close()
-	if err := L.DoString(s.String()); err != nil {
+	if err := L.DoString(s.Script()); err != nil {
 		panic(err)
 	}
 
