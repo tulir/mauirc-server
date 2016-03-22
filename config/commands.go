@@ -18,7 +18,11 @@
 package config
 
 import (
+	"fmt"
+	"io/ioutil"
 	"maunium.net/go/mauircd/database"
+	"maunium.net/go/mauircd/plugin"
+	"net/http"
 	"strings"
 )
 
@@ -33,5 +37,35 @@ func (net *Network) handleCommand(sender, msg string) {
 			database.ClearChannel(net.Owner.Email, net.Name, args[0])
 			net.message("*mauirc", "mauIRCd", "privmsg", "Successfully cleared buffer of "+args[0]+" on "+net.Name)
 		}
+	case "importscript":
+		if len(args) > 1 {
+			data, err := download(args[1])
+			if err != nil {
+				fmt.Println(err)
+				net.message("*mauirc", "mauIRCd", "privmsg", "Failed to download script from http://pastebin.com/raw/"+args[1])
+				return
+			}
+			net.Scripts = append(net.Scripts, plugin.Script{TheScript: data, Name: args[0]})
+			net.message("*mauirc", "mauIRCd", "privmsg", "Successfully loaded script with name "+args[0])
+		}
 	}
+}
+
+func download(pasteID string) (string, error) {
+	response, err := http.Get("http://pastebin.com/raw/" + pasteID)
+	if err != nil {
+		return "", err
+	}
+	defer response.Body.Close()
+	data, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return "", err
+	}
+	response.Body.Close()
+
+	if len(data) == 0 {
+		return "", fmt.Errorf("No data received!")
+	}
+
+	return string(data), nil
 }
