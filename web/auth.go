@@ -37,11 +37,11 @@ var store *sessions.CookieStore
 func initStore(address string) {
 	store = sessions.NewCookieStore([]byte("lfoWqz9lTNgkM12KLZ23cT7FXeBlXWFL"))
 	store.Options = &sessions.Options{
-		Domain: address,
-		Path:   "/",
-		MaxAge: 86400 * 7,
-		//Secure:     false,
-		//HttpOnly:   true,
+		Domain:   address,
+		Path:     "/",
+		MaxAge:   86400 * 30,
+		Secure:   true,
+		HttpOnly: true,
 	}
 }
 
@@ -144,7 +144,7 @@ func auth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	at := generateAuthToken()
-	user.AuthTokens = append(user.AuthTokens, config.AuthToken{Token: at, Time: time.Now().Add(7 * 24 * time.Hour).Unix()})
+	user.AuthTokens = append(user.AuthTokens, config.AuthToken{Token: at, Time: time.Now().Add(30 * 24 * time.Hour).Unix()})
 
 	session.Values["token"] = at
 	session.Values["email"] = user.Email

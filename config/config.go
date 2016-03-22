@@ -75,7 +75,7 @@ func GetUsers() []*User {
 	return config.Users
 }
 
-// GetSQLConfig gets the SQL configuration
-func GetSQLConfig() SQLConfig {
-	return config.SQL
+// GetConfig returns the config object
+func GetConfig() *Configuration {
+	return config
 }

@@ -39,11 +39,11 @@ func main() {
 	}
 
 	database.Load(fmt.Sprintf("%[1]s:%[2]s@tcp(%[3]s:%[4]d)/%[5]s",
-		config.GetSQLConfig().Username,
-		config.GetSQLConfig().Password,
-		config.GetSQLConfig().IP,
-		config.GetSQLConfig().Port,
-		config.GetSQLConfig().Database,
+		config.GetConfig().SQL.Username,
+		config.GetConfig().SQL.Password,
+		config.GetConfig().SQL.IP,
+		config.GetConfig().SQL.Port,
+		config.GetConfig().SQL.Database,
 	))
 
 	c := make(chan os.Signal, 1)
@@ -61,5 +61,5 @@ func main() {
 		config.Save()
 		os.Exit(0)
 	}()
-	web.Load("127.0.0.1", "127.0.0.1", 29304)
+	web.Load(config.GetConfig().Address, config.GetConfig().IP, config.GetConfig().Port)
 }
