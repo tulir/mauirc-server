@@ -47,6 +47,9 @@ func (net *Network) Open(user *User) {
 	net.NewMessages = make(chan database.Message, 256)
 
 	i.AddCallback("PRIVMSG", net.privmsg)
+	i.AddCallback("NOTICE", net.privmsg)
+	i.AddCallback("CPRIVMSG", net.privmsg)
+	i.AddCallback("CNOTICE", net.privmsg)
 	i.AddCallback("CTCP_ACTION", net.action)
 	i.AddCallback("JOIN", net.join)
 	i.AddCallback("PART", net.part)
