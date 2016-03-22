@@ -1,0 +1,25 @@
+image: golang:1.6
+
+before_script:
+- "go get -u github.com/ogier/pflag"
+- "go get -u github.com/thoj/go-ircevent"
+- "go get -u github.com/go-sql-driver/mysql"
+- "go get -u github.com/gorilla/context"
+- "go get -u github.com/gorilla/sessions"
+- "go get -u github.com/gorilla/websocket"
+- "go get -u github.com/yuin/gopher-lua"
+- "go get -u golang.org/x/crypto/bcrypt"
+- "mkdir -p /go/src/maunium.net/go"
+- "ln -s /builds/Tulir293/mauircd /go/src/maunium.net/go/mauircd"
+
+build:
+    script:
+    - "env GOOS=linux GOARCH=amd64 go build -o mauircd_amd64 maunium.net/go/mauircd"
+    - "env GOOS=linux GOARCH=arm go build -o mauircd_arm maunium.net/go/mauircd"
+    stage: build
+    tags:
+    - golang
+    artifacts:
+        paths:
+        - mauircd_amd64
+        - mauircd_arm
