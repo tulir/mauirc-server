@@ -46,6 +46,13 @@ func main() {
 		config.GetConfig().SQL.Database,
 	))
 
+	for _, user := range config.GetUsers() {
+		for _, network := range user.Networks {
+			network.Open(user)
+			network.LoadScripts(config.GetConfig().Path)
+		}
+	}
+
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
@@ -54,6 +61,7 @@ func main() {
 		for _, user := range config.GetUsers() {
 			for _, network := range user.Networks {
 				network.Close()
+				network.SaveScripts(config.GetConfig().Path)
 			}
 		}
 		time.Sleep(2 * time.Second)

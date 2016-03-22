@@ -46,11 +46,6 @@ func Load(path string) error {
 	}
 
 	config.Path = path
-	for _, user := range config.Users {
-		for _, network := range user.Networks {
-			network.Open(user)
-		}
-	}
 
 	return nil
 }
