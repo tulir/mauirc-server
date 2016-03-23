@@ -19,10 +19,8 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/plugin"
-	"net/http"
 	"strings"
 )
 
@@ -49,23 +47,4 @@ func (net *Network) handleCommand(sender, msg string) {
 			net.message("*mauirc", "mauIRCd", "privmsg", "Successfully loaded script with name "+args[0])
 		}
 	}
-}
-
-func download(pasteID string) (string, error) {
-	response, err := http.Get("http://pastebin.com/raw/" + pasteID)
-	if err != nil {
-		return "", err
-	}
-	defer response.Body.Close()
-	data, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return "", err
-	}
-	response.Body.Close()
-
-	if len(data) == 0 {
-		return "", fmt.Errorf("No data received!")
-	}
-
-	return string(data), nil
 }
