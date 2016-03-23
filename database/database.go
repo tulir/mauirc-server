@@ -53,7 +53,7 @@ func Load(sqlStr string) error {
 		"sender VARCHAR(255) NOT NULL," +
 		"command VARCHAR(255) NOT NULL," +
 		"message TEXT NOT NULL" +
-		");")
+		") DEFAULT CHARSET=utf8;")
 	return err
 }
 
