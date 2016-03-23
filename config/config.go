@@ -18,6 +18,8 @@
 package config
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"io/ioutil"
 	"path/filepath"
@@ -45,9 +47,30 @@ func Load(path string) error {
 		return err
 	}
 
+	if len(config.CSecretB64) > 0 {
+		cs, err := base64.StdEncoding.DecodeString(config.CSecretB64)
+		if err != nil {
+			return err
+		}
+		config.CookieSecret = cs
+	} else {
+		cs, err := generateCookieSecret()
+		if err != nil {
+			return err
+		}
+		config.CookieSecret = cs
+		config.CSecretB64 = base64.StdEncoding.EncodeToString(cs)
+	}
 	config.Path = path
 
 	return nil
+}
+
+func generateCookieSecret() ([]byte, error) {
+	var authToken string
+	b := make([]byte, 32)
+	_, err := rand.Read(b)
+	return b, err
 }
 
 // Save the configuration file

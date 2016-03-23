@@ -25,12 +25,14 @@ import (
 
 // Configuration is the base configuration for mauIRCd
 type Configuration struct {
-	Path    string    `json:"-"`
-	SQL     SQLConfig `json:"sql"`
-	Users   []*User   `json:"users"`
-	IP      string    `json:"ip"`
-	Port    int       `json:"port"`
-	Address string    `json:"external-address"`
+	Path         string    `json:"-"`
+	SQL          SQLConfig `json:"sql"`
+	Users        []*User   `json:"users"`
+	IP           string    `json:"ip"`
+	Port         int       `json:"port"`
+	Address      string    `json:"external-address"`
+	CSecretB64   string    `json:"cookie-secret"`
+	CookieSecret []byte    `json:"-"`
 }
 
 // SQLConfig contains sql connection info
