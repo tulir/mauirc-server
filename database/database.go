@@ -97,6 +97,12 @@ func scanMessages(results *sql.Rows) ([]Message, error) {
 	return messages, nil
 }
 
+// DeleteMessage deletes the message with the given ID
+func DeleteMessage(email, id int64) error {
+	_, err := db.Exec("DELETE FROM messages WHERE email=? AND id=?;", email, id)
+	return err
+}
+
 // ClearChannel clears all the messages in the given channel.
 func ClearChannel(email, network, channel string) error {
 	_, err := db.Exec("DELETE FROM messages WHERE email=? AND network=? AND channel=?;", email, network, channel)
