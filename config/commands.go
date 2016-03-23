@@ -44,9 +44,9 @@ func (net *Network) handleCommand(sender, msg string) {
 				net.message("*mauirc", "mauIRCd", "privmsg", "Failed to download script from http://pastebin.com/raw/"+args[1])
 				return
 			}
-			for _, script := range net.Scripts {
-				if script.Name == args[0] {
-					script.TheScript = data
+			for i := 0; i < len(net.Scripts); i++ {
+				if net.Scripts[i].Name == args[0] {
+					net.Scripts[i].TheScript = data
 					net.message("*mauirc", "mauIRCd", "privmsg", "Successfully updated script with name "+args[0])
 					return
 				}
