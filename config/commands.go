@@ -37,11 +37,19 @@ func (net *Network) handleCommand(sender, msg string) {
 		}
 	case "importscript":
 		if len(args) > 1 {
+			args[0] = strings.ToLower(args[0])
 			data, err := download(args[1])
 			if err != nil {
 				fmt.Println(err)
 				net.message("*mauirc", "mauIRCd", "privmsg", "Failed to download script from http://pastebin.com/raw/"+args[1])
 				return
+			}
+			for _, script := range net.Scripts {
+				if script.Name == args[0] {
+					script.TheScript = data
+					net.message("*mauirc", "mauIRCd", "privmsg", "Successfully updated script with name "+args[0])
+					return
+				}
 			}
 			net.Scripts = append(net.Scripts, plugin.Script{TheScript: data, Name: args[0]})
 			net.message("*mauirc", "mauIRCd", "privmsg", "Successfully loaded script with name "+args[0])
