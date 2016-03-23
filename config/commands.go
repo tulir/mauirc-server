@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/plugin"
+	"strconv"
 	"strings"
 )
 
@@ -34,6 +35,15 @@ func (net *Network) handleCommand(sender, msg string) {
 		if len(args) > 0 {
 			database.ClearChannel(net.Owner.Email, net.Name, args[0])
 			net.message("*mauirc", "mauIRCd", "privmsg", "Successfully cleared buffer of "+args[0]+" on "+net.Name)
+		}
+	case "deletemessage":
+		if len(args) > 0 {
+			id, err := strconv.Atoi(args[0])
+			if err != nil {
+				net.message("*mauirc", "mauIRCd", "privmsg", "Couldn't parse int from "+args[0])
+				return
+			}
+			database.DeleteMessage(net.Owner.Email, int64(id))
 		}
 	case "importscript":
 		if len(args) > 1 {
