@@ -24,6 +24,7 @@ import (
 
 // Message wraps an IRC message
 type Message struct {
+	ID        int64  `json:"id"`
 	Network   string `json:"network"`
 	Channel   string `json:"channel"`
 	Timestamp int64  `json:"timestamp"`
@@ -64,7 +65,7 @@ func Close() {
 
 // GetHistory gets the last n messages
 func GetHistory(email string, n int) ([]Message, error) {
-	results, err := db.Query("SELECT network, channel, timestamp, sender, command, message FROM messages WHERE email=? ORDER BY id DESC LIMIT ?", email, n)
+	results, err := db.Query("SELECT id, network, channel, timestamp, sender, command, message FROM messages WHERE email=? ORDER BY id DESC LIMIT ?", email, n)
 	if err != nil {
 		return nil, err
 	}
@@ -79,11 +80,12 @@ func scanMessages(results *sql.Rows) ([]Message, error) {
 		}
 
 		var network, channel, sender, command, message string
-		var timestamp int64
+		var timestamp, id int64
 
-		results.Scan(&network, &channel, &timestamp, &sender, &command, &message)
+		results.Scan(&id, &network, &channel, &timestamp, &sender, &command, &message)
 
 		messages = append(messages, Message{
+			ID:        id,
 			Network:   network,
 			Channel:   channel,
 			Timestamp: timestamp,
@@ -114,8 +116,10 @@ func ClearUser(email string) error {
 }
 
 // Insert a message into the database
-func Insert(email string, msg Message) error {
-	_, err := db.Exec("INSERT INTO messages (email, network, channel, timestamp, sender, command, message) VALUES (?, ?, ?, ?, ?, ?, ?);",
+func Insert(email string, msg Message) (int64, error) {
+	result := db.QueryRow("INSERT INTO messages (email, network, channel, timestamp, sender, command, message) VALUES (?, ?, ?, ?, ?, ?, ?); SELECT LAST_INSERT_ID();",
 		email, msg.Network, msg.Channel, msg.Timestamp, msg.Sender, msg.Command, msg.Message)
-	return err
+	var id int64
+	err := result.Scan(id)
+	return id, err
 }

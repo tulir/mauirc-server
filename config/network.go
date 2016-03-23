@@ -101,8 +101,8 @@ func (net *Network) message(channel, sender, command, message string) {
 	}
 
 	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
+	msg.ID, _ = database.Insert(net.Owner.Email, msg)
 	net.NewMessages <- msg
-	database.Insert(net.Owner.Email, msg)
 
 	if sender == net.Nick && command == "join" {
 		net.joinpart(channel, false)
@@ -125,8 +125,8 @@ func (net *Network) SendMessage(channel, command, message string) {
 
 	if channel == "*mauirc" && command == "privmsg" {
 		msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
+		msg.ID, _ = database.Insert(net.Owner.Email, msg)
 		net.NewMessages <- msg
-		database.Insert(net.Owner.Email, msg)
 
 		net.handleCommand(sender, message)
 
@@ -157,8 +157,8 @@ func (net *Network) SendMessage(channel, command, message string) {
 	}
 
 	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
+	msg.ID, _ = database.Insert(net.Owner.Email, msg)
 	net.NewMessages <- msg
-	database.Insert(net.Owner.Email, msg)
 }
 
 // Close the IRC connection.
