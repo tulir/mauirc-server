@@ -67,7 +67,6 @@ func Load(path string) error {
 }
 
 func generateCookieSecret() ([]byte, error) {
-	var authToken string
 	b := make([]byte, 32)
 	_, err := rand.Read(b)
 	return b, err
