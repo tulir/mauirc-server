@@ -98,7 +98,7 @@ func scanMessages(results *sql.Rows) ([]Message, error) {
 }
 
 // DeleteMessage deletes the message with the given ID
-func DeleteMessage(email, id int64) error {
+func DeleteMessage(email string, id int64) error {
 	_, err := db.Exec("DELETE FROM messages WHERE email=? AND id=?;", email, id)
 	return err
 }
