@@ -27,28 +27,39 @@ type Script struct {
 	Name      string
 }
 
-// Script gets the actual lua script
-func (s Script) Script() string {
-	return string(s.TheScript)
+func getString(L *lua.LState, event *lua.LTable, name string) string {
+	return lua.LVAsString(L.GetField(event, name))
+}
+
+func getBool(L *lua.LState, event *lua.LTable, name string) bool {
+	return lua.LVAsBool(L.GetField(event, name))
+}
+
+func getInt64(L *lua.LState, event *lua.LTable, name string) int64 {
+	return int64(lua.LVAsNumber(L.GetField(event, name)))
 }
 
 // Run the script with the given values.
-func (s Script) Run(channel, sender, command, message string, cancelled bool) (string, string, string, string, bool) {
+func (s Script) Run(network, channel, sender, command, message string, timestamp int64, cancelled bool) (string, string, string, string, string, int64, bool) {
 	L := lua.NewState()
 	L.OpenLibs()
 
-	L.SetGlobal("channel", lua.LString(channel))
-	L.SetGlobal("sender", lua.LString(sender))
-	L.SetGlobal("command", lua.LString(command))
-	L.SetGlobal("message", lua.LString(message))
-	L.SetGlobal("cancelled", lua.LBool(cancelled))
+	event := L.NewTypeMetatable("event")
+	L.SetField(event, "network", lua.LString(network))
+	L.SetField(event, "channel", lua.LString(channel))
+	L.SetField(event, "timestamp", lua.LString(network))
+	L.SetField(event, "sender", lua.LString(sender))
+	L.SetField(event, "command", lua.LString(command))
+	L.SetField(event, "message", lua.LString(message))
+	L.SetField(event, "cancelled", lua.LBool(cancelled))
+	L.SetGlobal("event", event)
 
 	defer L.Close()
-	if err := L.DoString(s.Script()); err != nil {
+	if err := L.DoString(s.TheScript); err != nil {
 		panic(err)
 	}
 
-	return L.GetGlobal("channel").String(), L.GetGlobal("sender").String(),
-		L.GetGlobal("command").String(), L.GetGlobal("message").String(),
-		bool(L.GetGlobal("cancelled").(lua.LBool))
+	return getString(L, event, "network"), getString(L, event, "channel"), getString(L, event, "sender"),
+		getString(L, event, "command"), getString(L, event, "message"), getInt64(L, event, "timestamp"),
+		getBool(L, event, "cancelled")
 }
