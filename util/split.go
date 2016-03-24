@@ -21,7 +21,8 @@ import (
 	"strings"
 )
 
-// Split ...
+// Split a message by newlines and if the message is longer than 250
+// characters, split it into smaller pieces using SplitLen
 func Split(message string) []string {
 	if strings.ContainsRune(message, '\n') {
 		return strings.Split(message, "\n")
@@ -32,8 +33,12 @@ func Split(message string) []string {
 	}
 }
 
-// SplitLen ...
+// SplitLen splits a message into pieces that are less than 250 characters long.
+// If the message contains a space character before the character limit,
 func SplitLen(message string) []string {
+	if len(message) < 250 {
+		return []string{message}
+	}
 	lastIndex := -1
 	for i := 0; i < 250; i++ {
 		if message[i] == ' ' {
