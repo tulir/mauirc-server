@@ -103,12 +103,6 @@ func (net *Network) SendMessage(channel, command, message string) {
 		return
 	}
 
-	if msg.Channel == "*mauirc" && msg.Command == "privmsg" {
-		net.InsertAndSend(msg)
-		net.handleCommand(msg.Sender, msg.Message)
-		return
-	}
-
 	if splitted := util.Split(msg.Message); len(splitted) > 1 {
 		for _, piece := range splitted {
 			net.SendMessage(msg.Channel, msg.Command, piece)

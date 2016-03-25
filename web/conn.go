@@ -18,20 +18,13 @@
 package web
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/Jeffail/gabs"
 	"github.com/gorilla/websocket"
 	"maunium.net/go/mauircd/config"
 	"net/http"
 	"time"
 )
-
-type sendform struct {
-	Network string `json:"network"`
-	Channel string `json:"channel"`
-	Command string `json:"command"`
-	Message string `json:"message"`
-}
 
 const (
 	writeWait      = 10 * time.Second
@@ -63,16 +56,12 @@ func (c *connection) readPump() {
 			break
 		}
 
-		var sf sendform
-		err = json.Unmarshal(message, &sf)
-		if err != nil || len(sf.Network) == 0 || len(sf.Channel) == 0 || len(sf.Command) == 0 || len(sf.Message) == 0 {
+		data, err := gabs.ParseJSON(message)
+		if err != nil {
 			continue
 		}
 
-		net := c.user.GetNetwork(sf.Network)
-		if net != nil {
-			net.SendMessage(sf.Channel, sf.Command, sf.Message)
-		}
+		c.user.HandleCommand(data)
 	}
 }
 
