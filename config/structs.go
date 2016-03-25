@@ -63,6 +63,14 @@ type AuthToken struct {
 	Time  int64
 }
 
+// ChannelData contains information about a channeö
+type ChannelData struct {
+	UserList   []string `json:"user-list"`
+	Topic      string   `json:"topic"`
+	TopicSetBy string   `json:"topic-set-by"`
+	TopicSetAt int64    `json:"topic-set-at"`
+}
+
 // Network is a single IRC network owned by a single mauIRCd user
 type Network struct {
 	Name     string   `json:"name"`
@@ -72,9 +80,9 @@ type Network struct {
 	SSL      bool     `json:"ssl"`
 	Channels []string `json:"channels"`
 
-	Owner    *User               `json:"-"`
-	IRC      *irc.Connection     `json:"-"`
-	Nick     string              `json:"-"`
-	Scripts  []plugin.Script     `json:"-"`
-	Userlist map[string][]string `json:"-"`
+	Owner       *User                   `json:"-"`
+	IRC         *irc.Connection         `json:"-"`
+	Nick        string                  `json:"-"`
+	Scripts     []plugin.Script         `json:"-"`
+	ChannelInfo map[string]*ChannelData `json:"-"`
 }
