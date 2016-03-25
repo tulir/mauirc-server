@@ -95,15 +95,19 @@ func (c *connection) writePump() {
 		case new, ok := <-c.user.NewMessages:
 			if !ok {
 				c.write(websocket.CloseMessage, []byte{})
-			} else if err := c.writeJSON(new); err != nil {
-				fmt.Println("Disconnected:", err)
-			} else {
-				continue
+				c.user.NewMessages <- new
+				return
 			}
-			c.user.NewMessages <- new
-			return
+
+			err := c.writeJSON(new)
+			if err != nil {
+				fmt.Println("Disconnected:", err)
+				c.user.NewMessages <- new
+				return
+			}
 		case <-ticker.C:
-			if err := c.write(websocket.PingMessage, []byte{}); err != nil {
+			err := c.write(websocket.PingMessage, []byte{})
+			if err != nil {
 				return
 			}
 		}
