@@ -24,20 +24,35 @@ import (
 // Split a message by newlines and if the message is longer than 250
 // characters, split it into smaller pieces using SplitLen
 func Split(message string) []string {
+	splitted := []string{message}
 	if strings.ContainsRune(message, '\n') {
-		return strings.Split(message, "\n")
+		splitted = strings.Split(message, "\n")
 	} else if len(message) > 250 {
-		return SplitLen(message)
-	} else {
-		return []string{}
+		for len(splitted[len(splitted)-1]) > 250 {
+			if len(splitted) < 2 {
+				a, b := SplitLen(splitted[0])
+				if len(b) != 0 {
+					splitted = []string{a, b}
+				} else {
+					splitted = []string{a}
+				}
+			} else {
+				a, b := SplitLen(splitted[len(splitted)-1])
+				splitted[len(splitted)-1] = a
+				if len(b) != 0 {
+					splitted = append(splitted, b)
+				}
+			}
+		}
 	}
+	return splitted
 }
 
 // SplitLen splits a message into pieces that are less than 250 characters long.
 // If the message contains a space character before the character limit,
-func SplitLen(message string) []string {
+func SplitLen(message string) (string, string) {
 	if len(message) < 250 {
-		return []string{message}
+		return message, ""
 	}
 	lastIndex := -1
 	for i := 0; i < 250; i++ {
@@ -53,12 +68,12 @@ func SplitLen(message string) []string {
 			}
 		}
 	} else {
-		return []string{message[:lastIndex], message[lastIndex+1:]}
+		return message[:lastIndex], message[lastIndex+1:]
 	}
 
 	if lastIndex != -1 {
-		return []string{message[:lastIndex+1], message[lastIndex+1:]}
+		return message[:lastIndex+1], message[lastIndex+1:]
 	}
 
-	return []string{message[:250], message[250:]}
+	return message[:250], message[250:]
 }
