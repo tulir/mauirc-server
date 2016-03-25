@@ -99,33 +99,6 @@ func drain(commch chan database.Message) {
 	}
 }
 
-func (c *connection) startAggregating() (chan aggregate, chan bool) {
-	agg := make(chan aggregate)
-	stop := make(chan bool, 1)
-	for _, ch := range c.user.Networks {
-		drain(ch.NewMessages)
-	}
-	for i := 0; i < len(c.user.Networks); i++ {
-		var ii = i
-		go func() {
-			ch := c.user.Networks[ii]
-
-			for {
-				select {
-				case val, ok := <-ch.NewMessages:
-					if ok {
-						agg <- aggregate{val, ch}
-					}
-				case _, _ = <-stop:
-					stop <- true
-					return
-				}
-			}
-		}()
-	}
-	return agg, stop
-}
-
 func (c *connection) writePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
@@ -133,24 +106,20 @@ func (c *connection) writePump() {
 		c.ws.Close()
 	}()
 
-	agg, stop := c.startAggregating()
-
 	for {
 		select {
-		case new, ok := <-agg:
+		case new, ok := <-c.user.NewMessages:
 			if !ok {
 				c.write(websocket.CloseMessage, []byte{})
-			} else if err := c.writeJSON(new.val); err != nil {
+			} else if err := c.writeJSON(new); err != nil {
 				fmt.Println("Disconnected:", err)
 			} else {
 				continue
 			}
-			stop <- true
-			new.source.NewMessages <- new.val
+			c.user.NewMessages <- new
 			return
 		case <-ticker.C:
 			if err := c.write(websocket.PingMessage, []byte{}); err != nil {
-				stop <- true
 				return
 			}
 		}
