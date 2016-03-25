@@ -19,9 +19,9 @@ package config
 
 import (
 	"fmt"
-
 	"github.com/thoj/go-ircevent"
 	"maunium.net/go/mauircd/database"
+	"maunium.net/go/mauircd/plugin"
 	"maunium.net/go/mauircd/util"
 	"strings"
 	"time"
@@ -44,7 +44,6 @@ func (net *Network) Open(user *User) {
 	net.IRC = i
 	net.Owner = user
 	net.Nick = user.Nick
-	net.NewMessages = make(chan database.Message, 256)
 
 	i.AddCallback("PRIVMSG", net.privmsg)
 	i.AddCallback("NOTICE", net.privmsg)
@@ -77,88 +76,138 @@ func (net *Network) joinpart(channel string, part bool) {
 				net.Channels[i] = net.Channels[len(net.Channels)-1]
 				net.Channels = net.Channels[:len(net.Channels)-1]
 				database.ClearChannel(net.Owner.Email, net.Name, ch)
+			} else {
+				return
 			}
-			return
 		}
 	}
-	net.Channels = append(net.Channels, channel)
+	if !part {
+		net.Channels = append(net.Channels, channel)
+	}
 }
 
-func (net *Network) message(channel, sender, command, message string) {
-	if channel == "AUTH" {
-		return
-	} else if channel == net.Nick {
-		channel = sender
-	}
-
-	cancelled := false
-	for _, s := range net.Scripts {
-		channel, sender, command, message, cancelled = s.Run(channel, sender, command, message, cancelled)
-	}
-
-	if len(channel) == 0 || len(command) == 0 {
-		return
-	}
-
+// ReceiveMessage stores the message and sends it to the client
+func (net *Network) ReceiveMessage(channel, sender, command, message string) {
 	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
-	msg.ID, _ = database.Insert(net.Owner.Email, msg)
-	net.NewMessages <- msg
+	cancelled := false
+	if msg.Channel == "AUTH" {
+		return
+	} else if msg.Channel == net.Nick {
+		msg.Channel = msg.Sender
+	}
 
-	if sender == net.Nick && command == "join" {
-		net.joinpart(channel, false)
-	} else if sender == net.Nick && command == "part" {
-		net.joinpart(channel, true)
+	msg, cancelled = net.RunScripts(msg, cancelled, true)
+	if cancelled {
+		return
+	}
+
+	if len(msg.Channel) == 0 || len(msg.Command) == 0 {
+		return
+	}
+
+	net.InsertAndSend(msg)
+
+	if msg.Sender == net.Nick && msg.Command == "join" {
+		net.joinpart(msg.Channel, false)
+	} else if msg.Sender == net.Nick && msg.Command == "part" {
+		net.joinpart(msg.Channel, true)
 	}
 }
 
 // SendMessage sends the given message to the given channel
 func (net *Network) SendMessage(channel, command, message string) {
-	sender := net.Nick
+	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: net.Nick, Command: command, Message: message}
 	cancelled := false
-	for _, s := range net.Scripts {
-		channel, sender, command, message, cancelled = s.Run(channel, sender, command, message, cancelled)
-	}
 
+	msg, cancelled = net.RunScripts(msg, cancelled, false)
 	if cancelled {
 		return
 	}
 
-	if channel == "*mauirc" && command == "privmsg" {
-		msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
-		msg.ID, _ = database.Insert(net.Owner.Email, msg)
-		net.NewMessages <- msg
-
-		net.handleCommand(sender, message)
-
+	if msg.Channel == "*mauirc" && msg.Command == "privmsg" {
+		net.InsertAndSend(msg)
+		net.handleCommand(msg.Sender, msg.Message)
 		return
 	}
 
-	splitted := util.Split(message)
-	if len(splitted) > 1 {
+	if splitted := util.Split(msg.Message); len(splitted) > 1 {
 		for _, piece := range splitted {
-			net.SendMessage(channel, command, piece)
+			net.SendMessage(msg.Channel, msg.Command, piece)
 		}
 		return
 	}
 
-	if !strings.HasPrefix(channel, "*") {
-		switch command {
+	net.sendToIRC(msg)
+
+	net.InsertAndSend(msg)
+}
+
+func (net *Network) sendToIRC(msg database.Message) {
+	if !strings.HasPrefix(msg.Channel, "*") {
+		switch msg.Command {
 		case "privmsg":
-			net.IRC.Privmsg(channel, message)
+			net.IRC.Privmsg(msg.Channel, msg.Message)
 		case "action":
-			net.IRC.Action(channel, message)
+			net.IRC.Action(msg.Channel, msg.Message)
 		case "join":
-			net.IRC.Join(channel)
+			net.IRC.Join(msg.Channel)
 			return
 		case "part":
-			net.IRC.Part(channel)
+			net.IRC.Part(msg.Channel)
 			return
 		}
 	}
+}
 
-	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
+// RunScripts runs all the scripts of this network and all global scripts on the given message0
+func (net *Network) RunScripts(msg database.Message, cancelled, receiving bool) (database.Message, bool) {
+	netChanged := false
+	for _, s := range net.Scripts {
+		msg, cancelled, netChanged = net.RunScript(msg, s, cancelled, receiving)
+		if netChanged {
+			return msg, true
+		}
+	}
+
+	for _, s := range net.Owner.GlobalScripts {
+		msg, cancelled, netChanged = net.RunScript(msg, s, cancelled, receiving)
+		if netChanged {
+			return msg, true
+		}
+	}
+	return msg, cancelled
+}
+
+// RunScript runs a single script and sends it to another network if needed.
+func (net *Network) RunScript(msg database.Message, s plugin.Script, cancelled, receiving bool) (database.Message, bool, bool) {
+	msg, cancelled = s.Run(msg, cancelled)
+	if msg.Network != net.Name {
+		if net.SwitchNetwork(msg, receiving) {
+			return msg, cancelled, true
+		}
+		msg.Network = net.Name
+	}
+	return msg, cancelled, false
+}
+
+// SwitchNetwork sends the given message to another network
+func (net *Network) SwitchNetwork(msg database.Message, receiving bool) bool {
+	newNet := net.Owner.GetNetwork(msg.Network)
+	if newNet != nil {
+		if receiving {
+			newNet.ReceiveMessage(msg.Channel, msg.Sender, msg.Command, msg.Message)
+		} else {
+			newNet.SendMessage(msg.Channel, msg.Command, msg.Message)
+		}
+		return true
+	}
+	return false
+}
+
+// InsertAndSend inserts the given message into the database and sends it to the client
+func (net *Network) InsertAndSend(msg database.Message) {
 	msg.ID, _ = database.Insert(net.Owner.Email, msg)
-	net.NewMessages <- msg
+	net.Owner.NewMessages <- msg
 }
 
 // Close the IRC connection.
@@ -167,17 +216,17 @@ func (net *Network) Close() {
 }
 
 func (net *Network) join(evt *irc.Event) {
-	go net.message(evt.Arguments[0], evt.Nick, "join", evt.Message())
+	go net.ReceiveMessage(evt.Arguments[0], evt.Nick, "join", evt.Message())
 }
 
 func (net *Network) part(evt *irc.Event) {
-	go net.message(evt.Arguments[0], evt.Nick, "part", evt.Message())
+	go net.ReceiveMessage(evt.Arguments[0], evt.Nick, "part", evt.Message())
 }
 
 func (net *Network) privmsg(evt *irc.Event) {
-	go net.message(evt.Arguments[0], evt.Nick, "privmsg", evt.Message())
+	go net.ReceiveMessage(evt.Arguments[0], evt.Nick, "privmsg", evt.Message())
 }
 
 func (net *Network) action(evt *irc.Event) {
-	go net.message(evt.Arguments[0], evt.Nick, "action", evt.Message())
+	go net.ReceiveMessage(evt.Arguments[0], evt.Nick, "action", evt.Message())
 }

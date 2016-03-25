@@ -46,13 +46,15 @@ type SQLConfig struct {
 
 // User is a single mauIRCd user
 type User struct {
-	Networks   []*Network  `json:"networks"`
-	Email      string      `json:"email"`
-	Password   string      `json:"password"`
-	User       string      `json:"user"`
-	Nick       string      `json:"nick"`
-	Realname   string      `json:"realname"`
-	AuthTokens []AuthToken `json:"authtokens,omitempty"`
+	Networks      []*Network            `json:"networks"`
+	Email         string                `json:"email"`
+	Password      string                `json:"password"`
+	User          string                `json:"user"`
+	Nick          string                `json:"nick"`
+	Realname      string                `json:"realname"`
+	AuthTokens    []AuthToken           `json:"authtokens,omitempty"`
+	NewMessages   chan database.Message `json:"-"`
+	GlobalScripts []plugin.Script       `json:"-"`
 }
 
 // AuthToken is a simple wrapper for an auth token string and a timestamp
@@ -70,9 +72,8 @@ type Network struct {
 	SSL      bool     `json:"ssl"`
 	Channels []string `json:"channels"`
 
-	Owner       *User                 `json:"-"`
-	IRC         *irc.Connection       `json:"-"`
-	Nick        string                `json:"-"`
-	Scripts     []plugin.Script       `json:"-"`
-	NewMessages chan database.Message `json:"-"`
+	Owner   *User           `json:"-"`
+	IRC     *irc.Connection `json:"-"`
+	Nick    string          `json:"-"`
+	Scripts []plugin.Script `json:"-"`
 }
