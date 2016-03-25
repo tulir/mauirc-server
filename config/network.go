@@ -187,7 +187,7 @@ func (net *Network) SwitchNetwork(msg database.Message, receiving bool) bool {
 // InsertAndSend inserts the given message into the database and sends it to the client
 func (net *Network) InsertAndSend(msg database.Message) {
 	msg.ID, _ = database.Insert(net.Owner.Email, msg)
-	net.Owner.NewMessages <- msg
+	net.Owner.NewMessages <- MauMessage{Type: "message", Object: msg}
 }
 
 // Close the IRC connection.

@@ -50,7 +50,7 @@ func main() {
 	}
 
 	for _, user := range config.GetUsers() {
-		user.NewMessages = make(chan database.Message, 64)
+		user.NewMessages = make(chan config.MauMessage, 64)
 		for _, network := range user.Networks {
 			network.ChannelInfo = make(map[string]*config.ChannelData)
 			network.Open(user)

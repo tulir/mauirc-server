@@ -43,17 +43,23 @@ type SQLConfig struct {
 	Database string `json:"database"`
 }
 
+// MauMessage wraps a generic interface and a type string
+type MauMessage struct {
+	Type   string      `json:"type"`
+	Object interface{} `json:"object"`
+}
+
 // User is a single mauIRCd user
 type User struct {
-	Networks      []*Network       `json:"networks"`
-	Email         string           `json:"email"`
-	Password      string           `json:"password"`
-	User          string           `json:"user"`
-	Nick          string           `json:"nick"`
-	Realname      string           `json:"realname"`
-	AuthTokens    []AuthToken      `json:"authtokens,omitempty"`
-	NewMessages   chan interface{} `json:"-"`
-	GlobalScripts []plugin.Script  `json:"-"`
+	Networks      []*Network      `json:"networks"`
+	Email         string          `json:"email"`
+	Password      string          `json:"password"`
+	User          string          `json:"user"`
+	Nick          string          `json:"nick"`
+	Realname      string          `json:"realname"`
+	AuthTokens    []AuthToken     `json:"authtokens,omitempty"`
+	NewMessages   chan MauMessage `json:"-"`
+	GlobalScripts []plugin.Script `json:"-"`
 }
 
 // AuthToken is a simple wrapper for an auth token string and a timestamp
