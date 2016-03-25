@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"maunium.net/go/mauircd/config"
-	"maunium.net/go/mauircd/database"
 	"net/http"
 	"time"
 )
@@ -82,21 +81,6 @@ func (c *connection) write(mt int, payload []byte) error {
 func (c *connection) writeJSON(payload interface{}) error {
 	c.ws.SetWriteDeadline(time.Now().Add(writeWait))
 	return c.ws.WriteJSON(payload)
-}
-
-type aggregate struct {
-	val    database.Message
-	source *config.Network
-}
-
-func drain(commch chan database.Message) {
-	for {
-		select {
-		case <-commch:
-		default:
-			return
-		}
-	}
 }
 
 func (c *connection) writePump() {
