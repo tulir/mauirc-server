@@ -35,7 +35,7 @@ type authform struct {
 var store *sessions.CookieStore
 
 func initStore(address string) {
-	store = sessions.NewCookieStore([]byte("lfoWqz9lTNgkM12KLZ23cT7FXeBlXWFL"))
+	store = sessions.NewCookieStore(config.GetConfig().CookieSecret)
 	store.Options = &sessions.Options{
 		Domain:   address,
 		Path:     "/",
