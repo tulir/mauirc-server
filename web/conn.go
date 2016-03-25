@@ -69,7 +69,10 @@ func (c *connection) readPump() {
 			continue
 		}
 
-		c.user.GetNetwork(sf.Network).SendMessage(sf.Channel, sf.Command, sf.Message)
+		net := c.user.GetNetwork(sf.Network)
+		if net != nil {
+			net.SendMessage(sf.Channel, sf.Command, sf.Message)
+		}
 	}
 }
 
