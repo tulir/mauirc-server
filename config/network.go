@@ -137,12 +137,12 @@ func (net *Network) SendMessage(channel, command, message string) {
 		return
 	}
 
-	net.sendToIRC(msg)
-
-	net.InsertAndSend(msg)
+	if net.sendToIRC(msg) {
+		net.InsertAndSend(msg)
+	}
 }
 
-func (net *Network) sendToIRC(msg database.Message) {
+func (net *Network) sendToIRC(msg database.Message) bool {
 	if !strings.HasPrefix(msg.Channel, "*") {
 		switch msg.Command {
 		case "privmsg":
@@ -151,12 +151,13 @@ func (net *Network) sendToIRC(msg database.Message) {
 			net.IRC.Action(msg.Channel, msg.Message)
 		case "join":
 			net.IRC.Join(msg.Channel)
-			return
+			return false
 		case "part":
 			net.IRC.Part(msg.Channel)
-			return
+			return false
 		}
 	}
+	return true
 }
 
 // RunScripts runs all the scripts of this network and all global scripts on the given message0
