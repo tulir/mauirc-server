@@ -38,13 +38,16 @@ func main() {
 		panic(err)
 	}
 
-	database.Load(fmt.Sprintf("%[1]s:%[2]s@tcp(%[3]s:%[4]d)/%[5]s",
+	err = database.Load(fmt.Sprintf("%[1]s:%[2]s@tcp(%[3]s:%[4]d)/%[5]s",
 		config.GetConfig().SQL.Username,
 		config.GetConfig().SQL.Password,
 		config.GetConfig().SQL.IP,
 		config.GetConfig().SQL.Port,
 		config.GetConfig().SQL.Database,
 	))
+	if err != nil {
+		panic(err)
+	}
 
 	for _, user := range config.GetUsers() {
 		for _, network := range user.Networks {
