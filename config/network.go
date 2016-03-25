@@ -23,6 +23,7 @@ import (
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/plugin"
 	"maunium.net/go/mauircd/util"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -70,23 +71,6 @@ func (net *Network) Open(user *User) {
 	})
 }
 
-func (net *Network) joinpart(channel string, part bool) {
-	for i, ch := range net.Channels {
-		if ch == channel {
-			if part {
-				net.Channels[i] = net.Channels[len(net.Channels)-1]
-				net.Channels = net.Channels[:len(net.Channels)-1]
-				database.ClearChannel(net.Owner.Email, net.Name, ch)
-			} else {
-				return
-			}
-		}
-	}
-	if !part {
-		net.Channels = append(net.Channels, channel)
-	}
-}
-
 // ReceiveMessage stores the message and sends it to the client
 func (net *Network) ReceiveMessage(channel, sender, command, message string) {
 	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
@@ -107,12 +91,6 @@ func (net *Network) ReceiveMessage(channel, sender, command, message string) {
 	}
 
 	net.InsertAndSend(msg)
-
-	if msg.Sender == net.Nick && msg.Command == "join" {
-		net.joinpart(msg.Channel, false)
-	} else if msg.Sender == net.Nick && msg.Command == "part" {
-		net.joinpart(msg.Channel, true)
-	}
 }
 
 // SendMessage sends the given message to the given channel
@@ -215,6 +193,54 @@ func (net *Network) InsertAndSend(msg database.Message) {
 // Close the IRC connection.
 func (net *Network) Close() {
 	net.IRC.Quit()
+}
+
+func (net *Network) joinpartMe(channel string, part bool) {
+	for i, ch := range net.Channels {
+		if ch == channel {
+			if part {
+				net.Channels[i] = net.Channels[len(net.Channels)-1]
+				net.Channels = net.Channels[:len(net.Channels)-1]
+				database.ClearChannel(net.Owner.Email, net.Name, ch)
+			} else {
+				return
+			}
+		}
+	}
+	if !part {
+		net.Channels = append(net.Channels, channel)
+	}
+}
+
+func (net *Network) joinpartOther(user, channel string, part bool) {
+	ch := net.ChannelInfo[channel]
+	if ch == nil {
+		return
+	}
+
+	for i, u := range ch.UserList {
+		if u == user {
+			if part {
+				ch.UserList[i] = ch.UserList[len(ch.UserList)-1]
+				ch.UserList = ch.UserList[:len(ch.UserList)-1]
+			} else {
+				return
+			}
+			break
+		}
+	}
+	if !part {
+		ch.UserList = append(ch.UserList, user)
+	}
+	sort.Sort(ch.UserList)
+}
+
+func (net *Network) joinpart(user, channel string, part bool) {
+	if user == net.Nick {
+		net.joinpartMe(channel, part)
+	} else {
+		net.joinpartOther(user, channel, part)
+	}
 }
 
 func (net *Network) nick(evt *irc.Event) {
