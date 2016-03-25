@@ -23,6 +23,7 @@ import (
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/plugin"
 	"maunium.net/go/mauircd/util"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -53,6 +54,8 @@ func (net *Network) Open(user *User) {
 	i.AddCallback("JOIN", net.join)
 	i.AddCallback("PART", net.part)
 	i.AddCallback("353", net.userlist)
+	i.AddCallback("332", net.topic)
+	i.AddCallback("333", net.topicset)
 	i.AddCallback("NICK", net.nick)
 	i.AddCallback("QUIT", net.quit)
 
@@ -223,7 +226,23 @@ func (net *Network) nick(evt *irc.Event) {
 }
 
 func (net *Network) userlist(evt *irc.Event) {
-	net.Userlist[evt.Arguments[2]] = strings.Split(evt.Message(), " ")
+	users := strings.Split(evt.Message(), " ")
+	if len(users[len(users)-1]) == 0 {
+		users = users[:len(users)-1]
+	}
+	net.ChannelInfo[evt.Arguments[2]].UserList = users
+}
+
+func (net *Network) topic(evt *irc.Event) {
+	net.ChannelInfo[evt.Arguments[1]].Topic = evt.Message()
+}
+
+func (net *Network) topicset(evt *irc.Event) {
+	net.ChannelInfo[evt.Arguments[1]].TopicSetBy = evt.Arguments[2]
+	setAt, err := strconv.ParseInt(evt.Arguments[3], 10, 64)
+	if err != nil {
+		net.ChannelInfo[evt.Arguments[1]].TopicSetAt = setAt
+	}
 }
 
 func (net *Network) quit(evt *irc.Event) {
