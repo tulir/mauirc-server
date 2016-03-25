@@ -52,15 +52,13 @@ func (net *Network) Open(user *User) {
 	i.AddCallback("CTCP_ACTION", net.action)
 	i.AddCallback("JOIN", net.join)
 	i.AddCallback("PART", net.part)
+	i.AddCallback("353", net.userlist)
+	i.AddCallback("NICK", net.nick)
+	i.AddCallback("QUIT", net.quit)
+
 	i.AddCallback("001", func(evt *irc.Event) {
 		for _, channel := range net.Channels {
 			i.Join(channel)
-		}
-	})
-
-	i.AddCallback("NICK", func(evt *irc.Event) {
-		if evt.Nick == net.Nick {
-			net.Nick = evt.Message()
 		}
 	})
 
@@ -214,6 +212,22 @@ func (net *Network) InsertAndSend(msg database.Message) {
 // Close the IRC connection.
 func (net *Network) Close() {
 	net.IRC.Quit()
+}
+
+func (net *Network) nick(evt *irc.Event) {
+	if evt.Nick == net.Nick {
+		net.Nick = evt.Message()
+	} else {
+		fmt.Println(evt.Nick, " | ", evt.Source, " | ", evt.User, " | ", evt.Message(), " | ", evt.Arguments)
+	}
+}
+
+func (net *Network) userlist(evt *irc.Event) {
+	net.Userlist[evt.Arguments[2]] = strings.Split(evt.Message(), " ")
+}
+
+func (net *Network) quit(evt *irc.Event) {
+	fmt.Println(evt.Nick, evt.Message())
 }
 
 func (net *Network) join(evt *irc.Event) {

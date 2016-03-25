@@ -72,8 +72,9 @@ type Network struct {
 	SSL      bool     `json:"ssl"`
 	Channels []string `json:"channels"`
 
-	Owner   *User           `json:"-"`
-	IRC     *irc.Connection `json:"-"`
-	Nick    string          `json:"-"`
-	Scripts []plugin.Script `json:"-"`
+	Owner    *User               `json:"-"`
+	IRC      *irc.Connection     `json:"-"`
+	Nick     string              `json:"-"`
+	Scripts  []plugin.Script     `json:"-"`
+	Userlist map[string][]string `json:"-"`
 }
