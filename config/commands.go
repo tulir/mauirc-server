@@ -34,8 +34,8 @@ func (net *Network) handleCommand(sender, msg string) {
 	switch command {
 	case "clearbuffer":
 		if len(args) > 0 {
-			database.ClearChannel(net.Owner.Email, net.Name, args[0])
 			net.ReceiveMessage("*mauirc", "mauIRCd", "privmsg", "Successfully cleared buffer of "+args[0]+" on "+net.Name)
+			database.ClearChannel(net.Owner.Email, net.Name, args[0])
 		}
 	case "deletemessage":
 		if len(args) > 0 {
