@@ -19,6 +19,7 @@ package plugin
 
 import (
 	"github.com/yuin/gopher-lua"
+	"maunium.net/go/mauircd/database"
 )
 
 // Script wraps a Lua script.
@@ -40,17 +41,17 @@ func getInt64(L *lua.LState, event *lua.LTable, name string) int64 {
 }
 
 // Run the script with the given values.
-func (s Script) Run(network, channel, sender, command, message string, timestamp int64, cancelled bool) (string, string, string, string, string, int64, bool) {
+func (s Script) Run(msg database.Message, cancelled bool) (database.Message, bool) {
 	L := lua.NewState()
 	L.OpenLibs()
 
 	event := L.NewTypeMetatable("event")
-	L.SetField(event, "network", lua.LString(network))
-	L.SetField(event, "channel", lua.LString(channel))
-	L.SetField(event, "timestamp", lua.LString(network))
-	L.SetField(event, "sender", lua.LString(sender))
-	L.SetField(event, "command", lua.LString(command))
-	L.SetField(event, "message", lua.LString(message))
+	L.SetField(event, "network", lua.LString(msg.Network))
+	L.SetField(event, "channel", lua.LString(msg.Channel))
+	L.SetField(event, "timestamp", lua.LString(msg.Timestamp))
+	L.SetField(event, "sender", lua.LString(msg.Sender))
+	L.SetField(event, "command", lua.LString(msg.Command))
+	L.SetField(event, "message", lua.LString(msg.Message))
 	L.SetField(event, "cancelled", lua.LBool(cancelled))
 	L.SetGlobal("event", event)
 
@@ -59,7 +60,11 @@ func (s Script) Run(network, channel, sender, command, message string, timestamp
 		panic(err)
 	}
 
-	return getString(L, event, "network"), getString(L, event, "channel"), getString(L, event, "sender"),
-		getString(L, event, "command"), getString(L, event, "message"), getInt64(L, event, "timestamp"),
-		getBool(L, event, "cancelled")
+	msg.Network = getString(L, event, "network")
+	msg.Channel = getString(L, event, "channel")
+	msg.Sender = getString(L, event, "sender")
+	msg.Command = getString(L, event, "command")
+	msg.Message = getString(L, event, "message")
+	msg.Timestamp = getInt64(L, event, "timestamp")
+	return msg, getBool(L, event, "cancelled")
 }
