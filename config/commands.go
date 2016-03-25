@@ -25,6 +25,7 @@ import (
 	"strings"
 )
 
+// TODO command handlers should not be network-specific
 func (net *Network) handleCommand(sender, msg string) {
 	split := strings.SplitN(msg, " ", 2)
 	command := strings.ToLower(split[0])
@@ -34,13 +35,13 @@ func (net *Network) handleCommand(sender, msg string) {
 	case "clearbuffer":
 		if len(args) > 0 {
 			database.ClearChannel(net.Owner.Email, net.Name, args[0])
-			net.message("*mauirc", "mauIRCd", "privmsg", "Successfully cleared buffer of "+args[0]+" on "+net.Name)
+			net.ReceiveMessage("*mauirc", "mauIRCd", "privmsg", "Successfully cleared buffer of "+args[0]+" on "+net.Name)
 		}
 	case "deletemessage":
 		if len(args) > 0 {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				net.message("*mauirc", "mauIRCd", "privmsg", "Couldn't parse int from "+args[0])
+				net.ReceiveMessage("*mauirc", "mauIRCd", "privmsg", "Couldn't parse int from "+args[0])
 				return
 			}
 			database.DeleteMessage(net.Owner.Email, int64(id))
@@ -51,18 +52,18 @@ func (net *Network) handleCommand(sender, msg string) {
 			data, err := download(args[1])
 			if err != nil {
 				fmt.Println(err)
-				net.message("*mauirc", "mauIRCd", "privmsg", "Failed to download script from http://pastebin.com/raw/"+args[1])
+				net.ReceiveMessage("*mauirc", "mauIRCd", "privmsg", "Failed to download script from http://pastebin.com/raw/"+args[1])
 				return
 			}
 			for i := 0; i < len(net.Scripts); i++ {
 				if net.Scripts[i].Name == args[0] {
 					net.Scripts[i].TheScript = data
-					net.message("*mauirc", "mauIRCd", "privmsg", "Successfully updated script with name "+args[0])
+					net.ReceiveMessage("*mauirc", "mauIRCd", "privmsg", "Successfully updated script with name "+args[0])
 					return
 				}
 			}
 			net.Scripts = append(net.Scripts, plugin.Script{TheScript: data, Name: args[0]})
-			net.message("*mauirc", "mauIRCd", "privmsg", "Successfully loaded script with name "+args[0])
+			net.ReceiveMessage("*mauirc", "mauIRCd", "privmsg", "Successfully loaded script with name "+args[0])
 		}
 	}
 }
