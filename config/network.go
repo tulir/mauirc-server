@@ -283,19 +283,19 @@ func (net *Network) quit(evt *irc.Event) {
 }
 
 func (net *Network) join(evt *irc.Event) {
-	go net.ReceiveMessage(evt.Arguments[0], evt.Nick, "join", evt.Message())
+	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "join", evt.Message())
 	net.joinpart(evt.Nick, evt.Arguments[0], false)
 }
 
 func (net *Network) part(evt *irc.Event) {
-	go net.ReceiveMessage(evt.Arguments[0], evt.Nick, "part", evt.Message())
+	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "part", evt.Message())
 	net.joinpart(evt.Nick, evt.Arguments[0], true)
 }
 
 func (net *Network) privmsg(evt *irc.Event) {
-	go net.ReceiveMessage(evt.Arguments[0], evt.Nick, "privmsg", evt.Message())
+	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "privmsg", evt.Message())
 }
 
 func (net *Network) action(evt *irc.Event) {
-	go net.ReceiveMessage(evt.Arguments[0], evt.Nick, "action", evt.Message())
+	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "action", evt.Message())
 }
