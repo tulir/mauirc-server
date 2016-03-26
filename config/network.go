@@ -196,12 +196,14 @@ func (net *Network) joinpartMe(channel string, part bool) {
 				net.Channels[i] = net.Channels[len(net.Channels)-1]
 				net.Channels = net.Channels[:len(net.Channels)-1]
 				database.ClearChannel(net.Owner.Email, net.Name, ch)
+				delete(net.ChannelInfo, channel)
 			} else {
 				return
 			}
 		}
 	}
 	if !part {
+		net.ChannelInfo[channel] = &ChannelData{}
 		net.Channels = append(net.Channels, channel)
 	}
 }
@@ -250,18 +252,27 @@ func (net *Network) userlist(evt *irc.Event) {
 	if len(users[len(users)-1]) == 0 {
 		users = users[:len(users)-1]
 	}
-	net.ChannelInfo[evt.Arguments[2]].UserList = users
+	ci := net.ChannelInfo[evt.Arguments[2]]
+	if ci != nil {
+		ci.UserList = UserList(users)
+	}
 }
 
 func (net *Network) topic(evt *irc.Event) {
-	net.ChannelInfo[evt.Arguments[1]].Topic = evt.Message()
+	ci := net.ChannelInfo[evt.Arguments[2]]
+	if ci != nil {
+		ci.Topic = evt.Message()
+	}
 }
 
 func (net *Network) topicset(evt *irc.Event) {
-	net.ChannelInfo[evt.Arguments[1]].TopicSetBy = evt.Arguments[2]
-	setAt, err := strconv.ParseInt(evt.Arguments[3], 10, 64)
-	if err != nil {
-		net.ChannelInfo[evt.Arguments[1]].TopicSetAt = setAt
+	ci := net.ChannelInfo[evt.Arguments[1]]
+	if ci != nil {
+		ci.TopicSetBy = evt.Arguments[2]
+		setAt, err := strconv.ParseInt(evt.Arguments[3], 10, 64)
+		if err != nil {
+			ci.TopicSetAt = setAt
+		}
 	}
 }
 
@@ -271,10 +282,12 @@ func (net *Network) quit(evt *irc.Event) {
 
 func (net *Network) join(evt *irc.Event) {
 	go net.ReceiveMessage(evt.Arguments[0], evt.Nick, "join", evt.Message())
+	net.joinpart(evt.Nick, evt.Arguments[0], false)
 }
 
 func (net *Network) part(evt *irc.Event) {
 	go net.ReceiveMessage(evt.Arguments[0], evt.Nick, "part", evt.Message())
+	net.joinpart(evt.Nick, evt.Arguments[0], true)
 }
 
 func (net *Network) privmsg(evt *irc.Event) {
