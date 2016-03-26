@@ -38,10 +38,6 @@ func (net *Network) Open(user *User) {
 	if len(net.Password) > 0 {
 		i.Password = net.Password
 	}
-	err := i.Connect(fmt.Sprintf("%s:%d", net.IP, net.Port))
-	if err != nil {
-		panic(err)
-	}
 
 	net.IRC = i
 	net.Owner = user
@@ -69,6 +65,11 @@ func (net *Network) Open(user *User) {
 	i.AddCallback("DISCONNECTED", func(event *irc.Event) {
 		fmt.Printf("Disconnected from %s:%d\n", net.IP, net.Port)
 	})
+
+	err := i.Connect(fmt.Sprintf("%s:%d", net.IP, net.Port))
+	if err != nil {
+		panic(err)
+	}
 }
 
 // ReceiveMessage stores the message and sends it to the client
@@ -200,12 +201,15 @@ func (net *Network) joinpartMe(channel string, part bool) {
 				database.ClearChannel(net.Owner.Email, net.Name, ch)
 				delete(net.ChannelInfo, channel)
 			} else {
+				if net.ChannelInfo[channel] == nil {
+					net.ChannelInfo[channel] = &ChannelData{Name: channel, Network: net.Name}
+				}
 				return
 			}
 		}
 	}
 	if !part {
-		net.ChannelInfo[channel] = &ChannelData{}
+		net.ChannelInfo[channel] = &ChannelData{Name: channel, Network: net.Name}
 		net.Channels = append(net.Channels, channel)
 	}
 }
@@ -257,13 +261,16 @@ func (net *Network) userlist(evt *irc.Event) {
 	ci := net.ChannelInfo[evt.Arguments[2]]
 	if ci != nil {
 		ci.UserList = UserList(users)
+		net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
 	}
 }
 
 func (net *Network) topic(evt *irc.Event) {
-	ci := net.ChannelInfo[evt.Arguments[2]]
+	fmt.Println(evt.Arguments)
+	ci := net.ChannelInfo[evt.Arguments[1]]
 	if ci != nil {
 		ci.Topic = evt.Message()
+		net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
 	}
 }
 
@@ -275,6 +282,7 @@ func (net *Network) topicset(evt *irc.Event) {
 		if err != nil {
 			ci.TopicSetAt = setAt
 		}
+		net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
 	}
 }
 

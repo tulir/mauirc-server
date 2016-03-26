@@ -109,10 +109,12 @@ func (s UserList) Less(i, j int) bool {
 
 // ChannelData contains information about a channeö
 type ChannelData struct {
-	UserList   UserList `json:"user-list"`
-	Topic      string   `json:"topic"`
-	TopicSetBy string   `json:"topic-set-by"`
-	TopicSetAt int64    `json:"topic-set-at"`
+	Network    string   `json:"network"`
+	Name       string   `json:"name"`
+	UserList   UserList `json:"userlist,omitempty"`
+	Topic      string   `json:"topic,omitempty"`
+	TopicSetBy string   `json:"topicsetby,omitempty"`
+	TopicSetAt int64    `json:"topicsetat,omitempty"`
 }
 
 // Network is a single IRC network owned by a single mauIRCd user

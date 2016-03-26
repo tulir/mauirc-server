@@ -126,5 +126,12 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 	c.ws.SetPongHandler(func(string) error { c.ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 
 	go c.writePump()
+
+	for _, net := range c.user.Networks {
+		for _, chd := range net.ChannelInfo {
+			c.user.NewMessages <- config.MauMessage{Type: "chandata", Object: chd}
+		}
+	}
+
 	c.readPump()
 }
