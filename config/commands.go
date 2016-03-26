@@ -18,9 +18,30 @@
 package config
 
 import (
+	"fmt"
 	"github.com/Jeffail/gabs"
 	"maunium.net/go/mauircd/database"
+	"maunium.net/go/mauircd/plugin"
+	"strconv"
+	"strings"
 )
+
+type cmdResponse struct {
+	Success       bool   `json:"success"`
+	SimpleMessage string `json:"simple-message"`
+	Message       string `json:"message"`
+}
+
+func (user User) respond(success bool, simple, message string, args ...interface{}) {
+	user.NewMessages <- MauMessage{
+		Type: "cmdresponse",
+		Object: cmdResponse{
+			Success:       success,
+			SimpleMessage: simple,
+			Message:       fmt.Sprintf(message, args...),
+		},
+	}
+}
 
 // HandleCommand handles mauIRC commands from clients
 func (user User) HandleCommand(data *gabs.Container) {
@@ -37,46 +58,77 @@ func (user User) HandleCommand(data *gabs.Container) {
 	case "clearbuffer":
 		user.cmdClearbuffer(data)
 	case "deletemessage":
-		// TODO: Delete Message
+		user.cmdDeleteMessage(data)
 	case "importscript":
-		// TODO: Import script
+		user.cmdImportScript(data)
 	}
 }
 
-// TODO: Implement deletemessage and importscript
-/*case "deletemessage":
-      if len(args) > 0 {
-          id, err := strconv.Atoi(args[0])
-          if err != nil {
-              net.ReceiveMessage("*mauirc", "mauIRCd", "privmsg", "Couldn't parse int from "+args[0])
-              return
-          }
-          database.DeleteMessage(net.Owner.Email, int64(id))
-      }
-  case "importscript":
-      if len(args) > 1 {
-          args[0] = strings.ToLower(args[0])
-          data, err := download(args[1])
-          if err != nil {
-              fmt.Println(err)
-              net.ReceiveMessage("*mauirc", "mauIRCd", "privmsg", "Failed to download script from http://pastebin.com/raw/"+args[1])
-              return
-          }
-          for i := 0; i < len(net.Scripts); i++ {
-              if net.Scripts[i].Name == args[0] {
-                  net.Scripts[i].TheScript = data
-                  net.ReceiveMessage("*mauirc", "mauIRCd", "privmsg", "Successfully updated script with name "+args[0])
-                  return
-              }
-          }
-          net.Scripts = append(net.Scripts, plugin.Script{TheScript: data, Name: args[0]})
-          net.ReceiveMessage("*mauirc", "mauIRCd", "privmsg", "Successfully loaded script with name "+args[0])
-      }
-  }*/
+func (user User) cmdImportScript(data *gabs.Container) {
+	name, ok := data.Path("name").Data().(string)
+	if !ok {
+		return
+	}
 
-type cmdResponse struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
+	url, ok := data.Path("url").Data().(string)
+	if !ok {
+		return
+	}
+
+	var network = ""
+	if data.Exists("network") {
+		network, _ = data.Path("network").Data().(string)
+	}
+
+	name = strings.ToLower(name)
+	scriptData, err := download(url)
+
+	if err != nil {
+		user.respond(false, "download-failed", "Failed to download script from http://pastebin.com/raw/%s", url)
+		return
+	}
+
+	var scriptList = user.GlobalScripts
+	var net *Network
+
+	if len(network) != 0 {
+		net = user.GetNetwork(network)
+		if net == nil {
+			user.respond(false, "no-such-network", "No such network: %s", network)
+			return
+		}
+		scriptList = net.Scripts
+	}
+
+	for i := 0; i < len(scriptList); i++ {
+		if scriptList[i].Name == name {
+			scriptList[i].TheScript = scriptData
+			return
+		}
+	}
+	scriptList = append(scriptList, plugin.Script{TheScript: scriptData, Name: name})
+
+	if net != nil {
+		net.Scripts = scriptList
+		user.respond(true, "script-loaded-network", "Successfully loaded script %s on %s", name, net.Name)
+	} else {
+		user.GlobalScripts = scriptList
+		user.respond(true, "script-loaded-global", "Successfully loaded global script %s", name)
+	}
+}
+
+func (user User) cmdDeleteMessage(data *gabs.Container) {
+	idS, ok := data.Path("id").Data().(string)
+	if !ok {
+		return
+	}
+	id, err := strconv.ParseInt(idS, 10, 64)
+	if err != nil {
+		user.respond(false, "parseint", "Couldn't parse an integer from %s", idS)
+		return
+	}
+	database.DeleteMessage(user.Email, id)
+	user.respond(true, "message-deleted", "Message #%d was deleted", id)
 }
 
 func (user User) cmdClearbuffer(data *gabs.Container) {
@@ -87,7 +139,7 @@ func (user User) cmdClearbuffer(data *gabs.Container) {
 
 	net := user.GetNetwork(network)
 	if net == nil {
-		user.NewMessages <- MauMessage{Type: "command-response", Object: cmdResponse{Success: false, Message: "No such network: " + network}}
+		user.respond(false, "no-such-network", "No such network: %s", network)
 		return
 	}
 
@@ -97,10 +149,10 @@ func (user User) cmdClearbuffer(data *gabs.Container) {
 	}
 	err := database.ClearChannel(user.Email, net.Name, channel)
 	if err != nil {
-		user.NewMessages <- MauMessage{Type: "command-response", Object: cmdResponse{Success: false, Message: "Failed to clear buffer of " + net.Name}}
+		user.respond(false, "clear-buffer-failed", "Failed to clear buffer of %s", net.Name)
 		return
 	}
-	user.NewMessages <- MauMessage{Type: "command-response", Object: cmdResponse{Success: false, Message: "Successfully cleared buffer of " + channel + " on " + net.Name}}
+	user.respond(true, "buffer-cleared", "Successfully cleared buffer of %s on %s", channel, net.Name)
 }
 
 func (user User) cmdUserlist(data *gabs.Container) {
