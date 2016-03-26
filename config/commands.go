@@ -61,6 +61,8 @@ func (user User) HandleCommand(data *gabs.Container) {
 		user.cmdDeleteMessage(data)
 	case "importscript":
 		user.cmdImportScript(data)
+	default:
+		user.respond(false, "unknown-type", "Unknown message type: %s", typ)
 	}
 }
 
