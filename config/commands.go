@@ -190,9 +190,9 @@ func (user User) cmdMessage(data *gabs.Container) {
 		return
 	}
 
-	channel, okChan := data.Path("network").Data().(string)
-	command, okCmd := data.Path("network").Data().(string)
-	message, okMsg := data.Path("network").Data().(string)
+	channel, okChan := data.Path("channel").Data().(string)
+	command, okCmd := data.Path("command").Data().(string)
+	message, okMsg := data.Path("message").Data().(string)
 	if !okChan || !okCmd || !okMsg {
 		return
 	}
