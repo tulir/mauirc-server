@@ -8,6 +8,7 @@ before_script:
 - "go get -u github.com/gorilla/sessions"
 - "go get -u github.com/gorilla/websocket"
 - "go get -u github.com/yuin/gopher-lua"
+- "go get -u github.com/Jeffail/gabs"
 - "go get -u golang.org/x/crypto/bcrypt"
 - "mkdir -p /go/src/maunium.net/go"
 - "ln -s /builds/Tulir293/mauircd /go/src/maunium.net/go/mauircd"
