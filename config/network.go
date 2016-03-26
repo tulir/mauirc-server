@@ -186,7 +186,9 @@ func (net *Network) InsertAndSend(msg database.Message) {
 
 // Close the IRC connection.
 func (net *Network) Close() {
-	net.IRC.Quit()
+	if net.IRC.Connected() {
+		net.IRC.Quit()
+	}
 }
 
 func (net *Network) joinpartMe(channel string, part bool) {
