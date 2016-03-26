@@ -122,10 +122,13 @@ func ClearUser(email string) error {
 }
 
 // Insert a message into the database
-func Insert(email string, msg Message) (int64, error) {
-	result := db.QueryRow("INSERT INTO messages (email, network, channel, timestamp, sender, command, message) VALUES (?, ?, ?, ?, ?, ?, ?); SELECT LAST_INSERT_ID();",
+func Insert(email string, msg Message) int64 {
+	db.Exec("INSERT INTO messages (email, network, channel, timestamp, sender, command, message) VALUES (?, ?, ?, ?, ?, ?, ?);",
+		email, msg.Network, msg.Channel, msg.Timestamp, msg.Sender, msg.Command, msg.Message)
+
+	result := db.QueryRow("SELECT id FROM messages WHERE email=? AND network=? AND channel=? AND timestamp=? AND sender=? AND command=? AND message=?;",
 		email, msg.Network, msg.Channel, msg.Timestamp, msg.Sender, msg.Command, msg.Message)
 	var id int64
-	err := result.Scan(id)
-	return id, err
+	result.Scan(&id)
+	return id
 }
