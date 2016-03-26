@@ -266,7 +266,6 @@ func (net *Network) userlist(evt *irc.Event) {
 }
 
 func (net *Network) topic(evt *irc.Event) {
-	fmt.Println(evt.Arguments)
 	ci := net.ChannelInfo[evt.Arguments[1]]
 	if ci != nil {
 		ci.Topic = evt.Message()
