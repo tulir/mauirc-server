@@ -128,6 +128,7 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 	go c.writePump()
 
 	for _, net := range c.user.Networks {
+		c.user.NewMessages <- config.MauMessage{Type: "nickchange", Object: config.NickChange{Network: net.Name, Nick: net.Nick}}
 		for _, chd := range net.ChannelInfo {
 			c.user.NewMessages <- config.MauMessage{Type: "chandata", Object: chd}
 		}
