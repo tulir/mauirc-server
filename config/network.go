@@ -245,8 +245,14 @@ func (net *Network) joinpart(user, channel string, part bool) {
 	}
 }
 
+type nickchange struct {
+	Network string `json:"network"`
+	Nick    string `json:"nick"`
+}
+
 func (net *Network) nick(evt *irc.Event) {
 	if evt.Nick == net.Nick {
+		net.Owner.NewMessages <- MauMessage{Type: "nickchange", Object: nickchange{Network: net.Name, Nick: evt.Message()}}
 		net.Nick = evt.Message()
 	} else {
 		fmt.Println(evt.Nick, " | ", evt.Source, " | ", evt.User, " | ", evt.Message(), " | ", evt.Arguments)
