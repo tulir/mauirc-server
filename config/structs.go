@@ -117,6 +117,12 @@ type ChannelData struct {
 	TopicSetAt int64    `json:"topicsetat,omitempty"`
 }
 
+// NickChange tells the client about nick changes
+type NickChange struct {
+	Network string `json:"network"`
+	Nick    string `json:"nick"`
+}
+
 // Network is a single IRC network owned by a single mauIRCd user
 type Network struct {
 	Name     string   `json:"name"`
