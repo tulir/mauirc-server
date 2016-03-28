@@ -1,0 +1,69 @@
+// mauIRCd - The IRC bouncer/backend system for mauIRC clients.
+// Copyright (C) 2016 Tulir Asokan
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+// Package config contains configurations
+package config
+
+// UserList is a wrapper for sorting user lists
+type UserList []string
+
+func (s UserList) Len() int {
+	return len(s)
+}
+func (s UserList) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s UserList) levelOf(r byte) int {
+	switch r {
+	case '~':
+		return 5
+	case '&':
+		return 4
+	case '@':
+		return 3
+	case '%':
+		return 2
+	case '+':
+		return 1
+	default:
+		return 0
+	}
+}
+
+func (s UserList) Less(i, j int) bool {
+	levelI := s.levelOf(s[i][0])
+	levelJ := s.levelOf(s[j][0])
+	if levelI < levelJ {
+		return true
+	} else if levelI > levelJ {
+		return false
+	} else {
+		return s[i] < s[j]
+	}
+}
+
+// Contains checks if the given user is in this UserList
+func (s UserList) Contains(user string) (bool, int) {
+	for i, u := range s {
+		if user == u {
+			return true, i
+		} else if (u[0] == '~' || u[0] == '&' || u[0] == '@' || u[0] == '%' || u[0] == '+') && user == u[1:] {
+			return true, i
+		}
+	}
+	return false, -1
+}

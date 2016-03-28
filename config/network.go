@@ -134,7 +134,7 @@ func (net *Network) sendToIRC(msg database.Message) bool {
 	return true
 }
 
-// RunScripts runs all the scripts of this network and all global scripts on the given message0
+// RunScripts runs all the scripts of this network and all global scripts on the given message
 func (net *Network) RunScripts(msg database.Message, cancelled, receiving bool) (database.Message, bool) {
 	netChanged := false
 	for _, s := range net.Scripts {
@@ -215,26 +215,24 @@ func (net *Network) joinpartMe(channel string, part bool) {
 }
 
 func (net *Network) joinpartOther(user, channel string, part bool) {
-	ch := net.ChannelInfo[channel]
-	if ch == nil {
+	ci := net.ChannelInfo[channel]
+	if ci == nil {
 		return
 	}
 
-	for i, u := range ch.UserList {
-		if u == user {
-			if part {
-				ch.UserList[i] = ch.UserList[len(ch.UserList)-1]
-				ch.UserList = ch.UserList[:len(ch.UserList)-1]
-			} else {
-				return
-			}
-			break
+	contains, i := ci.UserList.Contains(user)
+	if contains {
+		if part {
+			ci.UserList[i] = ci.UserList[len(ci.UserList)-1]
+			ci.UserList = ci.UserList[:len(ci.UserList)-1]
+		} else {
+			return
 		}
+	} else if !part {
+		ci.UserList = append(ci.UserList, user)
 	}
-	if !part {
-		ch.UserList = append(ch.UserList, user)
-	}
-	sort.Sort(ch.UserList)
+	sort.Sort(ci.UserList)
+	net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
 }
 
 func (net *Network) joinpart(user, channel string, part bool) {
@@ -287,7 +285,16 @@ func (net *Network) topicset(evt *irc.Event) {
 }
 
 func (net *Network) quit(evt *irc.Event) {
-	fmt.Println(evt.Nick, evt.Message())
+	for _, ci := range net.ChannelInfo {
+		if b, i := ci.UserList.Contains(evt.Nick); b {
+			ci.UserList[i] = ci.UserList[len(ci.UserList)-1]
+			ci.UserList = ci.UserList[:len(ci.UserList)-1]
+			sort.Sort(ci.UserList)
+
+			net.ReceiveMessage(ci.Name, evt.Nick, "part", evt.Message())
+			net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
+		}
+	}
 }
 
 func (net *Network) join(evt *irc.Event) {

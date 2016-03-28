@@ -68,45 +68,6 @@ type AuthToken struct {
 	Time  int64
 }
 
-// UserList is a wrapper for sorting user lists
-type UserList []string
-
-func (s UserList) Len() int {
-	return len(s)
-}
-func (s UserList) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-}
-
-func (s UserList) levelOf(r byte) int {
-	switch r {
-	case '~':
-		return 5
-	case '&':
-		return 4
-	case '@':
-		return 3
-	case '%':
-		return 2
-	case '+':
-		return 1
-	default:
-		return 0
-	}
-}
-
-func (s UserList) Less(i, j int) bool {
-	levelI := s.levelOf(s[i][0])
-	levelJ := s.levelOf(s[j][0])
-	if levelI < levelJ {
-		return true
-	} else if levelI > levelJ {
-		return false
-	} else {
-		return s[i] < s[j]
-	}
-}
-
 // ChannelData contains information about a channeö
 type ChannelData struct {
 	Network    string   `json:"network"`
