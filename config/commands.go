@@ -196,6 +196,7 @@ func (user User) cmdMessage(data *gabs.Container) {
 	if !okChan || !okCmd || !okMsg {
 		return
 	}
-
-	net.SendMessage(channel, command, message)
+	if len(channel) > 0 && len(command) > 0 && len(message) > 0 {
+		net.SendMessage(channel, command, message)
+	}
 }
