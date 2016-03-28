@@ -47,12 +47,12 @@ func (s UserList) levelOf(r byte) int {
 func (s UserList) Less(i, j int) bool {
 	levelI := s.levelOf(s[i][0])
 	levelJ := s.levelOf(s[j][0])
-	if levelI < levelJ {
+	if levelI > levelJ {
 		return true
-	} else if levelI > levelJ {
+	} else if levelI < levelJ {
 		return false
 	} else {
-		return s[i] < s[j]
+		return s[i] > s[j]
 	}
 }
 
