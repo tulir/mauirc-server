@@ -52,7 +52,7 @@ func (s UserList) Less(i, j int) bool {
 	} else if levelI < levelJ {
 		return false
 	} else {
-		return s[i] > s[j]
+		return s[i] < s[j]
 	}
 }
 
