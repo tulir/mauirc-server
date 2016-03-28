@@ -291,7 +291,7 @@ func (net *Network) quit(evt *irc.Event) {
 			ci.UserList = ci.UserList[:len(ci.UserList)-1]
 			sort.Sort(ci.UserList)
 
-			net.ReceiveMessage(ci.Name, evt.Nick, "part", evt.Message())
+			net.ReceiveMessage(ci.Name, evt.Nick, "quit", evt.Message())
 			net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
 		}
 	}
