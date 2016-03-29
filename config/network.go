@@ -273,6 +273,7 @@ func (net *Network) userlist(evt *irc.Event) {
 			ci.UserList.Merge(users)
 		} else {
 			ci.UserList = UserList(users)
+			ci.ReceivingUserList = true
 		}
 	}
 }
