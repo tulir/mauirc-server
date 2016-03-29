@@ -17,6 +17,10 @@
 // Package config contains configurations
 package config
 
+import (
+	"strings"
+)
+
 // UserList is a wrapper for sorting user lists
 type UserList []string
 
@@ -52,7 +56,7 @@ func (s UserList) Less(i, j int) bool {
 	} else if levelI < levelJ {
 		return false
 	} else {
-		return s[i] < s[j]
+		return strings.ToLower(s[i]) < strings.ToLower(s[j])
 	}
 }
 
