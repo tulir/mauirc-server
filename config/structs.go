@@ -70,12 +70,13 @@ type AuthToken struct {
 
 // ChannelData contains information about a channeö
 type ChannelData struct {
-	Network    string   `json:"network"`
-	Name       string   `json:"name"`
-	UserList   UserList `json:"userlist,omitempty"`
-	Topic      string   `json:"topic,omitempty"`
-	TopicSetBy string   `json:"topicsetby,omitempty"`
-	TopicSetAt int64    `json:"topicsetat,omitempty"`
+	Network           string   `json:"network"`
+	Name              string   `json:"name"`
+	UserList          UserList `json:"userlist,omitempty"`
+	Topic             string   `json:"topic,omitempty"`
+	TopicSetBy        string   `json:"topicsetby,omitempty"`
+	TopicSetAt        int64    `json:"topicsetat,omitempty"`
+	ReceivingUserList bool     `json:"-"`
 }
 
 // NickChange tells the client about nick changes

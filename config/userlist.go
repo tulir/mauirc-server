@@ -60,6 +60,22 @@ func (s UserList) Less(i, j int) bool {
 	}
 }
 
+// Merge the given string list with this user list
+func (s UserList) Merge(other []string) {
+Outer:
+	for _, str := range other {
+		if len(str) == 0 {
+			continue
+		}
+		for _, strOld := range s {
+			if str == strOld {
+				continue Outer
+			}
+		}
+		s = append(s, str)
+	}
+}
+
 // Contains checks if the given user is in this UserList
 func (s UserList) Contains(user string) (bool, int) {
 	for i, u := range s {

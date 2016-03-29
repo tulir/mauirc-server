@@ -51,6 +51,7 @@ func (net *Network) Open(user *User) {
 	i.AddCallback("JOIN", net.join)
 	i.AddCallback("PART", net.part)
 	i.AddCallback("353", net.userlist)
+	i.AddCallback("366", net.userlistend)
 	i.AddCallback("332", net.topic)
 	i.AddCallback("333", net.topicset)
 	i.AddCallback("NICK", net.nick)
@@ -261,13 +262,25 @@ func (net *Network) nick(evt *irc.Event) {
 }
 
 func (net *Network) userlist(evt *irc.Event) {
-	users := strings.Split(evt.Message(), " ")
-	if len(users[len(users)-1]) == 0 {
-		users = users[:len(users)-1]
-	}
 	ci := net.ChannelInfo[evt.Arguments[2]]
 	if ci != nil {
-		ci.UserList = UserList(users)
+		users := strings.Split(evt.Message(), " ")
+		if len(users[len(users)-1]) == 0 {
+			users = users[:len(users)-1]
+		}
+
+		if ci.ReceivingUserList {
+			ci.UserList.Merge(users)
+		} else {
+			ci.UserList = UserList(users)
+		}
+	}
+}
+
+func (net *Network) userlistend(evt *irc.Event) {
+	ci := net.ChannelInfo[evt.Arguments[2]]
+	if ci != nil {
+		ci.ReceivingUserList = false
 		sort.Sort(ci.UserList)
 		net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
 	}
