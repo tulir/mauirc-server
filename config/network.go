@@ -50,6 +50,7 @@ func (net *Network) Open(user *User) {
 	i.AddCallback("CTCP_ACTION", net.action)
 	i.AddCallback("JOIN", net.join)
 	i.AddCallback("PART", net.part)
+	i.AddCallback("MODE", net.mode)
 	i.AddCallback("353", net.userlist)
 	i.AddCallback("366", net.userlistend)
 	i.AddCallback("332", net.topic)
@@ -242,6 +243,10 @@ func (net *Network) joinpart(user, channel string, part bool) {
 	} else {
 		net.joinpartOther(user, channel, part)
 	}
+}
+
+func (net *Network) mode(evt *irc.Event) {
+	// TODO add handler for MODE
 }
 
 func (net *Network) nick(evt *irc.Event) {
