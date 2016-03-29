@@ -278,7 +278,7 @@ func (net *Network) userlist(evt *irc.Event) {
 }
 
 func (net *Network) userlistend(evt *irc.Event) {
-	ci := net.ChannelInfo[evt.Arguments[2]]
+	ci := net.ChannelInfo[evt.Arguments[1]]
 	if ci != nil {
 		ci.ReceivingUserList = false
 		sort.Sort(ci.UserList)
