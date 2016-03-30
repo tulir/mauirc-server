@@ -51,6 +51,8 @@ func (user User) HandleCommand(data *gabs.Container) {
 	}
 
 	switch typ {
+	case "raw":
+		user.rawMessage(data)
 	case "message":
 		user.cmdMessage(data)
 	case "userlist":
@@ -64,6 +66,25 @@ func (user User) HandleCommand(data *gabs.Container) {
 	default:
 		user.respond(false, "unknown-type", "Unknown message type: %s", typ)
 	}
+}
+
+func (user User) rawMessage(data *gabs.Container) {
+	network, ok := data.Path("network").Data().(string)
+	if !ok {
+		return
+	}
+
+	net := user.GetNetwork(network)
+	if net == nil {
+		return
+	}
+
+	message, ok := data.Path("message").Data().(string)
+	if !ok {
+		return
+	}
+
+	net.SendRaw(message)
 }
 
 func (user User) cmdImportScript(data *gabs.Container) {
