@@ -120,6 +120,11 @@ func (net *Network) SendMessage(channel, command, message string) {
 	}
 }
 
+// SendRaw sends the raw message to IRC.
+func (net *Network) SendRaw(message string) {
+	net.IRC.SendRaw(message)
+}
+
 func (net *Network) sendToIRC(msg database.Message) bool {
 	if !strings.HasPrefix(msg.Channel, "*") {
 		switch msg.Command {
