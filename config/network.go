@@ -24,7 +24,6 @@ import (
 	"maunium.net/go/mauircd/plugin"
 	"maunium.net/go/mauircd/util"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -53,12 +52,15 @@ func (net *Network) Open(user *User) {
 	i.AddCallback("MODE", net.mode)
 	i.AddCallback("353", net.userlist)
 	i.AddCallback("366", net.userlistend)
+	i.AddCallback("322", net.chanlist)
+	i.AddCallback("323", net.chanlistend)
 	i.AddCallback("332", net.topic)
 	i.AddCallback("333", net.topicset)
 	i.AddCallback("NICK", net.nick)
 	i.AddCallback("QUIT", net.quit)
 
 	i.AddCallback("001", func(evt *irc.Event) {
+		i.SendRaw("LIST")
 		for _, channel := range net.Channels {
 			i.Join(channel)
 		}
@@ -235,110 +237,4 @@ func (net *Network) joinpartOther(user, channel string, part bool) {
 	}
 	sort.Sort(ci.UserList)
 	net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
-}
-
-func (net *Network) joinpart(user, channel string, part bool) {
-	if user == net.Nick {
-		net.joinpartMe(channel, part)
-	} else {
-		net.joinpartOther(user, channel, part)
-	}
-}
-
-func (net *Network) mode(evt *irc.Event) {
-	// TODO add handler for MODE
-}
-
-func (net *Network) nick(evt *irc.Event) {
-	if evt.Nick == net.Nick {
-		net.Owner.NewMessages <- MauMessage{Type: "nickchange", Object: NickChange{Network: net.Name, Nick: evt.Message()}}
-		net.Nick = evt.Message()
-	} else {
-		for _, ci := range net.ChannelInfo {
-			if b, i := ci.UserList.Contains(evt.Nick); b {
-				ci.UserList[i] = evt.Message()
-				sort.Sort(ci.UserList)
-
-				net.ReceiveMessage(ci.Name, evt.Nick, "nick", evt.Message())
-				net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
-			}
-		}
-	}
-}
-
-func (net *Network) userlist(evt *irc.Event) {
-	ci := net.ChannelInfo[evt.Arguments[2]]
-	if ci != nil {
-		users := strings.Split(evt.Message(), " ")
-		if len(users[len(users)-1]) == 0 {
-			users = users[:len(users)-1]
-		}
-
-		if ci.ReceivingUserList {
-			ci.UserList.Merge(users)
-		} else {
-			ci.UserList = UserList(users)
-			ci.ReceivingUserList = true
-		}
-	}
-}
-
-func (net *Network) userlistend(evt *irc.Event) {
-	ci := net.ChannelInfo[evt.Arguments[1]]
-	if ci != nil {
-		ci.ReceivingUserList = false
-		sort.Sort(ci.UserList)
-		net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
-	}
-}
-
-func (net *Network) topic(evt *irc.Event) {
-	ci := net.ChannelInfo[evt.Arguments[1]]
-	if ci != nil {
-		ci.Topic = evt.Message()
-		net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
-	}
-}
-
-func (net *Network) topicset(evt *irc.Event) {
-	ci := net.ChannelInfo[evt.Arguments[1]]
-	if ci != nil {
-		ci.TopicSetBy = evt.Arguments[2]
-		setAt, err := strconv.ParseInt(evt.Arguments[3], 10, 64)
-		if err != nil {
-			ci.TopicSetAt = setAt
-		}
-		net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
-	}
-}
-
-func (net *Network) quit(evt *irc.Event) {
-	for _, ci := range net.ChannelInfo {
-		if b, i := ci.UserList.Contains(evt.Nick); b {
-			ci.UserList[i] = ci.UserList[len(ci.UserList)-1]
-			ci.UserList = ci.UserList[:len(ci.UserList)-1]
-			sort.Sort(ci.UserList)
-
-			net.ReceiveMessage(ci.Name, evt.Nick, "quit", evt.Message())
-			net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
-		}
-	}
-}
-
-func (net *Network) join(evt *irc.Event) {
-	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "join", evt.Message())
-	net.joinpart(evt.Nick, evt.Arguments[0], false)
-}
-
-func (net *Network) part(evt *irc.Event) {
-	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "part", evt.Message())
-	net.joinpart(evt.Nick, evt.Arguments[0], true)
-}
-
-func (net *Network) privmsg(evt *irc.Event) {
-	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "privmsg", evt.Message())
-}
-
-func (net *Network) action(evt *irc.Event) {
-	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "action", evt.Message())
 }
