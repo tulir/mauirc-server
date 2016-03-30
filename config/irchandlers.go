@@ -33,7 +33,10 @@ func (net *Network) joinpart(user, channel string, part bool) {
 }
 
 func (net *Network) mode(evt *irc.Event) {
-	// TODO add handler for MODE
+	if evt.Arguments[0][0] == '#' {
+		net.IRC.SendRawf("NAMES %s", evt.Arguments[0])
+	}
+	// TODO Send message to user about mode changes
 }
 
 func (net *Network) nick(evt *irc.Event) {
