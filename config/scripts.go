@@ -20,6 +20,7 @@ package config
 import (
 	"fmt"
 	"io/ioutil"
+	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/plugin"
 	"net/http"
 	"os"
@@ -73,6 +74,37 @@ func (net *Network) SaveScripts(path string) error {
 		}
 	}
 	return nil
+}
+
+// RunScripts runs all the scripts of this network and all global scripts on the given message
+func (net *Network) RunScripts(msg database.Message, cancelled, receiving bool) (database.Message, bool) {
+	netChanged := false
+	for _, s := range net.Scripts {
+		msg, cancelled, netChanged = net.RunScript(msg, s, cancelled, receiving)
+		if netChanged {
+			return msg, true
+		}
+	}
+
+	for _, s := range net.Owner.GlobalScripts {
+		msg, cancelled, netChanged = net.RunScript(msg, s, cancelled, receiving)
+		if netChanged {
+			return msg, true
+		}
+	}
+	return msg, cancelled
+}
+
+// RunScript runs a single script and sends it to another network if needed.
+func (net *Network) RunScript(msg database.Message, s plugin.Script, cancelled, receiving bool) (database.Message, bool, bool) {
+	msg, cancelled = s.Run(msg, cancelled)
+	if msg.Network != net.Name {
+		if net.SwitchNetwork(msg, receiving) {
+			return msg, cancelled, true
+		}
+		msg.Network = net.Name
+	}
+	return msg, cancelled, false
 }
 
 func download(pasteID string) (string, error) {
