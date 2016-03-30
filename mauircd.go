@@ -53,6 +53,7 @@ func main() {
 		user.NewMessages = make(chan config.MauMessage, 64)
 		for _, network := range user.Networks {
 			network.ChannelInfo = make(map[string]*config.ChannelData)
+			network.ChanList = make(map[string]config.BasicChannelData)
 			network.Open(user)
 			network.LoadScripts(config.GetConfig().Path)
 		}
