@@ -59,7 +59,7 @@ func (net *Network) Open(user *User) {
 	i.AddCallback("QUIT", net.quit)
 
 	i.AddCallback("001", func(evt *irc.Event) {
-		i.SendRaw("LIST")
+		i.SendRaw("LIST") // TODO update channel list properly
 		for _, channel := range net.Channels {
 			i.Join(channel)
 		}
