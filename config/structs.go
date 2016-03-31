@@ -73,17 +73,11 @@ type ChannelData struct {
 	Network           string   `json:"network"`
 	Name              string   `json:"name"`
 	UserList          UserList `json:"userlist"`
+	UserCount         int      `json:"usercount"`
 	Topic             string   `json:"topic"`
 	TopicSetBy        string   `json:"topicsetby"`
 	TopicSetAt        int64    `json:"topicsetat"`
 	ReceivingUserList bool     `json:"-"`
-}
-
-// BasicChannelData contains the basic channel data that can be accessed without joining a channel.
-type BasicChannelData struct {
-	Name      string `json:"name"`
-	UserCount int    `json:"user-count"`
-	Topic     string `json:"topic"`
 }
 
 // NickChange tells the client about nick changes
@@ -101,11 +95,9 @@ type Network struct {
 	SSL      bool     `json:"ssl"`
 	Channels []string `json:"channels"`
 
-	ChanList          map[string]BasicChannelData `json:"-"`
-	ReceivingChanList bool                        `json:"-"`
-	Owner             *User                       `json:"-"`
-	IRC               *irc.Connection             `json:"-"`
-	Nick              string                      `json:"-"`
-	Scripts           []plugin.Script             `json:"-"`
-	ChannelInfo       map[string]*ChannelData     `json:"-"`
+	Owner       *User                   `json:"-"`
+	IRC         *irc.Connection         `json:"-"`
+	Nick        string                  `json:"-"`
+	Scripts     []plugin.Script         `json:"-"`
+	ChannelInfo map[string]*ChannelData `json:"-"`
 }

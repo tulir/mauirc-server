@@ -129,15 +129,6 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 
 	var netlist []string
 	for _, net := range c.user.Networks {
-		var chanList []string
-		for _, ch := range net.ChanList {
-			chanList = append(chanList, ch.Name)
-		}
-		c.user.NewMessages <- config.MauMessage{Type: "chanlist", Object: struct {
-			Network string   `json:"network"`
-			List    []string `json:"list"`
-		}{net.Name, chanList}}
-
 		netlist = append(netlist, net.Name)
 		c.user.NewMessages <- config.MauMessage{Type: "nickchange", Object: config.NickChange{Network: net.Name, Nick: net.Nick}}
 		for _, chd := range net.ChannelInfo {
