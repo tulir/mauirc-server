@@ -135,8 +135,15 @@ func ClearUser(email string) error {
 
 // Insert a message into the database
 func Insert(email string, msg Message) int64 {
+	var preview = ""
+	if msg.Preview != nil {
+		data, err := json.Marshal(msg.Preview)
+		if err == nil {
+			preview = string(data)
+		}
+	}
 	db.Exec("INSERT INTO messages (email, network, channel, timestamp, sender, command, message, preview) VALUES (?, ?, ?, ?, ?, ?, ?);",
-		email, msg.Network, msg.Channel, msg.Timestamp, msg.Sender, msg.Command, msg.Message, msg.Preview)
+		email, msg.Network, msg.Channel, msg.Timestamp, msg.Sender, msg.Command, msg.Message, preview)
 
 	result := db.QueryRow("SELECT id FROM messages WHERE email=? AND network=? AND channel=? AND timestamp=? AND sender=? AND command=? AND message=?;",
 		email, msg.Network, msg.Channel, msg.Timestamp, msg.Sender, msg.Command, msg.Message)
