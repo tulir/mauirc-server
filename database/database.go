@@ -33,7 +33,7 @@ type Message struct {
 	Sender    string           `json:"sender"`
 	Command   string           `json:"command"`
 	Message   string           `json:"message"`
-	OwnMsg    bool             `json:"own"`
+	OwnMsg    bool             `json:"ownmsg"`
 	Preview   *preview.Preview `json:"preview"`
 }
 
@@ -86,16 +86,23 @@ func scanMessages(results *sql.Rows) ([]Message, error) {
 		}
 
 		var network, channel, sender, command, message, previewStr string
-		var ownmessage bool
+		var om byte
 		var timestamp, id int64
 
-		results.Scan(&id, &network, &channel, &timestamp, &sender, &command, &message, &ownmessage, &previewStr)
+		results.Scan(&id, &network, &channel, &timestamp, &sender, &command, &message, &om, &previewStr)
 
 		var pw = &preview.Preview{}
 		if len(previewStr) > 0 {
 			json.Unmarshal([]byte(previewStr), pw)
 		} else {
 			pw = nil
+		}
+
+		var ownmessage bool
+		if om == 1 {
+			ownmessage = true
+		} else {
+			ownmessage = false
 		}
 
 		messages = append(messages, Message{
