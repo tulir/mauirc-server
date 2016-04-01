@@ -81,6 +81,13 @@ func (net *Network) Open(user *User) {
 // ReceiveMessage stores the message and sends it to the client
 func (net *Network) ReceiveMessage(channel, sender, command, message string) {
 	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
+
+	if msg.Sender == net.Nick {
+		msg.OwnMsg = true
+	} else {
+		msg.OwnMsg = false
+	}
+
 	cancelled := false
 	if msg.Channel == "AUTH" || msg.Channel == "*" {
 		return
@@ -103,6 +110,13 @@ func (net *Network) ReceiveMessage(channel, sender, command, message string) {
 // SendMessage sends the given message to the given channel
 func (net *Network) SendMessage(channel, command, message string) {
 	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: net.Nick, Command: command, Message: message}
+
+	if msg.Sender == net.Nick {
+		msg.OwnMsg = true
+	} else {
+		msg.OwnMsg = false
+	}
+
 	cancelled := false
 
 	msg, cancelled = net.RunScripts(msg, cancelled, false)

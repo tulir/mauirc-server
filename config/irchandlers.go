@@ -131,6 +131,7 @@ func (net *Network) noperms(evt *irc.Event) {
 			Sender:    "[" + net.Name + "]",
 			Command:   "privmsg",
 			Message:   evt.Message(),
+			OwnMsg:    false,
 		},
 	}
 }

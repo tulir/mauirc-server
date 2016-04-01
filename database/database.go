@@ -33,6 +33,7 @@ type Message struct {
 	Sender    string           `json:"sender"`
 	Command   string           `json:"command"`
 	Message   string           `json:"message"`
+	OwnMsg    bool             `json:"own"`
 	Preview   *preview.Preview `json:"preview"`
 }
 
@@ -57,6 +58,7 @@ func Load(sqlStr string) error {
 		"sender VARCHAR(255) NOT NULL," +
 		"command VARCHAR(255) NOT NULL," +
 		"message TEXT NOT NULL," +
+		"ownmessage TINYINT(1) NOT NULL," +
 		"preview TEXT" +
 		") DEFAULT CHARSET=utf8;")
 	return err
@@ -69,7 +71,7 @@ func Close() {
 
 // GetHistory gets the last n messages
 func GetHistory(email string, n int) ([]Message, error) {
-	results, err := db.Query("SELECT id, network, channel, timestamp, sender, command, message, preview FROM messages WHERE email=? ORDER BY id DESC LIMIT ?", email, n)
+	results, err := db.Query("SELECT id, network, channel, timestamp, sender, command, message, ownmessage, preview FROM messages WHERE email=? ORDER BY id DESC LIMIT ?", email, n)
 	if err != nil {
 		return nil, err
 	}
@@ -84,9 +86,10 @@ func scanMessages(results *sql.Rows) ([]Message, error) {
 		}
 
 		var network, channel, sender, command, message, previewStr string
+		var ownmessage bool
 		var timestamp, id int64
 
-		results.Scan(&id, &network, &channel, &timestamp, &sender, &command, &message, &previewStr)
+		results.Scan(&id, &network, &channel, &timestamp, &sender, &command, &message, &ownmessage, &previewStr)
 
 		var pw = &preview.Preview{}
 		if len(previewStr) > 0 {
@@ -103,6 +106,7 @@ func scanMessages(results *sql.Rows) ([]Message, error) {
 			Sender:    sender,
 			Command:   command,
 			Message:   message,
+			OwnMsg:    ownmessage,
 			Preview:   pw,
 		})
 	}
@@ -142,11 +146,11 @@ func Insert(email string, msg Message) int64 {
 			preview = string(data)
 		}
 	}
-	db.Exec("INSERT INTO messages (email, network, channel, timestamp, sender, command, message, preview) VALUES (?, ?, ?, ?, ?, ?, ?, ?);",
-		email, msg.Network, msg.Channel, msg.Timestamp, msg.Sender, msg.Command, msg.Message, preview)
+	db.Exec("INSERT INTO messages (email, network, channel, timestamp, sender, command, message, ownmessage, preview) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",
+		email, msg.Network, msg.Channel, msg.Timestamp, msg.Sender, msg.Command, msg.Message, msg.OwnMsg, preview)
 
-	result := db.QueryRow("SELECT id FROM messages WHERE email=? AND network=? AND channel=? AND timestamp=? AND sender=? AND command=? AND message=?;",
-		email, msg.Network, msg.Channel, msg.Timestamp, msg.Sender, msg.Command, msg.Message)
+	result := db.QueryRow("SELECT id FROM messages WHERE email=? AND network=? AND channel=? AND timestamp=? AND sender=? AND command=? AND message=? AND ownmessage=?;",
+		email, msg.Network, msg.Channel, msg.Timestamp, msg.Sender, msg.Command, msg.Message, msg.OwnMsg)
 	var id int64
 	result.Scan(&id)
 	return id
