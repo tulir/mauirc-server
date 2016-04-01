@@ -18,9 +18,12 @@
 package preview
 
 import (
+	"bytes"
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/mvdan/xurls"
+	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 // Preview is an URL preview
@@ -56,9 +59,19 @@ func GetPreview(text string) (*Preview, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
+
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	ct := http.DetectContentType(data)
+	if strings.HasPrefix(ct, "image/") {
+		return &Preview{Image: &Image{URL: url, Type: ct}}, nil
+	}
 
 	og := opengraph.NewOpenGraph()
-	err = og.ProcessHTML(resp.Body)
+	err = og.ProcessHTML(bytes.NewReader(data))
 	if err != nil {
 		return nil, err
 	}
