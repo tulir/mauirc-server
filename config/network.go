@@ -50,15 +50,16 @@ func (net *Network) Open(user *User) {
 	i.AddCallback("JOIN", net.join)
 	i.AddCallback("PART", net.part)
 	i.AddCallback("MODE", net.mode)
+	i.AddCallback("TOPIC", net.topic)
+	i.AddCallback("NICK", net.nick)
+	i.AddCallback("QUIT", net.quit)
 	i.AddCallback("353", net.userlist)
 	i.AddCallback("366", net.userlistend)
 	i.AddCallback("322", net.chanlist)
 	i.AddCallback("323", net.chanlistend)
 	i.AddCallback("332", net.topicresp)
-	i.AddCallback("TOPIC", net.topic)
 	i.AddCallback("333", net.topicset)
-	i.AddCallback("NICK", net.nick)
-	i.AddCallback("QUIT", net.quit)
+	i.AddCallback("482", net.noperms)
 
 	i.AddCallback("001", func(evt *irc.Event) {
 		i.SendRaw("LIST") // TODO update channel list properly

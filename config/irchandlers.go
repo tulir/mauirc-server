@@ -19,6 +19,7 @@ package config
 
 import (
 	"github.com/thoj/go-ircevent"
+	"maunium.net/go/mauircd/database"
 	"sort"
 	"strconv"
 	"strings"
@@ -117,6 +118,21 @@ func (net *Network) topicresp(evt *irc.Event) {
 	if ci != nil {
 		ci.Topic = evt.Message()
 		net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
+	}
+}
+
+func (net *Network) noperms(evt *irc.Event) {
+	net.Owner.NewMessages <- MauMessage{
+		Type: "message",
+		Object: database.Message{
+			ID:        -1,
+			Network:   net.Name,
+			Channel:   evt.Arguments[1],
+			Timestamp: time.Now().Unix(),
+			Sender:    "[" + net.Name + "]",
+			Command:   "privmsg",
+			Message:   evt.Message(),
+		},
 	}
 }
 
