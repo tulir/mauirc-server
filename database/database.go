@@ -19,18 +19,21 @@ package database
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"github.com/dyatlov/go-opengraph/opengraph"
 )
 
 // Message wraps an IRC message
 type Message struct {
-	ID        int64  `json:"id"`
-	Network   string `json:"network"`
-	Channel   string `json:"channel"`
-	Timestamp int64  `json:"timestamp"`
-	Sender    string `json:"sender"`
-	Command   string `json:"command"`
-	Message   string `json:"message"`
+	ID        int64                `json:"id"`
+	Network   string               `json:"network"`
+	Channel   string               `json:"channel"`
+	Timestamp int64                `json:"timestamp"`
+	Sender    string               `json:"sender"`
+	Command   string               `json:"command"`
+	Message   string               `json:"message"`
+	Preview   *opengraph.OpenGraph `json:"preview"`
 }
 
 var db *sql.DB
@@ -53,7 +56,8 @@ func Load(sqlStr string) error {
 		"timestamp BIGINT NOT NULL," +
 		"sender VARCHAR(255) NOT NULL," +
 		"command VARCHAR(255) NOT NULL," +
-		"message TEXT NOT NULL" +
+		"message TEXT NOT NULL," +
+		"preview TEXT" +
 		") DEFAULT CHARSET=utf8;")
 	return err
 }
@@ -65,7 +69,7 @@ func Close() {
 
 // GetHistory gets the last n messages
 func GetHistory(email string, n int) ([]Message, error) {
-	results, err := db.Query("SELECT id, network, channel, timestamp, sender, command, message FROM messages WHERE email=? ORDER BY id DESC LIMIT ?", email, n)
+	results, err := db.Query("SELECT id, network, channel, timestamp, sender, command, message, preview FROM messages WHERE email=? ORDER BY id DESC LIMIT ?", email, n)
 	if err != nil {
 		return nil, err
 	}
@@ -79,10 +83,17 @@ func scanMessages(results *sql.Rows) ([]Message, error) {
 			return messages, results.Err()
 		}
 
-		var network, channel, sender, command, message string
+		var network, channel, sender, command, message, preview string
 		var timestamp, id int64
 
-		results.Scan(&id, &network, &channel, &timestamp, &sender, &command, &message)
+		results.Scan(&id, &network, &channel, &timestamp, &sender, &command, &message, &preview)
+
+		var pw = &opengraph.OpenGraph{}
+		if len(preview) > 0 {
+			json.Unmarshal([]byte(preview), pw)
+		} else {
+			pw = nil
+		}
 
 		messages = append(messages, Message{
 			ID:        id,
@@ -92,6 +103,7 @@ func scanMessages(results *sql.Rows) ([]Message, error) {
 			Sender:    sender,
 			Command:   command,
 			Message:   message,
+			Preview:   pw,
 		})
 	}
 	return messages, nil
@@ -123,8 +135,8 @@ func ClearUser(email string) error {
 
 // Insert a message into the database
 func Insert(email string, msg Message) int64 {
-	db.Exec("INSERT INTO messages (email, network, channel, timestamp, sender, command, message) VALUES (?, ?, ?, ?, ?, ?, ?);",
-		email, msg.Network, msg.Channel, msg.Timestamp, msg.Sender, msg.Command, msg.Message)
+	db.Exec("INSERT INTO messages (email, network, channel, timestamp, sender, command, message, preview) VALUES (?, ?, ?, ?, ?, ?, ?);",
+		email, msg.Network, msg.Channel, msg.Timestamp, msg.Sender, msg.Command, msg.Message, msg.Preview)
 
 	result := db.QueryRow("SELECT id FROM messages WHERE email=? AND network=? AND channel=? AND timestamp=? AND sender=? AND command=? AND message=?;",
 		email, msg.Network, msg.Channel, msg.Timestamp, msg.Sender, msg.Command, msg.Message)
