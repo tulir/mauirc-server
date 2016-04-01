@@ -21,19 +21,19 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"github.com/dyatlov/go-opengraph/opengraph"
+	"maunium.net/go/mauircd/preview"
 )
 
 // Message wraps an IRC message
 type Message struct {
-	ID        int64                `json:"id"`
-	Network   string               `json:"network"`
-	Channel   string               `json:"channel"`
-	Timestamp int64                `json:"timestamp"`
-	Sender    string               `json:"sender"`
-	Command   string               `json:"command"`
-	Message   string               `json:"message"`
-	Preview   *opengraph.OpenGraph `json:"preview"`
+	ID        int64            `json:"id"`
+	Network   string           `json:"network"`
+	Channel   string           `json:"channel"`
+	Timestamp int64            `json:"timestamp"`
+	Sender    string           `json:"sender"`
+	Command   string           `json:"command"`
+	Message   string           `json:"message"`
+	Preview   *preview.Preview `json:"preview"`
 }
 
 var db *sql.DB
@@ -83,14 +83,14 @@ func scanMessages(results *sql.Rows) ([]Message, error) {
 			return messages, results.Err()
 		}
 
-		var network, channel, sender, command, message, preview string
+		var network, channel, sender, command, message, previewStr string
 		var timestamp, id int64
 
-		results.Scan(&id, &network, &channel, &timestamp, &sender, &command, &message, &preview)
+		results.Scan(&id, &network, &channel, &timestamp, &sender, &command, &message, &previewStr)
 
-		var pw = &opengraph.OpenGraph{}
-		if len(preview) > 0 {
-			json.Unmarshal([]byte(preview), pw)
+		var pw = &preview.Preview{}
+		if len(previewStr) > 0 {
+			json.Unmarshal([]byte(previewStr), pw)
 		} else {
 			pw = nil
 		}

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-// Package config contains configurations
-package config
+// Package preview contains URL previewing things
+package preview
 
 import (
 	"github.com/dyatlov/go-opengraph/opengraph"
@@ -23,8 +23,29 @@ import (
 	"net/http"
 )
 
+// Preview is an URL preview
+type Preview struct {
+	Text  *Text  `json:"text,omitempty"`
+	Image *Image `json:"image,omitempty"`
+}
+
+// Text is some text to preview
+type Text struct {
+	Title       string `json:"title,omitempty"`
+	Description string `json:"description,omitempty"`
+	SiteName    string `json:"sitename,omitempty"`
+}
+
+// Image is an image to preview
+type Image struct {
+	URL    string `json:"url"`
+	Type   string `json:"type"`
+	Width  uint64 `json:"width"`
+	Height uint64 `json:"height"`
+}
+
 // GetPreview gets the preview for the first URL in the given text.
-func GetPreview(text string) (*opengraph.OpenGraph, error) {
+func GetPreview(text string) (*Preview, error) {
 	url := xurls.Relaxed.FindString(text)
 
 	if len(url) <= 0 {
@@ -42,5 +63,16 @@ func GetPreview(text string) (*opengraph.OpenGraph, error) {
 		return nil, err
 	}
 
-	return og, nil
+	var image *Image
+	if len(og.Images) > 0 {
+		img := og.Images[0]
+		if len(img.SecureURL) > 0 {
+			image = &Image{URL: img.SecureURL, Type: img.Type, Width: img.Width, Height: img.Height}
+		} else {
+			image = &Image{URL: img.URL, Type: img.Type, Width: img.Width, Height: img.Height}
+		}
+	}
+	var pwText = &Text{Title: og.Title, Description: og.Description, SiteName: og.SiteName}
+
+	return &Preview{Text: pwText, Image: image}, nil
 }

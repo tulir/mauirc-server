@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/thoj/go-ircevent"
 	"maunium.net/go/mauircd/database"
+	"maunium.net/go/mauircd/preview"
 	"maunium.net/go/mauircd/util"
 	"sort"
 	"strings"
@@ -158,7 +159,7 @@ func (net *Network) SwitchNetwork(msg database.Message, receiving bool) bool {
 
 // InsertAndSend inserts the given message into the database and sends it to the client
 func (net *Network) InsertAndSend(msg database.Message) {
-	msg.Preview, _ = GetPreview(msg.Message)
+	msg.Preview, _ = preview.GetPreview(msg.Message)
 	msg.ID = database.Insert(net.Owner.Email, msg)
 	net.Owner.NewMessages <- MauMessage{Type: "message", Object: msg}
 }
