@@ -142,7 +142,7 @@ func Insert(email string, msg Message) int64 {
 			preview = string(data)
 		}
 	}
-	db.Exec("INSERT INTO messages (email, network, channel, timestamp, sender, command, message, preview) VALUES (?, ?, ?, ?, ?, ?, ?);",
+	db.Exec("INSERT INTO messages (email, network, channel, timestamp, sender, command, message, preview) VALUES (?, ?, ?, ?, ?, ?, ?, ?);",
 		email, msg.Network, msg.Channel, msg.Timestamp, msg.Sender, msg.Command, msg.Message, preview)
 
 	result := db.QueryRow("SELECT id FROM messages WHERE email=? AND network=? AND channel=? AND timestamp=? AND sender=? AND command=? AND message=?;",
