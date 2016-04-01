@@ -82,7 +82,7 @@ func (net *Network) Open(user *User) {
 func (net *Network) ReceiveMessage(channel, sender, command, message string) {
 	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
 
-	if msg.Sender == net.Nick {
+	if msg.Sender == net.Nick || (command == "nick" && message == net.Nick) {
 		msg.OwnMsg = true
 	} else {
 		msg.OwnMsg = false
