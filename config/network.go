@@ -130,17 +130,19 @@ func (net *Network) sendToIRC(msg database.Message) bool {
 		switch msg.Command {
 		case "privmsg":
 			net.IRC.Privmsg(msg.Channel, msg.Message)
+			return true
 		case "action":
 			net.IRC.Action(msg.Channel, msg.Message)
+			return true
+		case "topic":
+			net.IRC.SendRawf("TOPIC %s %s", msg.Channel, msg.Message)
 		case "join":
 			net.IRC.Join(msg.Channel)
-			return false
 		case "part":
 			net.IRC.Part(msg.Channel)
-			return false
 		}
 	}
-	return true
+	return false
 }
 
 // SwitchNetwork sends the given message to another network
