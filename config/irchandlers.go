@@ -22,6 +22,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func (net *Network) joinpart(user, channel string, part bool) {
@@ -101,6 +102,17 @@ func (net *Network) chanlistend(evt *irc.Event) {
 }
 
 func (net *Network) topic(evt *irc.Event) {
+	ci := net.ChannelInfo[evt.Arguments[0]]
+	if ci != nil {
+		ci.Topic = evt.Message()
+		ci.TopicSetBy = evt.Nick
+		ci.TopicSetAt = time.Now().Unix()
+		net.ReceiveMessage(ci.Name, evt.Nick, "topic", evt.Message())
+		net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
+	}
+}
+
+func (net *Network) topicresp(evt *irc.Event) {
 	ci := net.ChannelInfo[evt.Arguments[1]]
 	if ci != nil {
 		ci.Topic = evt.Message()
