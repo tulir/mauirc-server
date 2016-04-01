@@ -137,11 +137,13 @@ func (net *Network) sendToIRC(msg database.Message) bool {
 			net.IRC.Action(msg.Channel, msg.Message)
 			return true
 		case "topic":
-			net.IRC.SendRawf("TOPIC %s %s", msg.Channel, msg.Message)
+			net.IRC.SendRawf("TOPIC %s :%s", msg.Channel, msg.Message)
 		case "join":
 			net.IRC.Join(msg.Channel)
 		case "part":
 			net.IRC.Part(msg.Channel)
+		case "nick":
+			net.IRC.Nick(msg.Message)
 		}
 	}
 	return false

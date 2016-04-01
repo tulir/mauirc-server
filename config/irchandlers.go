@@ -45,15 +45,14 @@ func (net *Network) nick(evt *irc.Event) {
 	if evt.Nick == net.Nick {
 		net.Owner.NewMessages <- MauMessage{Type: "nickchange", Object: NickChange{Network: net.Name, Nick: evt.Message()}}
 		net.Nick = evt.Message()
-	} else {
-		for _, ci := range net.ChannelInfo {
-			if b, i := ci.UserList.Contains(evt.Nick); b {
-				ci.UserList[i] = evt.Message()
-				sort.Sort(ci.UserList)
+	}
+	for _, ci := range net.ChannelInfo {
+		if b, i := ci.UserList.Contains(evt.Nick); b {
+			ci.UserList[i] = evt.Message()
+			sort.Sort(ci.UserList)
 
-				net.ReceiveMessage(ci.Name, evt.Nick, "nick", evt.Message())
-				net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
-			}
+			net.ReceiveMessage(ci.Name, evt.Nick, "nick", evt.Message())
+			net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
 		}
 	}
 }
