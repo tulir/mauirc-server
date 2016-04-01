@@ -76,16 +76,27 @@ func GetPreview(text string) (*Preview, error) {
 		return nil, err
 	}
 
-	var image *Image
+	return &Preview{Text: getText(og), Image: getImage(og)}, nil
+}
+
+func getText(og *opengraph.OpenGraph) *Text {
+	if len(og.Title) != 0 || len(og.Description) != 0 || len(og.SiteName) != 0 {
+		var txt = &Text{Title: og.Title, Description: og.Description, SiteName: og.SiteName}
+		if txt.Title == txt.Description {
+			txt.Description = ""
+		}
+		return txt
+	}
+	return nil
+}
+
+func getImage(og *opengraph.OpenGraph) *Image {
 	if len(og.Images) > 0 {
 		img := og.Images[0]
 		if len(img.SecureURL) > 0 {
-			image = &Image{URL: img.SecureURL, Type: img.Type, Width: img.Width, Height: img.Height}
-		} else {
-			image = &Image{URL: img.URL, Type: img.Type, Width: img.Width, Height: img.Height}
+			return &Image{URL: img.SecureURL, Type: img.Type, Width: img.Width, Height: img.Height}
 		}
+		return &Image{URL: img.URL, Type: img.Type, Width: img.Width, Height: img.Height}
 	}
-	var pwText = &Text{Title: og.Title, Description: og.Description, SiteName: og.SiteName}
-
-	return &Preview{Text: pwText, Image: image}, nil
+	return nil
 }
