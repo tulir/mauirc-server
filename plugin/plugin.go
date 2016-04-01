@@ -53,6 +53,7 @@ func (s Script) Run(msg database.Message, cancelled bool) (database.Message, boo
 	L.SetField(event, "sender", lua.LString(msg.Sender))
 	L.SetField(event, "command", lua.LString(msg.Command))
 	L.SetField(event, "message", lua.LString(msg.Message))
+	L.SetField(event, "ownmsg", lua.LBool(msg.OwnMsg))
 	L.SetField(event, "cancelled", lua.LBool(cancelled))
 	L.SetGlobal("event", event)
 
@@ -66,6 +67,7 @@ func (s Script) Run(msg database.Message, cancelled bool) (database.Message, boo
 	msg.Sender = getString(L, event, "sender")
 	msg.Command = getString(L, event, "command")
 	msg.Message = getString(L, event, "message")
+	msg.OwnMsg = getBool(L, event, "ownmsg")
 	//msg.Timestamp = getInt64(L, event, "timestamp") FIXME
 	return msg, getBool(L, event, "cancelled")
 }
