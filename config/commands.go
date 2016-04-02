@@ -32,6 +32,11 @@ type cmdResponse struct {
 	Message       string `json:"message"`
 }
 
+type clearhistory struct {
+	Network string `json:"network"`
+	Channel string `json:"channel"`
+}
+
 func (user User) respond(success bool, simple, message string, args ...interface{}) {
 	user.NewMessages <- MauMessage{
 		Type: "cmdresponse",
@@ -57,9 +62,9 @@ func (user User) HandleCommand(data *gabs.Container) {
 		user.cmdMessage(data)
 	case "userlist":
 		user.cmdUserlist(data)
-	case "clearbuffer":
-		user.cmdClearbuffer(data)
-	case "deletemessage":
+	case "clear":
+		user.cmdClearHistory(data)
+	case "delete":
 		user.cmdDeleteMessage(data)
 	case "importscript":
 		user.cmdImportScript(data)
@@ -147,14 +152,19 @@ func (user User) cmdDeleteMessage(data *gabs.Container) {
 	}
 	id, err := strconv.ParseInt(idS, 10, 64)
 	if err != nil {
-		user.respond(false, "parseint", "Couldn't parse an integer from %s", idS)
 		return
 	}
-	database.DeleteMessage(user.Email, id)
-	user.respond(true, "message-deleted", "Message #%d was deleted", id)
+
+	err = database.DeleteMessage(user.Email, id)
+	if err != nil {
+		fmt.Printf("<%s> Failed to delete message #%d: %s", user.Email, id, err)
+		return
+	}
+
+	user.NewMessages <- MauMessage{Type: "deletemessage", Object: id}
 }
 
-func (user User) cmdClearbuffer(data *gabs.Container) {
+func (user User) cmdClearHistory(data *gabs.Container) {
 	network, ok := data.Path("network").Data().(string)
 	if !ok {
 		return
@@ -162,7 +172,6 @@ func (user User) cmdClearbuffer(data *gabs.Container) {
 
 	net := user.GetNetwork(network)
 	if net == nil {
-		user.respond(false, "no-such-network", "No such network: %s", network)
 		return
 	}
 
@@ -172,10 +181,10 @@ func (user User) cmdClearbuffer(data *gabs.Container) {
 	}
 	err := database.ClearChannel(user.Email, net.Name, channel)
 	if err != nil {
-		user.respond(false, "clear-buffer-failed", "Failed to clear buffer of %s", net.Name)
+		fmt.Printf("<%s> Failed to clear history of %s@%s: %s", user.Email, channel, net.Name, err)
 		return
 	}
-	user.respond(true, "buffer-cleared", "Successfully cleared buffer of %s on %s", channel, net.Name)
+	user.NewMessages <- MauMessage{Type: "clearhistory", Object: clearhistory{Channel: channel, Network: net.Name}}
 }
 
 func (user User) cmdUserlist(data *gabs.Container) {
@@ -193,10 +202,12 @@ func (user User) cmdUserlist(data *gabs.Container) {
 	if !ok {
 		return
 	}
+
 	info := net.ChannelInfo[channel]
 	if info == nil {
 		return
 	}
+
 	user.NewMessages <- MauMessage{Type: "userlist", Object: info.UserList}
 }
 
