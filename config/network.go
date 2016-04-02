@@ -197,8 +197,9 @@ func (net *Network) joinpartMe(channel string, part bool) {
 			if part {
 				net.Channels[i] = net.Channels[len(net.Channels)-1]
 				net.Channels = net.Channels[:len(net.Channels)-1]
-				database.ClearChannel(net.Owner.Email, net.Name, ch)
-				delete(net.ChannelInfo, channel)
+				net.ChannelInfo[channel].UserList = UserList{}
+				net.ChannelInfo[channel].TopicSetAt = 0
+				net.ChannelInfo[channel].TopicSetBy = ""
 			} else {
 				if net.ChannelInfo[channel] == nil {
 					net.ChannelInfo[channel] = &ChannelData{Name: channel, Network: net.Name}
