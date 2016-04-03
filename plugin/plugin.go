@@ -18,6 +18,7 @@
 package plugin
 
 import (
+	"fmt"
 	"github.com/yuin/gopher-lua"
 	"maunium.net/go/mauircd/database"
 )
@@ -59,7 +60,7 @@ func (s Script) Run(msg database.Message, cancelled bool) (database.Message, boo
 
 	defer L.Close()
 	if err := L.DoString(s.TheScript); err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	msg.Network = getString(L, event, "network")
