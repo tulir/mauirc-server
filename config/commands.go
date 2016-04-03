@@ -161,7 +161,7 @@ func (user User) cmdDeleteMessage(data *gabs.Container) {
 		return
 	}
 
-	user.NewMessages <- MauMessage{Type: "deletemessage", Object: id}
+	user.NewMessages <- MauMessage{Type: "delete", Object: id}
 }
 
 func (user User) cmdClearHistory(data *gabs.Container) {
@@ -184,7 +184,7 @@ func (user User) cmdClearHistory(data *gabs.Container) {
 		fmt.Printf("<%s> Failed to clear history of %s@%s: %s", user.Email, channel, net.Name, err)
 		return
 	}
-	user.NewMessages <- MauMessage{Type: "clearhistory", Object: clearhistory{Channel: channel, Network: net.Name}}
+	user.NewMessages <- MauMessage{Type: "clear", Object: clearhistory{Channel: channel, Network: net.Name}}
 }
 
 func (user User) cmdUserlist(data *gabs.Container) {
