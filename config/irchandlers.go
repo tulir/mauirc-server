@@ -88,7 +88,10 @@ func (net *Network) chanlist(evt *irc.Event) {
 }
 
 func (net *Network) chanlistend(evt *irc.Event) {
-	net.Owner.NewMessages <- MauMessage{Type: "chanlist", Object: net.ChannelList}
+	net.Owner.NewMessages <- MauMessage{Type: "chanlist", Object: struct {
+		network string
+		list    []string
+	}{net.Name, net.ChannelList}}
 }
 
 func (net *Network) topic(evt *irc.Event) {
