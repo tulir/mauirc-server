@@ -130,11 +130,11 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 	var netlist []string
 	for _, net := range c.user.Networks {
 		netlist = append(netlist, net.Name)
-		net.Owner.NewMessages <- config.MauMessage{Type: "chanlist", Object: config.ChanList{Network: net.Name, List: net.ChannelList}}
-		c.user.NewMessages <- config.MauMessage{Type: "nickchange", Object: config.NickChange{Network: net.Name, Nick: net.Nick}}
 		for _, chd := range net.ChannelInfo {
 			c.user.NewMessages <- config.MauMessage{Type: "chandata", Object: chd}
 		}
+		net.Owner.NewMessages <- config.MauMessage{Type: "chanlist", Object: config.ChanList{Network: net.Name, List: net.ChannelList}}
+		c.user.NewMessages <- config.MauMessage{Type: "nickchange", Object: config.NickChange{Network: net.Name, Nick: net.Nick}}
 	}
 	c.user.NewMessages <- config.MauMessage{Type: "netlist", Object: netlist}
 
