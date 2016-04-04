@@ -54,9 +54,6 @@ type User struct {
 	Networks      []*Network      `json:"networks"`
 	Email         string          `json:"email"`
 	Password      string          `json:"password"`
-	User          string          `json:"user"`
-	Nick          string          `json:"nick"`
-	Realname      string          `json:"realname"`
 	AuthTokens    []AuthToken     `json:"authtokens,omitempty"`
 	NewMessages   chan MauMessage `json:"-"`
 	GlobalScripts []plugin.Script `json:"-"`
@@ -89,6 +86,9 @@ type NickChange struct {
 // Network is a single IRC network owned by a single mauIRCd user
 type Network struct {
 	Name     string   `json:"name"`
+	Nick     string   `json:"nick"`
+	User     string   `json:"user"`
+	Realname string   `json:"realname"`
 	IP       string   `json:"ip"`
 	Port     int      `json:"port"`
 	Password string   `json:"password"`
@@ -97,7 +97,7 @@ type Network struct {
 
 	Owner       *User                   `json:"-"`
 	IRC         *irc.Connection         `json:"-"`
-	Nick        string                  `json:"-"`
 	Scripts     []plugin.Script         `json:"-"`
 	ChannelInfo map[string]*ChannelData `json:"-"`
+	ChannelList []string                `json:"-"`
 }

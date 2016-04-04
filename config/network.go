@@ -30,7 +30,7 @@ import (
 
 // Open an IRC connection
 func (net *Network) Open(user *User) {
-	i := irc.IRC(user.Nick, user.User)
+	i := irc.IRC(net.Nick, net.User)
 
 	i.UseTLS = net.SSL
 	i.QuitMessage = "mauIRCd shutting down..."
@@ -40,7 +40,6 @@ func (net *Network) Open(user *User) {
 
 	net.IRC = i
 	net.Owner = user
-	net.Nick = user.Nick
 
 	i.AddCallback("PRIVMSG", net.privmsg)
 	i.AddCallback("NOTICE", net.privmsg)

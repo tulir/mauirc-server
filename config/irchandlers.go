@@ -84,21 +84,11 @@ func (net *Network) userlistend(evt *irc.Event) {
 }
 
 func (net *Network) chanlist(evt *irc.Event) {
-	usercount, _ := strconv.Atoi(evt.Arguments[2])
-	ci, ok := net.ChannelInfo[evt.Arguments[1]]
-	if !ok {
-		ci = &ChannelData{Network: net.Name, Name: evt.Arguments[1], Topic: evt.Message(), UserCount: usercount}
-		net.ChannelInfo[evt.Arguments[1]] = ci
-	} else {
-		ci.Topic = evt.Message()
-		ci.UserCount = usercount
-	}
+	net.ChannelList = append(net.ChannelList, evt.Arguments[1])
 }
 
 func (net *Network) chanlistend(evt *irc.Event) {
-	for _, chd := range net.ChannelInfo {
-		net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: chd}
-	}
+	net.Owner.NewMessages <- MauMessage{Type: "chanlist", Object: net.ChannelList}
 }
 
 func (net *Network) topic(evt *irc.Event) {
