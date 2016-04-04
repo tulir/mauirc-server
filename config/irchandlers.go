@@ -26,6 +26,12 @@ import (
 	"time"
 )
 
+// ChanList contains a list of channels
+type ChanList struct {
+	Network string   `json:"network"`
+	List    []string `json:"list"`
+}
+
 func (net *Network) joinpart(user, channel string, part bool) {
 	if user == net.Nick {
 		net.joinpartMe(channel, part)
@@ -88,10 +94,7 @@ func (net *Network) chanlist(evt *irc.Event) {
 }
 
 func (net *Network) chanlistend(evt *irc.Event) {
-	net.Owner.NewMessages <- MauMessage{Type: "chanlist", Object: struct {
-		network string
-		list    []string
-	}{net.Name, net.ChannelList}}
+	net.Owner.NewMessages <- MauMessage{Type: "chanlist", Object: ChanList{Network: net.Name, List: net.ChannelList}}
 }
 
 func (net *Network) topic(evt *irc.Event) {
