@@ -65,12 +65,11 @@ type AuthToken struct {
 	Time  int64
 }
 
-// ChannelData contains information about a channeö
+// ChannelData contains information about a channel
 type ChannelData struct {
 	Network           string   `json:"network"`
 	Name              string   `json:"name"`
 	UserList          UserList `json:"userlist"`
-	UserCount         int      `json:"usercount"`
 	Topic             string   `json:"topic"`
 	TopicSetBy        string   `json:"topicsetby"`
 	TopicSetAt        int64    `json:"topicsetat"`
