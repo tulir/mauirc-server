@@ -37,10 +37,9 @@ func getBool(L *lua.LState, event *lua.LTable, name string) bool {
 	return lua.LVAsBool(L.GetField(event, name))
 }
 
-/* FIXME
 func getInt64(L *lua.LState, event *lua.LTable, name string) int64 {
-	return int64(lua.LVAsNumber(L.GetField(event, name)))
-}*/
+	return int64(float64(lua.LVAsNumber(L.GetField(event, name))))
+}
 
 // Run the script with the given values.
 func (s Script) Run(msg database.Message, cancelled bool) (database.Message, bool) {
@@ -69,6 +68,6 @@ func (s Script) Run(msg database.Message, cancelled bool) (database.Message, boo
 	msg.Command = getString(L, event, "command")
 	msg.Message = getString(L, event, "message")
 	msg.OwnMsg = getBool(L, event, "ownmsg")
-	//msg.Timestamp = getInt64(L, event, "timestamp") FIXME
+	msg.Timestamp = getInt64(L, event, "timestamp")
 	return msg, getBool(L, event, "cancelled")
 }
