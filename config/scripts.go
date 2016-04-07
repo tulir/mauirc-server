@@ -98,7 +98,7 @@ func (net *netImpl) RunScripts(msg database.Message, cancelled, receiving bool) 
 
 // RunScript runs a single script and sends it to another network if needed.
 func (net *netImpl) RunScript(msg database.Message, s mauircdi.Script, cancelled, receiving bool) (database.Message, bool, bool) {
-	msg, cancelled = s.Run(msg, cancelled)
+	msg, cancelled = s.Run(net, msg, cancelled)
 	if msg.Network != net.Name {
 		if net.SwitchMessageNetwork(msg, receiving) {
 			return msg, cancelled, true

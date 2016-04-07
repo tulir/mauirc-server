@@ -63,5 +63,5 @@ type ChannelData interface {
 type Script interface {
 	GetName() string
 	GetScript() string
-	Run(msg database.Message, cancelled bool) (database.Message, bool)
+	Run(net Network, msg database.Message, cancelled bool) (database.Message, bool)
 }

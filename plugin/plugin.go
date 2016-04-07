@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/yuin/gopher-lua"
 	"maunium.net/go/mauircd/database"
+	"maunium.net/go/mauircd/interfaces"
 )
 
 // Script wraps a Lua script.
@@ -29,10 +30,12 @@ type Script struct {
 	Name      string
 }
 
+// GetName returns the name of the script
 func (s Script) GetName() string {
 	return s.Name
 }
 
+// GetScript returns the script data
 func (s Script) GetScript() string {
 	return s.TheScript
 }
@@ -50,7 +53,7 @@ func getInt64(L *lua.LState, event *lua.LTable, name string) int64 {
 }
 
 // Run the script with the given values.
-func (s Script) Run(msg database.Message, cancelled bool) (database.Message, bool) {
+func (s Script) Run(net mauircdi.Network, msg database.Message, cancelled bool) (database.Message, bool) {
 	L := lua.NewState()
 	L.OpenLibs()
 
@@ -64,6 +67,8 @@ func (s Script) Run(msg database.Message, cancelled bool) (database.Message, boo
 	L.SetField(event, "ownmsg", lua.LBool(msg.OwnMsg))
 	L.SetField(event, "cancelled", lua.LBool(cancelled))
 	L.SetGlobal("event", event)
+
+	// TODO Allow plugins to do things with `net`
 
 	defer L.Close()
 	if err := L.DoString(s.TheScript); err != nil {
