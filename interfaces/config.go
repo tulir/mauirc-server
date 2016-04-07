@@ -17,22 +17,51 @@
 // Package mauircdi contains interfaces
 package mauircdi
 
+import (
+	"github.com/Jeffail/gabs"
+)
+
 // Configuration contains the main config
-type Configuration struct {
-	SQL          SQLConfig `json:"sql"`
-	Users        []*User   `json:"users"`
-	IP           string    `json:"ip"`
-	Port         int       `json:"port"`
-	Address      string    `json:"external-address"`
-	CSecretB64   string    `json:"cookie-secret"`
-	CookieSecret []byte    `json:"-"`
+type Configuration interface {
+	Load() error
+	Save() error
+
+	GetSQLString() string
+	GetPath() string
+
+	GetUsers() UserList
+	GetUser(name string) User
+
+	GetAddr() string
+	GetExternalAddr() string
+
+	GetCookieSecret() []byte
 }
 
-// SQLConfig contains sql connection information
-type SQLConfig interface {
-	String() string
+// UserList is a list of users that can be looped through
+type UserList interface {
+	ForEach(func(user User))
 }
 
 // User contains the authentication and network data of an user
 type User interface {
+	GetNetworks() NetworkList
+	GetNetwork(name string) Network
+
+	NewAuthToken() string
+	GetEmail() string
+	CheckAuthToken(token string) bool
+	CheckPassword(password string) bool
+
+	HandleCommand(data *gabs.Container)
+
+	GetGlobalScripts() []Script
+	AddGlobalScript(s Script)
+
+	GetMessageChan() chan Message
+}
+
+// NetworkList is a list of networks that can be looped through
+type NetworkList interface {
+	ForEach(func(net Network))
 }

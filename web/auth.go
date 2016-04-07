@@ -18,13 +18,10 @@
 package web
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"encoding/json"
 	"github.com/gorilla/sessions"
-	"maunium.net/go/mauircd/config"
+	"maunium.net/go/mauircd/interfaces"
 	"net/http"
-	"time"
 )
 
 type authform struct {
@@ -35,7 +32,7 @@ type authform struct {
 var store *sessions.CookieStore
 
 func initStore(address string) {
-	store = sessions.NewCookieStore(config.GetConfig().CookieSecret)
+	store = sessions.NewCookieStore(config.GetCookieSecret())
 	store.Options = &sessions.Options{
 		Domain:   address,
 		Path:     "/",
@@ -45,20 +42,7 @@ func initStore(address string) {
 	}
 }
 
-func generateAuthToken() string {
-	var authToken string
-	b := make([]byte, 32)
-	// Fill the byte array with cryptographically random bytes.
-	n, err := rand.Read(b)
-	if n == len(b) && err == nil {
-		authToken = base64.RawStdEncoding.EncodeToString(b)
-		return authToken
-	}
-
-	return ""
-}
-
-func checkAuth(w http.ResponseWriter, r *http.Request) (bool, *config.User) {
+func checkAuth(w http.ResponseWriter, r *http.Request) (bool, mauircdi.User) {
 	session, err := store.Get(r, "mauIRC")
 	if err != nil {
 		return false, nil
@@ -77,20 +61,7 @@ func checkAuth(w http.ResponseWriter, r *http.Request) (bool, *config.User) {
 		return false, nil
 	}
 
-	var found = false
-	var newAt = user.AuthTokens
-	for i := 0; i < len(user.AuthTokens); i++ {
-		if user.AuthTokens[i].Time < time.Now().Unix() {
-			newAt[i] = newAt[len(newAt)-1]
-			newAt = newAt[:len(newAt)-1]
-		} else if user.AuthTokens[i].Token == token {
-			found = true
-			break
-		}
-	}
-	user.AuthTokens = newAt
-
-	if !found {
+	if !user.CheckAuthToken(token) {
 		return false, user
 	}
 	return true, user
@@ -146,11 +117,8 @@ func auth(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	at := generateAuthToken()
-	user.AuthTokens = append(user.AuthTokens, config.AuthToken{Token: at, Time: time.Now().Add(30 * 24 * time.Hour).Unix()})
-
-	session.Values["token"] = at
-	session.Values["email"] = user.Email
+	session.Values["token"] = user.NewAuthToken()
+	session.Values["email"] = user.GetEmail()
 
 	session.Save(r, w)
 }

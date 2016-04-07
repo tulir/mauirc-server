@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"maunium.net/go/mauircd/database"
+	"maunium.net/go/mauircd/interfaces"
 	"maunium.net/go/mauircd/plugin"
 	"net/http"
 	"os"
@@ -29,7 +30,7 @@ import (
 )
 
 // LoadScripts loads the scripts of this network
-func (net *Network) LoadScripts(path string) error {
+func (net *netImpl) LoadScripts(path string) error {
 	path = filepath.Join(path, net.Owner.Email, net.Name)
 
 	_, err := os.Stat(path)
@@ -56,7 +57,7 @@ func (net *Network) LoadScripts(path string) error {
 }
 
 // SaveScripts saves the scripts of this network
-func (net *Network) SaveScripts(path string) error {
+func (net *netImpl) SaveScripts(path string) error {
 	path = filepath.Join(path, net.Owner.Email, net.Name)
 
 	_, err := os.Stat(path)
@@ -68,16 +69,16 @@ func (net *Network) SaveScripts(path string) error {
 	}
 
 	for _, script := range net.Scripts {
-		err := ioutil.WriteFile(filepath.Join(path, script.Name+".lua"), []byte(script.TheScript), 0644)
+		err := ioutil.WriteFile(filepath.Join(path, script.GetName()+".lua"), []byte(script.GetScript()), 0644)
 		if err != nil {
-			fmt.Printf("Failed to save script \"%s\" for network %s owned by %s\n", script.Name+".lua", net.Name, net.Owner.Email)
+			fmt.Printf("Failed to save script \"%s\" for network %s owned by %s\n", script.GetName()+".lua", net.Name, net.Owner.Email)
 		}
 	}
 	return nil
 }
 
 // RunScripts runs all the scripts of this network and all global scripts on the given message
-func (net *Network) RunScripts(msg database.Message, cancelled, receiving bool) (database.Message, bool) {
+func (net *netImpl) RunScripts(msg database.Message, cancelled, receiving bool) (database.Message, bool) {
 	netChanged := false
 	for _, s := range net.Scripts {
 		msg, cancelled, netChanged = net.RunScript(msg, s, cancelled, receiving)
@@ -96,10 +97,10 @@ func (net *Network) RunScripts(msg database.Message, cancelled, receiving bool) 
 }
 
 // RunScript runs a single script and sends it to another network if needed.
-func (net *Network) RunScript(msg database.Message, s plugin.Script, cancelled, receiving bool) (database.Message, bool, bool) {
+func (net *netImpl) RunScript(msg database.Message, s mauircdi.Script, cancelled, receiving bool) (database.Message, bool, bool) {
 	msg, cancelled = s.Run(msg, cancelled)
 	if msg.Network != net.Name {
-		if net.SwitchNetwork(msg, receiving) {
+		if net.SwitchMessageNetwork(msg, receiving) {
 			return msg, cancelled, true
 		}
 		msg.Network = net.Name

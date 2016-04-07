@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/thoj/go-ircevent"
 	"maunium.net/go/mauircd/database"
+	"maunium.net/go/mauircd/interfaces"
 	"maunium.net/go/mauircd/preview"
 	"maunium.net/go/mauircd/util"
 	"sort"
@@ -28,8 +29,26 @@ import (
 	"time"
 )
 
+type netImpl struct {
+	Name     string   `json:"name"`
+	Nick     string   `json:"nick"`
+	User     string   `json:"user"`
+	Realname string   `json:"realname"`
+	IP       string   `json:"ip"`
+	Port     int      `json:"port"`
+	Password string   `json:"password"`
+	SSL      bool     `json:"ssl"`
+	Channels []string `json:"channels"`
+
+	Owner       *userImpl         `json:"-"`
+	IRC         *irc.Connection   `json:"-"`
+	Scripts     []mauircdi.Script `json:"-"`
+	ChannelInfo cdlImpl           `json:"-"`
+	ChannelList []string          `json:"-"`
+}
+
 // Open an IRC connection
-func (net *Network) Open(user *User) {
+func (net *netImpl) Open() {
 	i := irc.IRC(net.Nick, net.User)
 
 	i.UseTLS = net.SSL
@@ -39,7 +58,6 @@ func (net *Network) Open(user *User) {
 	}
 
 	net.IRC = i
-	net.Owner = user
 
 	i.AddCallback("PRIVMSG", net.privmsg)
 	i.AddCallback("NOTICE", net.privmsg)
@@ -78,7 +96,7 @@ func (net *Network) Open(user *User) {
 }
 
 // ReceiveMessage stores the message and sends it to the client
-func (net *Network) ReceiveMessage(channel, sender, command, message string) {
+func (net *netImpl) ReceiveMessage(channel, sender, command, message string) {
 	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
 
 	if msg.Sender == net.Nick || (command == "nick" && message == net.Nick) {
@@ -107,7 +125,7 @@ func (net *Network) ReceiveMessage(channel, sender, command, message string) {
 }
 
 // SendMessage sends the given message to the given channel
-func (net *Network) SendMessage(channel, command, message string) {
+func (net *netImpl) SendMessage(channel, command, message string) {
 	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: net.Nick, Command: command, Message: message}
 
 	if msg.Sender == net.Nick {
@@ -135,12 +153,7 @@ func (net *Network) SendMessage(channel, command, message string) {
 	}
 }
 
-// SendRaw sends the raw message to IRC.
-func (net *Network) SendRaw(message string) {
-	net.IRC.SendRaw(message)
-}
-
-func (net *Network) sendToIRC(msg database.Message) bool {
+func (net *netImpl) sendToIRC(msg database.Message) bool {
 	if !strings.HasPrefix(msg.Channel, "*") {
 		switch msg.Command {
 		case "privmsg":
@@ -163,7 +176,7 @@ func (net *Network) sendToIRC(msg database.Message) bool {
 }
 
 // SwitchNetwork sends the given message to another network
-func (net *Network) SwitchNetwork(msg database.Message, receiving bool) bool {
+func (net *netImpl) SwitchMessageNetwork(msg database.Message, receiving bool) bool {
 	newNet := net.Owner.GetNetwork(msg.Network)
 	if newNet != nil {
 		if receiving {
@@ -177,43 +190,43 @@ func (net *Network) SwitchNetwork(msg database.Message, receiving bool) bool {
 }
 
 // InsertAndSend inserts the given message into the database and sends it to the client
-func (net *Network) InsertAndSend(msg database.Message) {
+func (net *netImpl) InsertAndSend(msg database.Message) {
 	msg.Preview, _ = preview.GetPreview(msg.Message)
 	msg.ID = database.Insert(net.Owner.Email, msg)
-	net.Owner.NewMessages <- MauMessage{Type: "message", Object: msg}
+	net.Owner.NewMessages <- mauircdi.Message{Type: "message", Object: msg}
 }
 
 // Close the IRC connection.
-func (net *Network) Close() {
+func (net *netImpl) Close() {
 	if net.IRC.Connected() {
 		net.IRC.Quit()
 	}
 }
 
-func (net *Network) joinpartMe(channel string, part bool) {
+func (net *netImpl) joinpartMe(channel string, part bool) {
 	for i, ch := range net.Channels {
 		if ch == channel {
 			if part {
 				net.Channels[i] = net.Channels[len(net.Channels)-1]
 				net.Channels = net.Channels[:len(net.Channels)-1]
-				net.ChannelInfo[channel].UserList = UserList{}
+				net.ChannelInfo[channel].UserList = util.UserList{}
 				net.ChannelInfo[channel].TopicSetAt = 0
 				net.ChannelInfo[channel].TopicSetBy = ""
 			} else {
 				if net.ChannelInfo[channel] == nil {
-					net.ChannelInfo[channel] = &ChannelData{Name: channel, Network: net.Name}
+					net.ChannelInfo.Put(&chanDataImpl{Name: channel, Network: net.Name})
 				}
 				return
 			}
 		}
 	}
 	if !part {
-		net.ChannelInfo[channel] = &ChannelData{Name: channel, Network: net.Name}
+		net.ChannelInfo.Put(&chanDataImpl{Name: channel, Network: net.Name})
 		net.Channels = append(net.Channels, channel)
 	}
 }
 
-func (net *Network) joinpartOther(user, channel string, part bool) {
+func (net *netImpl) joinpartOther(user, channel string, part bool) {
 	ci := net.ChannelInfo[channel]
 	if ci == nil {
 		return
@@ -231,5 +244,85 @@ func (net *Network) joinpartOther(user, channel string, part bool) {
 		ci.UserList = append(ci.UserList, user)
 	}
 	sort.Sort(ci.UserList)
-	net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
+	net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
+}
+
+/*func (net *netImpl) GetOwner() mauircdi.User {
+	return net.Owner
+}*/
+
+func (net *netImpl) GetName() string {
+	return net.Name
+}
+
+func (net *netImpl) GetNick() string {
+	return net.Nick
+}
+
+func (net *netImpl) GetActiveChannels() mauircdi.ChannelDataList {
+	return net.ChannelInfo
+}
+
+func (net *netImpl) GetAllChannels() []string {
+	return net.ChannelList
+}
+
+func (net *netImpl) SendRaw(msg string) {
+	net.IRC.SendRaw(msg)
+}
+
+func (net *netImpl) GetScripts() []mauircdi.Script {
+	return net.Scripts
+}
+
+func (net *netImpl) AddScript(s mauircdi.Script) {
+	for i := 0; i < len(net.Scripts); i++ {
+		if net.Scripts[i].GetName() == s.GetName() {
+			net.Scripts[i] = s
+			return
+		}
+	}
+	net.Scripts = append(net.Scripts, s)
+}
+
+type chanDataImpl struct {
+	Network           string        `json:"network"`
+	Name              string        `json:"name"`
+	UserList          util.UserList `json:"userlist"`
+	Topic             string        `json:"topic"`
+	TopicSetBy        string        `json:"topicsetby"`
+	TopicSetAt        int64         `json:"topicsetat"`
+	ReceivingUserList bool          `json:"-"`
+}
+
+func (cd *chanDataImpl) GetUsers() []string {
+	return cd.UserList
+}
+
+func (cd *chanDataImpl) GetName() string {
+	return cd.Name
+}
+
+func (cd *chanDataImpl) GetNetwork() string {
+	return cd.Network
+}
+
+type cdlImpl map[string]*chanDataImpl
+
+func (cdl cdlImpl) Get(channel string) (mauircdi.ChannelData, bool) {
+	val, ok := cdl[channel]
+	return val, ok
+}
+
+func (cdl cdlImpl) Put(data mauircdi.ChannelData) {
+	dat, ok := data.(*chanDataImpl)
+	if ok {
+		cdl[data.GetName()] = dat
+	}
+}
+
+func (cdl cdlImpl) ForEach(do func(mauircdi.ChannelData)) {
+	for _, val := range cdl {
+		do(val)
+	}
 }

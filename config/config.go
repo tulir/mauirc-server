@@ -21,23 +21,51 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"maunium.net/go/mauircd/interfaces"
 	"path/filepath"
 	"strings"
 )
 
-var config *Configuration
+// NewConfig creates a new Configuration instance
+func NewConfig(path string) mauircdi.Configuration {
+	path, _ = filepath.Abs(path)
+	return &configImpl{Path: path}
+}
+
+type configImpl struct {
+	Path         string       `json:"-"`
+	SQL          mysqlImpl    `json:"sql"`
+	Users        userListImpl `json:"users"`
+	IP           string       `json:"ip"`
+	Port         int          `json:"port"`
+	Address      string       `json:"external-address"`
+	CSecretB64   string       `json:"cookie-secret"`
+	CookieSecret []byte       `json:"-"`
+}
+
+type mysqlImpl struct {
+	IP       string `json:"ip"`
+	Port     int    `json:"port"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Database string `json:"database"`
+}
+
+type userListImpl []*userImpl
+
+func (ul userListImpl) ForEach(do func(user mauircdi.User)) {
+	for _, user := range ul {
+		do(user)
+	}
+}
 
 // Load the config at the given path
-func Load(path string) error {
+func (config *configImpl) Load() error {
 	var err error
-	path, err = filepath.Abs(path)
-	if err != nil {
-		return err
-	}
 
-	config = &Configuration{}
-	data, err := ioutil.ReadFile(filepath.Join(path, "config.json"))
+	data, err := ioutil.ReadFile(filepath.Join(config.Path, "config.json"))
 	if err != nil {
 		return err
 	}
@@ -47,6 +75,16 @@ func Load(path string) error {
 		return err
 	}
 
+	for _, user := range config.Users {
+		user.NewMessages = make(chan mauircdi.Message, 64)
+		for _, network := range user.Networks {
+			network.ChannelInfo = make(map[string]*chanDataImpl)
+			network.Owner = user
+			network.Open()
+			network.LoadScripts(config.Path)
+		}
+	}
+
 	if len(config.CSecretB64) > 0 {
 		cs, err := base64.StdEncoding.DecodeString(config.CSecretB64)
 		if err != nil {
@@ -54,26 +92,20 @@ func Load(path string) error {
 		}
 		config.CookieSecret = cs
 	} else {
-		cs, err := generateCookieSecret()
+		cs := make([]byte, 32)
+		_, err := rand.Read(cs)
 		if err != nil {
 			return err
 		}
 		config.CookieSecret = cs
 		config.CSecretB64 = base64.StdEncoding.EncodeToString(cs)
 	}
-	config.Path = path
 
 	return nil
 }
 
-func generateCookieSecret() ([]byte, error) {
-	b := make([]byte, 32)
-	_, err := rand.Read(b)
-	return b, err
-}
-
 // Save the configuration file
-func Save() error {
+func (config *configImpl) Save() error {
 	data, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
 		return err
@@ -82,8 +114,13 @@ func Save() error {
 	return err
 }
 
+// GetUsers returns all users
+func (config *configImpl) GetUsers() mauircdi.UserList {
+	return config.Users
+}
+
 // GetUser gets the user with the given email
-func GetUser(email string) *User {
+func (config *configImpl) GetUser(email string) mauircdi.User {
 	email = strings.ToLower(email)
 	for _, user := range config.Users {
 		if user.Email == email {
@@ -93,12 +130,28 @@ func GetUser(email string) *User {
 	return nil
 }
 
-// GetUsers returns all users
-func GetUsers() []*User {
-	return config.Users
+func (config *configImpl) GetSQLString() string {
+	return fmt.Sprintf("%[1]s:%[2]s@tcp(%[3]s:%[4]d)/%[5]s",
+		config.SQL.Username,
+		config.SQL.Password,
+		config.SQL.IP,
+		config.SQL.Port,
+		config.SQL.Database,
+	)
 }
 
-// GetConfig returns the config object
-func GetConfig() *Configuration {
-	return config
+func (config *configImpl) GetPath() string {
+	return config.Path
+}
+
+func (config *configImpl) GetAddr() string {
+	return fmt.Sprintf("%[1]s:%[2]d", config.IP, config.Port)
+}
+
+func (config *configImpl) GetExternalAddr() string {
+	return config.Address
+}
+
+func (config *configImpl) GetCookieSecret() []byte {
+	return config.CookieSecret
 }

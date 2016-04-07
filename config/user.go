@@ -18,18 +18,44 @@
 package config
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"golang.org/x/crypto/bcrypt"
+	"maunium.net/go/mauircd/interfaces"
 	"strings"
+	"time"
 )
 
+type userImpl struct {
+	Networks      netListImpl           `json:"networks"`
+	Email         string                `json:"email"`
+	Password      string                `json:"password"`
+	AuthTokens    []authToken           `json:"authtokens,omitempty"`
+	NewMessages   chan mauircdi.Message `json:"-"`
+	GlobalScripts []mauircdi.Script     `json:"-"`
+}
+
+type authToken struct {
+	Token string `json:"token"`
+	Time  int64  `json:"expire"`
+}
+
+type netListImpl []*netImpl
+
+func (nl netListImpl) ForEach(do func(net mauircdi.Network)) {
+	for _, net := range nl {
+		do(net)
+	}
+}
+
 // CheckPassword checks if the password is correct
-func (user User) CheckPassword(password string) bool {
+func (user *userImpl) CheckPassword(password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	return err == nil
 }
 
 // SetPassword sets the users password
-func (user User) SetPassword(newPassword string) error {
+func (user *userImpl) SetPassword(newPassword string) error {
 	password, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -39,7 +65,7 @@ func (user User) SetPassword(newPassword string) error {
 }
 
 // GetNetwork gets the network with the given name
-func (user User) GetNetwork(name string) *Network {
+func (user *userImpl) GetNetwork(name string) mauircdi.Network {
 	name = strings.ToLower(name)
 	for _, network := range user.Networks {
 		if network.Name == name {
@@ -47,4 +73,66 @@ func (user User) GetNetwork(name string) *Network {
 		}
 	}
 	return nil
+}
+
+func (user *userImpl) GetNetworks() mauircdi.NetworkList {
+	return user.Networks
+}
+
+func (user *userImpl) CheckAuthToken(token string) bool {
+	var found = false
+
+	var newAt = user.AuthTokens
+	for i := 0; i < len(user.AuthTokens); i++ {
+		if user.AuthTokens[i].Time < time.Now().Unix() {
+			newAt[i] = newAt[len(newAt)-1]
+			newAt = newAt[:len(newAt)-1]
+		} else if user.AuthTokens[i].Token == token {
+			found = true
+		}
+	}
+	user.AuthTokens = newAt
+
+	return found
+}
+
+func (user *userImpl) NewAuthToken() string {
+	at := generateAuthToken()
+	user.AuthTokens = append(user.AuthTokens, authToken{Token: at, Time: time.Now().Add(30 * 24 * time.Hour).Unix()})
+	return at
+}
+
+func generateAuthToken() string {
+	var authToken string
+	b := make([]byte, 32)
+	// Fill the byte array with cryptographically random bytes.
+	n, err := rand.Read(b)
+	if n == len(b) && err == nil {
+		authToken = base64.RawStdEncoding.EncodeToString(b)
+		return authToken
+	}
+
+	return ""
+}
+
+func (user *userImpl) GetEmail() string {
+	return user.Email
+}
+
+func (user *userImpl) GetMessageChan() chan mauircdi.Message {
+	return user.NewMessages
+}
+
+func (user *userImpl) GetGlobalScripts() []mauircdi.Script {
+	return user.GlobalScripts
+}
+
+func (user *userImpl) AddGlobalScript(s mauircdi.Script) {
+	for i := 0; i < len(user.GlobalScripts); i++ {
+		if user.GlobalScripts[i].GetName() == s.GetName() {
+			user.GlobalScripts[i] = s
+			return
+		}
+	}
+	user.GlobalScripts = append(user.GlobalScripts, s)
 }

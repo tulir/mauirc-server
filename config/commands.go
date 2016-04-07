@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/Jeffail/gabs"
 	"maunium.net/go/mauircd/database"
+	"maunium.net/go/mauircd/interfaces"
 	"maunium.net/go/mauircd/plugin"
 	"strconv"
 	"strings"
@@ -37,8 +38,8 @@ type clearhistory struct {
 	Channel string `json:"channel"`
 }
 
-func (user User) respond(success bool, simple, message string, args ...interface{}) {
-	user.NewMessages <- MauMessage{
+func (user *userImpl) respond(success bool, simple, message string, args ...interface{}) {
+	user.NewMessages <- mauircdi.Message{
 		Type: "cmdresponse",
 		Object: cmdResponse{
 			Success:       success,
@@ -49,7 +50,7 @@ func (user User) respond(success bool, simple, message string, args ...interface
 }
 
 // HandleCommand handles mauIRC commands from clients
-func (user User) HandleCommand(data *gabs.Container) {
+func (user *userImpl) HandleCommand(data *gabs.Container) {
 	typ, ok := data.Path("type").Data().(string)
 	if !ok {
 		return
@@ -73,7 +74,7 @@ func (user User) HandleCommand(data *gabs.Container) {
 	}
 }
 
-func (user User) rawMessage(data *gabs.Container) {
+func (user *userImpl) rawMessage(data *gabs.Container) {
 	network, ok := data.Path("network").Data().(string)
 	if !ok {
 		return
@@ -92,7 +93,7 @@ func (user User) rawMessage(data *gabs.Container) {
 	net.SendRaw(message)
 }
 
-func (user User) cmdImportScript(data *gabs.Container) {
+func (user *userImpl) cmdImportScript(data *gabs.Container) {
 	name, ok := data.Path("name").Data().(string)
 	if !ok {
 		return
@@ -116,8 +117,7 @@ func (user User) cmdImportScript(data *gabs.Container) {
 		return
 	}
 
-	var scriptList = user.GlobalScripts
-	var net *Network
+	var net mauircdi.Network
 
 	if len(network) != 0 {
 		net = user.GetNetwork(network)
@@ -125,27 +125,26 @@ func (user User) cmdImportScript(data *gabs.Container) {
 			user.respond(false, "no-such-network", "No such network: %s", network)
 			return
 		}
-		scriptList = net.Scripts
 	}
 
-	for i := 0; i < len(scriptList); i++ {
+	/*for i := 0; i < len(scriptList); i++ {
 		if scriptList[i].Name == name {
 			scriptList[i].TheScript = scriptData
 			return
 		}
 	}
-	scriptList = append(scriptList, plugin.Script{TheScript: scriptData, Name: name})
+	scriptList = append(scriptList, plugin.Script{TheScript: scriptData, Name: name})*/
 
 	if net != nil {
-		net.Scripts = scriptList
-		user.respond(true, "script-loaded-network", "Successfully loaded script %s on %s", name, net.Name)
+		net.AddScript(plugin.Script{TheScript: scriptData, Name: name})
+		user.respond(true, "script-loaded-network", "Successfully loaded script %s on %s", name, net.GetName())
 	} else {
-		user.GlobalScripts = scriptList
+		user.AddGlobalScript(plugin.Script{TheScript: scriptData, Name: name})
 		user.respond(true, "script-loaded-global", "Successfully loaded global script %s", name)
 	}
 }
 
-func (user User) cmdDeleteMessage(data *gabs.Container) {
+func (user *userImpl) cmdDeleteMessage(data *gabs.Container) {
 	idS, ok := data.Path("id").Data().(string)
 	if !ok {
 		return
@@ -161,10 +160,10 @@ func (user User) cmdDeleteMessage(data *gabs.Container) {
 		return
 	}
 
-	user.NewMessages <- MauMessage{Type: "delete", Object: id}
+	user.NewMessages <- mauircdi.Message{Type: "delete", Object: id}
 }
 
-func (user User) cmdClearHistory(data *gabs.Container) {
+func (user *userImpl) cmdClearHistory(data *gabs.Container) {
 	network, ok := data.Path("network").Data().(string)
 	if !ok {
 		return
@@ -179,15 +178,16 @@ func (user User) cmdClearHistory(data *gabs.Container) {
 	if !ok {
 		return
 	}
-	err := database.ClearChannel(user.Email, net.Name, channel)
+
+	err := database.ClearChannel(user.GetEmail(), net.GetName(), channel)
 	if err != nil {
-		fmt.Printf("<%s> Failed to clear history of %s@%s: %s", user.Email, channel, net.Name, err)
+		fmt.Printf("<%s> Failed to clear history of %s@%s: %s", user.GetEmail(), channel, net.GetName(), err)
 		return
 	}
-	user.NewMessages <- MauMessage{Type: "clear", Object: clearhistory{Channel: channel, Network: net.Name}}
+	user.NewMessages <- mauircdi.Message{Type: "clear", Object: clearhistory{Channel: channel, Network: net.GetName()}}
 }
 
-func (user User) cmdUserlist(data *gabs.Container) {
+func (user *userImpl) cmdUserlist(data *gabs.Container) {
 	network, ok := data.Path("network").Data().(string)
 	if !ok {
 		return
@@ -203,15 +203,14 @@ func (user User) cmdUserlist(data *gabs.Container) {
 		return
 	}
 
-	info := net.ChannelInfo[channel]
-	if info == nil {
-		return
-	}
+	cd, ok := net.GetActiveChannels().Get(channel)
 
-	user.NewMessages <- MauMessage{Type: "userlist", Object: info.UserList}
+	if ok {
+		user.NewMessages <- mauircdi.Message{Type: "userlist", Object: cd.GetUsers()}
+	}
 }
 
-func (user User) cmdMessage(data *gabs.Container) {
+func (user *userImpl) cmdMessage(data *gabs.Container) {
 	network, ok := data.Path("network").Data().(string)
 	if !ok {
 		return

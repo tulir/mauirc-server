@@ -19,8 +19,9 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	flag "github.com/ogier/pflag"
-	"maunium.net/go/mauircd/config"
+	cfg "maunium.net/go/mauircd/config"
 	"maunium.net/go/mauircd/database"
+	"maunium.net/go/mauircd/interfaces"
 	"maunium.net/go/mauircd/web"
 	"os"
 	"os/signal"
@@ -29,33 +30,20 @@ import (
 )
 
 var nws = flag.StringP("config", "c", "/etc/mauircd/", "The path to mauIRCd configurations")
+var config mauircdi.Configuration
 
 func main() {
 	flag.Parse()
 
-	err := config.Load(*nws)
+	config = cfg.NewConfig(*nws)
+	err := config.Load()
 	if err != nil {
 		panic(err)
 	}
 
-	err = database.Load(fmt.Sprintf("%[1]s:%[2]s@tcp(%[3]s:%[4]d)/%[5]s",
-		config.GetConfig().SQL.Username,
-		config.GetConfig().SQL.Password,
-		config.GetConfig().SQL.IP,
-		config.GetConfig().SQL.Port,
-		config.GetConfig().SQL.Database,
-	))
+	err = database.Load(config.GetSQLString())
 	if err != nil {
 		panic(err)
-	}
-
-	for _, user := range config.GetUsers() {
-		user.NewMessages = make(chan config.MauMessage, 64)
-		for _, network := range user.Networks {
-			network.ChannelInfo = make(map[string]*config.ChannelData)
-			network.Open(user)
-			network.LoadScripts(config.GetConfig().Path)
-		}
 	}
 
 	c := make(chan os.Signal, 1)
@@ -63,16 +51,16 @@ func main() {
 	go func() {
 		<-c
 		fmt.Println("\nClosing mauIRCd")
-		for _, user := range config.GetUsers() {
-			for _, network := range user.Networks {
-				network.Close()
-				network.SaveScripts(config.GetConfig().Path)
-			}
-		}
+		config.GetUsers().ForEach(func(user mauircdi.User) {
+			user.GetNetworks().ForEach(func(net mauircdi.Network) {
+				net.Close()
+				net.SaveScripts(config.GetPath())
+			})
+		})
 		time.Sleep(2 * time.Second)
 		database.Close()
 		config.Save()
 		os.Exit(0)
 	}()
-	web.Load(config.GetConfig().Address, config.GetConfig().IP, config.GetConfig().Port)
+	web.Load(config)
 }

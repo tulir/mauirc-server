@@ -42,7 +42,7 @@ func history(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	results, err := database.GetHistory(user.Email, n)
+	results, err := database.GetHistory(user.GetEmail(), n)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

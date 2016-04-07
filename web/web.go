@@ -18,20 +18,23 @@
 package web
 
 import (
-	"fmt"
 	"github.com/gorilla/context"
+	"maunium.net/go/mauircd/interfaces"
 	"net/http"
 )
 
+var config mauircdi.Configuration
+
 // Load the web server
-func Load(address string, ip string, port int) {
-	initStore(address)
+func Load(c mauircdi.Configuration) {
+	config = c
+	initStore(config.GetExternalAddr())
 
 	http.HandleFunc("/history", history)
 	http.HandleFunc("/auth", auth)
 	http.HandleFunc("/authcheck", httpAuthCheck)
 	http.HandleFunc("/socket", serveWs)
-	err := http.ListenAndServe(fmt.Sprintf("%s:%d", ip, port), context.ClearHandler(http.DefaultServeMux))
+	err := http.ListenAndServe(config.GetAddr(), context.ClearHandler(http.DefaultServeMux))
 	if err != nil {
 		panic(err)
 	}

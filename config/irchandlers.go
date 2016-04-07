@@ -20,19 +20,15 @@ package config
 import (
 	"github.com/thoj/go-ircevent"
 	"maunium.net/go/mauircd/database"
+	"maunium.net/go/mauircd/interfaces"
+	"maunium.net/go/mauircd/util"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 )
 
-// ChanList contains a list of channels
-type ChanList struct {
-	Network string   `json:"network"`
-	List    []string `json:"list"`
-}
-
-func (net *Network) joinpart(user, channel string, part bool) {
+func (net *netImpl) joinpart(user, channel string, part bool) {
 	if user == net.Nick {
 		net.joinpartMe(channel, part)
 	} else {
@@ -40,16 +36,16 @@ func (net *Network) joinpart(user, channel string, part bool) {
 	}
 }
 
-func (net *Network) mode(evt *irc.Event) {
+func (net *netImpl) mode(evt *irc.Event) {
 	if evt.Arguments[0][0] == '#' {
 		net.IRC.SendRawf("NAMES %s", evt.Arguments[0])
 	}
 	// TODO Send message to user about mode changes
 }
 
-func (net *Network) nick(evt *irc.Event) {
+func (net *netImpl) nick(evt *irc.Event) {
 	if evt.Nick == net.Nick {
-		net.Owner.NewMessages <- MauMessage{Type: "nickchange", Object: NickChange{Network: net.Name, Nick: evt.Message()}}
+		net.Owner.NewMessages <- mauircdi.Message{Type: "nickchange", Object: mauircdi.NickChange{Network: net.Name, Nick: evt.Message()}}
 		net.Nick = evt.Message()
 	}
 	for _, ci := range net.ChannelInfo {
@@ -58,66 +54,80 @@ func (net *Network) nick(evt *irc.Event) {
 			sort.Sort(ci.UserList)
 
 			net.ReceiveMessage(ci.Name, evt.Nick, "nick", evt.Message())
-			net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
+			net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 		}
 	}
 }
 
-func (net *Network) userlist(evt *irc.Event) {
-	ci := net.ChannelInfo[evt.Arguments[2]]
-	if ci != nil {
-		users := strings.Split(evt.Message(), " ")
-		if len(users[len(users)-1]) == 0 {
-			users = users[:len(users)-1]
-		}
+func (net *netImpl) userlist(evt *irc.Event) {
+	ciInt, ok := net.ChannelInfo.Get(evt.Arguments[2])
+	if !ok {
+		return
+	}
 
-		if ci.ReceivingUserList {
-			ci.UserList.Merge(users)
-		} else {
-			ci.UserList = UserList(users)
-			ci.ReceivingUserList = true
-		}
+	ci, ok := ciInt.(*chanDataImpl)
+	if !ok {
+		return
+	}
+
+	users := strings.Split(evt.Message(), " ")
+	if len(users[len(users)-1]) == 0 {
+		users = users[:len(users)-1]
+	}
+
+	if ci.ReceivingUserList {
+		ci.UserList.Merge(users)
+	} else {
+		ci.UserList = util.UserList(users)
+		ci.ReceivingUserList = true
 	}
 }
 
-func (net *Network) userlistend(evt *irc.Event) {
-	ci := net.ChannelInfo[evt.Arguments[1]]
-	if ci != nil {
-		ci.ReceivingUserList = false
-		sort.Sort(ci.UserList)
-		net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
+func (net *netImpl) userlistend(evt *irc.Event) {
+	ciInt, ok := net.ChannelInfo.Get(evt.Arguments[1])
+	if !ok {
+		return
 	}
+
+	ci, ok := ciInt.(*chanDataImpl)
+	if !ok {
+		return
+	}
+
+	ci.ReceivingUserList = false
+	sort.Sort(ci.UserList)
+	net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 }
 
-func (net *Network) chanlist(evt *irc.Event) {
+func (net *netImpl) chanlist(evt *irc.Event) {
 	net.ChannelList = append(net.ChannelList, evt.Arguments[1])
 }
 
-func (net *Network) chanlistend(evt *irc.Event) {
-	net.Owner.NewMessages <- MauMessage{Type: "chanlist", Object: ChanList{Network: net.Name, List: net.ChannelList}}
+func (net *netImpl) chanlistend(evt *irc.Event) {
+	net.Owner.NewMessages <- mauircdi.Message{Type: "chanlist", Object: mauircdi.ChanList{Network: net.Name, List: net.ChannelList}}
 }
 
-func (net *Network) topic(evt *irc.Event) {
+func (net *netImpl) topic(evt *irc.Event) {
 	ci := net.ChannelInfo[evt.Arguments[0]]
 	if ci != nil {
 		ci.Topic = evt.Message()
 		ci.TopicSetBy = evt.Nick
 		ci.TopicSetAt = time.Now().Unix()
 		net.ReceiveMessage(ci.Name, evt.Nick, "topic", evt.Message())
-		net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
+		net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 	}
 }
 
-func (net *Network) topicresp(evt *irc.Event) {
+func (net *netImpl) topicresp(evt *irc.Event) {
 	ci := net.ChannelInfo[evt.Arguments[1]]
 	if ci != nil {
 		ci.Topic = evt.Message()
-		net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
+		net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 	}
 }
 
-func (net *Network) noperms(evt *irc.Event) {
-	net.Owner.NewMessages <- MauMessage{
+func (net *netImpl) noperms(evt *irc.Event) {
+	net.Owner.NewMessages <- mauircdi.Message{
 		Type: "message",
 		Object: database.Message{
 			ID:        -1,
@@ -132,7 +142,7 @@ func (net *Network) noperms(evt *irc.Event) {
 	}
 }
 
-func (net *Network) topicset(evt *irc.Event) {
+func (net *netImpl) topicset(evt *irc.Event) {
 	ci := net.ChannelInfo[evt.Arguments[1]]
 	if ci != nil {
 		ci.TopicSetBy = evt.Arguments[2]
@@ -140,11 +150,11 @@ func (net *Network) topicset(evt *irc.Event) {
 		if err != nil {
 			ci.TopicSetAt = setAt
 		}
-		net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
+		net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 	}
 }
 
-func (net *Network) quit(evt *irc.Event) {
+func (net *netImpl) quit(evt *irc.Event) {
 	for _, ci := range net.ChannelInfo {
 		if b, i := ci.UserList.Contains(evt.Nick); b {
 			ci.UserList[i] = ci.UserList[len(ci.UserList)-1]
@@ -152,25 +162,25 @@ func (net *Network) quit(evt *irc.Event) {
 			sort.Sort(ci.UserList)
 
 			net.ReceiveMessage(ci.Name, evt.Nick, "quit", evt.Message())
-			net.Owner.NewMessages <- MauMessage{Type: "chandata", Object: ci}
+			net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 		}
 	}
 }
 
-func (net *Network) join(evt *irc.Event) {
+func (net *netImpl) join(evt *irc.Event) {
 	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "join", evt.Message())
 	net.joinpart(evt.Nick, evt.Arguments[0], false)
 }
 
-func (net *Network) part(evt *irc.Event) {
+func (net *netImpl) part(evt *irc.Event) {
 	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "part", evt.Message())
 	net.joinpart(evt.Nick, evt.Arguments[0], true)
 }
 
-func (net *Network) privmsg(evt *irc.Event) {
+func (net *netImpl) privmsg(evt *irc.Event) {
 	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "privmsg", evt.Message())
 }
 
-func (net *Network) action(evt *irc.Event) {
+func (net *netImpl) action(evt *irc.Event) {
 	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "action", evt.Message())
 }

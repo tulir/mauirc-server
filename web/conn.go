@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"github.com/Jeffail/gabs"
 	"github.com/gorilla/websocket"
-	"maunium.net/go/mauircd/config"
+	"maunium.net/go/mauircd/interfaces"
 	"net/http"
 	"time"
 )
@@ -40,7 +40,7 @@ var upgrader = websocket.Upgrader{
 
 type connection struct {
 	ws   *websocket.Conn
-	user *config.User
+	user mauircdi.User
 }
 
 func (c *connection) readPump() {
@@ -84,17 +84,17 @@ func (c *connection) writePump() {
 
 	for {
 		select {
-		case new, ok := <-c.user.NewMessages:
+		case new, ok := <-c.user.GetMessageChan():
 			if !ok {
 				c.write(websocket.CloseMessage, []byte{})
-				c.user.NewMessages <- new
+				c.user.GetMessageChan() <- new
 				return
 			}
 
 			err := c.writeJSON(new)
 			if err != nil {
 				fmt.Println("Disconnected:", err)
-				c.user.NewMessages <- new
+				c.user.GetMessageChan() <- new
 				return
 			}
 		case <-ticker.C:
@@ -128,15 +128,15 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 	go c.writePump()
 
 	var netlist []string
-	for _, net := range c.user.Networks {
-		netlist = append(netlist, net.Name)
-		for _, chd := range net.ChannelInfo {
-			c.user.NewMessages <- config.MauMessage{Type: "chandata", Object: chd}
-		}
-		net.Owner.NewMessages <- config.MauMessage{Type: "chanlist", Object: config.ChanList{Network: net.Name, List: net.ChannelList}}
-		c.user.NewMessages <- config.MauMessage{Type: "nickchange", Object: config.NickChange{Network: net.Name, Nick: net.Nick}}
-	}
-	c.user.NewMessages <- config.MauMessage{Type: "netlist", Object: netlist}
+	c.user.GetNetworks().ForEach(func(net mauircdi.Network) {
+		netlist = append(netlist, net.GetName())
+		net.GetActiveChannels().ForEach(func(chd mauircdi.ChannelData) {
+			c.user.GetMessageChan() <- mauircdi.Message{Type: "chandata", Object: chd}
+		})
+		c.user.GetMessageChan() <- mauircdi.Message{Type: "chanlist", Object: mauircdi.ChanList{Network: net.GetName(), List: net.GetAllChannels()}}
+		c.user.GetMessageChan() <- mauircdi.Message{Type: "nickchange", Object: mauircdi.NickChange{Network: net.GetName(), Nick: net.GetNick()}}
+	})
+	c.user.GetMessageChan() <- mauircdi.Message{Type: "netlist", Object: netlist}
 
 	c.readPump()
 }

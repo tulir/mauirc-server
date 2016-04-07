@@ -29,6 +29,14 @@ type Script struct {
 	Name      string
 }
 
+func (s Script) GetName() string {
+	return s.Name
+}
+
+func (s Script) GetScript() string {
+	return s.TheScript
+}
+
 func getString(L *lua.LState, event *lua.LTable, name string) string {
 	return lua.LVAsString(L.GetField(event, name))
 }
