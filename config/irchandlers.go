@@ -21,7 +21,7 @@ import (
 	"github.com/thoj/go-ircevent"
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/interfaces"
-	"maunium.net/go/mauircd/util"
+	"maunium.net/go/mauircd/util/userlist"
 	"sort"
 	"strconv"
 	"strings"
@@ -78,7 +78,7 @@ func (net *netImpl) userlist(evt *irc.Event) {
 	if ci.ReceivingUserList {
 		ci.UserList.Merge(users)
 	} else {
-		ci.UserList = util.UserList(users)
+		ci.UserList = userlist.List(users)
 		ci.ReceivingUserList = true
 	}
 }

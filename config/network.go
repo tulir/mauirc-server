@@ -22,8 +22,9 @@ import (
 	"github.com/thoj/go-ircevent"
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/interfaces"
-	"maunium.net/go/mauircd/preview"
-	"maunium.net/go/mauircd/util"
+	"maunium.net/go/mauircd/util/preview"
+	"maunium.net/go/mauircd/util/split"
+	"maunium.net/go/mauircd/util/userlist"
 	"sort"
 	"strings"
 	"time"
@@ -141,7 +142,7 @@ func (net *netImpl) SendMessage(channel, command, message string) {
 		return
 	}
 
-	if splitted := util.Split(msg.Message); len(splitted) > 1 {
+	if splitted := split.All(msg.Message); len(splitted) > 1 {
 		for _, piece := range splitted {
 			net.SendMessage(msg.Channel, msg.Command, piece)
 		}
@@ -209,7 +210,7 @@ func (net *netImpl) joinpartMe(channel string, part bool) {
 			if part {
 				net.Channels[i] = net.Channels[len(net.Channels)-1]
 				net.Channels = net.Channels[:len(net.Channels)-1]
-				net.ChannelInfo[channel].UserList = util.UserList{}
+				net.ChannelInfo[channel].UserList = userlist.List{}
 				net.ChannelInfo[channel].TopicSetAt = 0
 				net.ChannelInfo[channel].TopicSetBy = ""
 			} else {
@@ -288,7 +289,7 @@ func (net *netImpl) AddScript(s mauircdi.Script) {
 type chanDataImpl struct {
 	Network           string        `json:"network"`
 	Name              string        `json:"name"`
-	UserList          util.UserList `json:"userlist"`
+	UserList          userlist.List `json:"userlist"`
 	Topic             string        `json:"topic"`
 	TopicSetBy        string        `json:"topicsetby"`
 	TopicSetAt        int64         `json:"topicsetat"`

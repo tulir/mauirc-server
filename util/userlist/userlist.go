@@ -14,24 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-// Package util contains utilities
-package util
+// Package userlist contains the UserList type
+package userlist
 
 import (
 	"strings"
 )
 
-// UserList is a wrapper for sorting user lists
-type UserList []string
+// List is a wrapper for sorting user lists
+type List []string
 
-func (s UserList) Len() int {
+func (s List) Len() int {
 	return len(s)
 }
-func (s UserList) Swap(i, j int) {
+func (s List) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
-func (s UserList) levelOf(r byte) int {
+func (s List) levelOf(r byte) int {
 	switch r {
 	case '~':
 		return 5
@@ -48,7 +48,7 @@ func (s UserList) levelOf(r byte) int {
 	}
 }
 
-func (s UserList) Less(i, j int) bool {
+func (s List) Less(i, j int) bool {
 	levelI := s.levelOf(s[i][0])
 	levelJ := s.levelOf(s[j][0])
 	if levelI > levelJ {
@@ -61,7 +61,7 @@ func (s UserList) Less(i, j int) bool {
 }
 
 // Merge the given string list with this user list
-func (s UserList) Merge(other []string) {
+func (s List) Merge(other []string) {
 Outer:
 	for _, str := range other {
 		if len(str) == 0 {
@@ -77,7 +77,7 @@ Outer:
 }
 
 // Contains checks if the given user is in this UserList
-func (s UserList) Contains(user string) (bool, int) {
+func (s List) Contains(user string) (bool, int) {
 	for i, u := range s {
 		if user == u {
 			return true, i

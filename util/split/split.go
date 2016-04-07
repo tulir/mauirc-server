@@ -14,30 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-// Package util contains utilities
-package util
+// Package split helps with splitting messages properly
+package split
 
 import (
 	"strings"
 )
 
-// Split a message by newlines and if the message is longer than 250
+// All splits a message by newlines and if the message is longer than 250
 // characters, split it into smaller pieces using SplitLen
-func Split(message string) []string {
+func All(message string) []string {
 	splitted := []string{message}
 	if strings.ContainsRune(message, '\n') {
 		splitted = strings.Split(message, "\n")
 	} else if len(message) > 250 {
 		for len(splitted[len(splitted)-1]) > 250 {
 			if len(splitted) < 2 {
-				a, b := SplitLen(splitted[0])
+				a, b := ByLength(splitted[0])
 				if len(b) != 0 {
 					splitted = []string{a, b}
 				} else {
 					splitted = []string{a}
 				}
 			} else {
-				a, b := SplitLen(splitted[len(splitted)-1])
+				a, b := ByLength(splitted[len(splitted)-1])
 				splitted[len(splitted)-1] = a
 				if len(b) != 0 {
 					splitted = append(splitted, b)
@@ -48,9 +48,9 @@ func Split(message string) []string {
 	return splitted
 }
 
-// SplitLen splits a message into pieces that are less than 250 characters long.
+// ByLength splits a message into pieces that are less than 250 characters long.
 // If the message contains a space character before the character limit,
-func SplitLen(message string) (string, string) {
+func ByLength(message string) (string, string) {
 	if len(message) < 250 {
 		return message, ""
 	}

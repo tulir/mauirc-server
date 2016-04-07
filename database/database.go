@@ -21,7 +21,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"maunium.net/go/mauircd/preview"
+	"maunium.net/go/mauircd/util/preview"
 )
 
 // Message wraps an IRC message
