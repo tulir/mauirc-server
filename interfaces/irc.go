@@ -56,6 +56,7 @@ type ChannelDataList interface {
 type ChannelData interface {
 	GetUsers() []string
 	GetName() string
+	GetTopic() string
 	GetNetwork() string
 }
 

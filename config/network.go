@@ -304,6 +304,10 @@ func (cd *chanDataImpl) GetName() string {
 	return cd.Name
 }
 
+func (cd *chanDataImpl) GetTopic() string {
+	return cd.Topic
+}
+
 func (cd *chanDataImpl) GetNetwork() string {
 	return cd.Network
 }
