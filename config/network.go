@@ -106,17 +106,18 @@ func (net *netImpl) ReceiveMessage(channel, sender, command, message string) {
 		msg.OwnMsg = false
 	}
 
-	cancelled := false
 	if msg.Channel == "AUTH" || msg.Channel == "*" {
 		return
 	} else if msg.Channel == net.Nick {
 		msg.Channel = msg.Sender
 	}
 
-	msg, cancelled = net.RunScripts(msg, cancelled, true)
-	if cancelled {
+	var evt = &mauircdi.Event{Message: msg, Network: net, Cancelled: false}
+	net.RunScripts(evt, true)
+	if evt.Cancelled {
 		return
 	}
+	msg = evt.Message
 
 	if len(msg.Channel) == 0 || len(msg.Command) == 0 {
 		return
@@ -135,12 +136,12 @@ func (net *netImpl) SendMessage(channel, command, message string) {
 		msg.OwnMsg = false
 	}
 
-	cancelled := false
-
-	msg, cancelled = net.RunScripts(msg, cancelled, false)
-	if cancelled {
+	var evt = &mauircdi.Event{Message: msg, Network: net, Cancelled: false}
+	net.RunScripts(evt, true)
+	if evt.Cancelled {
 		return
 	}
+	msg = evt.Message
 
 	if splitted := split.All(msg.Message); len(splitted) > 1 {
 		for _, piece := range splitted {

@@ -59,10 +59,3 @@ type ChannelData interface {
 	GetTopic() string
 	GetNetwork() string
 }
-
-// Script wraps the name and code of a script
-type Script interface {
-	GetName() string
-	GetScript() string
-	Run(net Network, msg database.Message, cancelled bool) (database.Message, bool)
-}

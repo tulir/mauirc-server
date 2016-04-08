@@ -20,7 +20,6 @@ package config
 import (
 	"fmt"
 	"io/ioutil"
-	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/interfaces"
 	"maunium.net/go/mauircd/plugin"
 	"net/http"
@@ -78,34 +77,33 @@ func (net *netImpl) SaveScripts(path string) error {
 }
 
 // RunScripts runs all the scripts of this network and all global scripts on the given message
-func (net *netImpl) RunScripts(msg database.Message, cancelled, receiving bool) (database.Message, bool) {
+func (net *netImpl) RunScripts(evt *mauircdi.Event, receiving bool) {
 	netChanged := false
 	for _, s := range net.Scripts {
-		msg, cancelled, netChanged = net.RunScript(msg, s, cancelled, receiving)
+		netChanged = net.RunScript(s, evt, receiving)
 		if netChanged {
-			return msg, true
+			return
 		}
 	}
 
 	for _, s := range net.Owner.GlobalScripts {
-		msg, cancelled, netChanged = net.RunScript(msg, s, cancelled, receiving)
+		netChanged = net.RunScript(s, evt, receiving)
 		if netChanged {
-			return msg, true
+			return
 		}
 	}
-	return msg, cancelled
 }
 
 // RunScript runs a single script and sends it to another network if needed.
-func (net *netImpl) RunScript(msg database.Message, s mauircdi.Script, cancelled, receiving bool) (database.Message, bool, bool) {
-	msg, cancelled = s.Run(net, msg, cancelled)
-	if msg.Network != net.Name {
-		if net.SwitchMessageNetwork(msg, receiving) {
-			return msg, cancelled, true
+func (net *netImpl) RunScript(s mauircdi.Script, evt *mauircdi.Event, receiving bool) bool {
+	s.Run(evt)
+	if evt.Message.Network != net.Name {
+		if net.SwitchMessageNetwork(evt.Message, receiving) {
+			return true
 		}
-		msg.Network = net.Name
+		evt.Message.Network = net.Name
 	}
-	return msg, cancelled, false
+	return false
 }
 
 func download(pasteID string) (string, error) {

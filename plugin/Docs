@@ -1,0 +1,72 @@
+// Event contains all event-specific things
+event
+	// The name of the network the message was sent on.
+	// If this is changed, the message will be transferred to the other network immediately after this script.
+	network string
+
+	// The name of the channel the message was sent to.
+	channel string
+
+	// The timestamp of the message.
+	timestamp int64
+
+	// The plain nick of the user who sent the message.
+	sender string
+
+	// The command used (e.g. privmsg, action, join..)
+	command string
+
+	// The message.
+	message string
+
+	// Whether or not the message is from the mauIRC user.
+	ownmsg bool
+
+	// Whether or not the message has been cancelled by a plugin.
+	cancelled bool
+
+	// Module that contains methods to modify the preview of the URLs in the message.
+	preview
+		// Check whether or not the message has a preview currently attached.
+		HasPreview() bool
+
+		// Remove the attached preview.
+		RemovePreview()
+
+		// Load a preview of the given URL and if successful, set it as the preview.
+		//
+		// Return: Whether or not the URL had valid preview data
+		SetPreviewURL(url string) bool
+
+		// Change the preview to show the given image.
+		//
+		// @param url: The direct URL to the image to show
+		// @param type: The MIME type of the image (possibly optional)
+		SetPreviewImage(url, type string)
+
+		// Change the title, description and site name of the preview.
+		//
+		// @param title: The title for the preview
+		// @param description: The description. If this is the same as title, it will be ignored
+		// @param sitename: The name (usually a simplified URL) of the site
+		SetPreviewText(title, description, sitename string)
+// Network contains all network-specific things (channels, IRC connection, etc)
+network
+	// Get the current nickname of the user.
+	GetNick()
+
+	// Get the topic of the given channel
+	//
+	// @param channel: The name of the channel to get the topic of
+	// @return: The topic of the channel, or an empty string if channel not found
+	GetTopic(channel string) string
+
+	// Get the name of channels the user is in.
+	GetChannels() []string
+
+	// Get a list of all channels, including those that the user is not in.
+	GetAllChannels() []string
+
+	// IRC contains all bindings for running IRC command
+	irc
+user

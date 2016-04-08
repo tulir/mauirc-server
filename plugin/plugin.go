@@ -19,8 +19,7 @@ package plugin
 
 import (
 	"fmt"
-	"github.com/yuin/gopher-lua"
-	"maunium.net/go/mauircd/database"
+	"github.com/mattn/anko/vm"
 	"maunium.net/go/mauircd/interfaces"
 )
 
@@ -40,47 +39,52 @@ func (s Script) GetScript() string {
 	return s.TheScript
 }
 
-func getString(L *lua.LState, event *lua.LTable, name string) string {
-	return lua.LVAsString(L.GetField(event, name))
-}
-
-func getBool(L *lua.LState, event *lua.LTable, name string) bool {
-	return lua.LVAsBool(L.GetField(event, name))
-}
-
-func getInt64(L *lua.LState, event *lua.LTable, name string) int64 {
-	return int64(float64(lua.LVAsNumber(L.GetField(event, name))))
-}
-
 // Run the script with the given values.
-func (s Script) Run(net mauircdi.Network, msg database.Message, cancelled bool) (database.Message, bool) {
-	L := lua.NewState()
-	L.OpenLibs()
+func (s Script) Run(evt *mauircdi.Event) {
+	var env = vm.NewEnv()
 
-	event := L.NewTypeMetatable("event")
-	L.SetField(event, "network", lua.LString(msg.Network))
-	L.SetField(event, "channel", lua.LString(msg.Channel))
-	L.SetField(event, "timestamp", lua.LString(msg.Timestamp))
-	L.SetField(event, "sender", lua.LString(msg.Sender))
-	L.SetField(event, "command", lua.LString(msg.Command))
-	L.SetField(event, "message", lua.LString(msg.Message))
-	L.SetField(event, "ownmsg", lua.LBool(msg.OwnMsg))
-	L.SetField(event, "cancelled", lua.LBool(cancelled))
-	L.SetGlobal("event", event)
+	var event = env.NewModule("event")
+	LoadEvent(event, evt)
+	var network = env.NewModule("network")
+	LoadNetwork(network, evt)
+	var user = env.NewModule("user")
+	LoadUser(user, evt)
 
-	// TODO Allow plugins to do things with `net`
-
-	defer L.Close()
-	if err := L.DoString(s.TheScript); err != nil {
-		fmt.Println(err)
+	val, err := env.Execute(s.GetScript())
+	if err != nil {
+		fmt.Println(val, err)
 	}
 
-	msg.Network = getString(L, event, "network")
-	msg.Channel = getString(L, event, "channel")
-	msg.Sender = getString(L, event, "sender")
-	msg.Command = getString(L, event, "command")
-	msg.Message = getString(L, event, "message")
-	msg.OwnMsg = getBool(L, event, "ownmsg")
-	msg.Timestamp = getInt64(L, event, "timestamp")
-	return msg, getBool(L, event, "cancelled")
+	evt.Message.Network = getString(event, "network", evt.Message.Network)
+	evt.Message.Channel = getString(event, "channel", evt.Message.Channel)
+	evt.Message.Timestamp = getInt(event, "timestamp", evt.Message.Timestamp)
+	evt.Message.Sender = getString(event, "sender", evt.Message.Sender)
+	evt.Message.Command = getString(event, "command", evt.Message.Command)
+	evt.Message.Message = getString(event, "message", evt.Message.Message)
+	evt.Message.OwnMsg = getBool(event, "ownevt.Message", evt.Message.OwnMsg)
+	evt.Cancelled = getBool(event, "cancelled", evt.Cancelled)
+}
+
+func getString(env *vm.Env, path string, def string) string {
+	val, err := env.Get(path)
+	if err != nil {
+		return def
+	}
+	return val.String()
+}
+
+func getBool(env *vm.Env, path string, def bool) bool {
+	val, err := env.Get(path)
+	if err != nil {
+		return def
+	}
+	return val.Bool()
+}
+
+func getInt(env *vm.Env, path string, def int64) int64 {
+	val, err := env.Get(path)
+	if err != nil {
+		return def
+	}
+	return val.Int()
 }
