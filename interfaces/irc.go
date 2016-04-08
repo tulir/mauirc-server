@@ -25,7 +25,7 @@ import (
 type Network interface {
 	Open()
 	ReceiveMessage(channel, sender, command, message string)
-	SendMessage(channel, sender, message string)
+	SendMessage(channel, command, message string)
 	SwitchMessageNetwork(msg database.Message, receiving bool) bool
 	InsertAndSend(msg database.Message)
 	SendRaw(msg string, args ...interface{})
