@@ -31,7 +31,7 @@ type Network interface {
 	SendRaw(msg string)
 	Close()
 
-	/*GetOwner() *User*/
+	GetOwner() User
 	GetName() string
 	GetNick() string
 

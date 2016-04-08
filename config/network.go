@@ -248,9 +248,9 @@ func (net *netImpl) joinpartOther(user, channel string, part bool) {
 	net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 }
 
-/*func (net *netImpl) GetOwner() mauircdi.User {
+func (net *netImpl) GetOwner() mauircdi.User {
 	return net.Owner
-}*/
+}
 
 func (net *netImpl) GetName() string {
 	return net.Name
