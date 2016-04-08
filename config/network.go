@@ -268,8 +268,8 @@ func (net *netImpl) GetAllChannels() []string {
 	return net.ChannelList
 }
 
-func (net *netImpl) SendRaw(msg string) {
-	net.IRC.SendRaw(msg)
+func (net *netImpl) SendRaw(msg string, args ...interface{}) {
+	net.IRC.SendRawf(msg, args...)
 }
 
 func (net *netImpl) GetScripts() []mauircdi.Script {

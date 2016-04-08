@@ -28,7 +28,7 @@ type Network interface {
 	SendMessage(channel, sender, message string)
 	SwitchMessageNetwork(msg database.Message, receiving bool) bool
 	InsertAndSend(msg database.Message)
-	SendRaw(msg string)
+	SendRaw(msg string, args ...interface{})
 	Close()
 
 	GetOwner() User
