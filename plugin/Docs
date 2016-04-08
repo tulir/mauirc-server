@@ -50,7 +50,8 @@ event
 		// @param description: The description. If this is the same as title, it will be ignored
 		// @param sitename: The name (usually a simplified URL) of the site
 		SetPreviewText(title, description, sitename string)
-// Network contains all network-specific things (channels, IRC connection, etc)
+
+// Network contains all network-specific things (channels, IRC connection, etc...)
 network
 	// Get the current nickname of the user.
 	GetNick()
@@ -69,4 +70,6 @@ network
 
 	// IRC contains all bindings for running IRC command
 	irc
+
+// User contains all user-specific things (send messages to client, etc...)
 user
