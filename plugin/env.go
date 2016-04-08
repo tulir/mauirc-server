@@ -69,6 +69,7 @@ func LoadPreview(env *vm.Env, evt *mauircdi.Event) {
 			if evt.Message.Preview.Text == nil {
 				evt.Message.Preview = nil
 			}
+			return
 		}
 		imgPreview := &preview.Image{URL: url, Type: typ}
 		if evt.Message.Preview == nil {
@@ -83,6 +84,7 @@ func LoadPreview(env *vm.Env, evt *mauircdi.Event) {
 			if evt.Message.Preview.Image == nil {
 				evt.Message.Preview = nil
 			}
+			return
 		} else if title == description {
 			description = ""
 		}
