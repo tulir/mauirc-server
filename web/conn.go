@@ -127,16 +127,14 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 
 	go c.writePump()
 
-	var netlist map[string]bool
 	c.user.GetNetworks().ForEach(func(net mauircdi.Network) {
-		netlist[net.GetName()] = net.IsConnected()
+		c.user.GetMessageChan() <- mauircdi.Message{Type: "netdata", Object: mauircdi.NetData{Name: net.GetName(), Connected: net.IsConnected()}}
 		net.GetActiveChannels().ForEach(func(chd mauircdi.ChannelData) {
 			c.user.GetMessageChan() <- mauircdi.Message{Type: "chandata", Object: chd}
 		})
 		c.user.GetMessageChan() <- mauircdi.Message{Type: "chanlist", Object: mauircdi.ChanList{Network: net.GetName(), List: net.GetAllChannels()}}
 		c.user.GetMessageChan() <- mauircdi.Message{Type: "nickchange", Object: mauircdi.NickChange{Network: net.GetName(), Nick: net.GetNick()}}
 	})
-	c.user.GetMessageChan() <- mauircdi.Message{Type: "netlist", Object: netlist}
 
 	c.readPump()
 }

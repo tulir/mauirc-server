@@ -29,6 +29,12 @@ type NickChange struct {
 	Nick    string `json:"nick"`
 }
 
+// NetData contains basic network data
+type NetData struct {
+	Name      string `json:"name"`
+	Connected bool   `json:"connected"`
+}
+
 // ChanList contains a channel list and network name
 type ChanList struct {
 	Network string   `json:"network"`
