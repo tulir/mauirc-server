@@ -2,31 +2,31 @@
 event
 	// The name of the network the message was sent on.
 	// If this is changed, the message will be transferred to the other network immediately after this script.
-	network string
+	func <Get|Set>Network string
 
 	// The name of the channel the message was sent to.
-	channel string
+	<Get|Set>Channel string
 
 	// The timestamp of the message.
-	timestamp int64
+	<Get|Set>Timestamp int64
 
 	// The plain nick of the user who sent the message.
-	sender string
+	<Get|Set>Sender string
 
 	// The command used (e.g. privmsg, action, join..)
-	command string
+	<Get|Set>Command string
 
 	// The message.
-	message string
+	<Get|Set>Message string
 
 	// Whether or not the message is from the mauIRC user.
-	ownmsg bool
+	<Is|Set>OwnMsg bool
 
 	// Whether or not the message has been cancelled by a plugin.
-	cancelled bool
+	<Is|Set>Cancelled bool
 
 	// Module that contains methods to modify the preview of the URLs in the message.
-	preview
+	preview module
 		// Check whether or not the message has a preview currently attached.
 		HasPreview() bool
 
@@ -41,8 +41,8 @@ event
 		// Change the preview to show the given image.
 		//
 		// @param url: The direct URL to the image to show
-		// @param type: The MIME type of the image (possibly optional)
-		SetPreviewImage(url, type string)
+		// @param typ: The MIME type of the image (possibly optional)
+		SetPreviewImage(url, typ string)
 
 		// Change the title, description and site name of the preview.
 		//
@@ -52,7 +52,7 @@ event
 		SetPreviewText(title, description, sitename string)
 
 // Network contains all network-specific things (channels, IRC connection, etc...)
-network
+network module
 	// Get the current nickname of the user.
 	GetNick()
 
@@ -68,8 +68,70 @@ network
 	// Get a list of all channels, including those that the user is not in.
 	GetAllChannels() []string
 
-	// IRC contains all bindings for running IRC command
-	irc
+	// Emulate a message send event.
+	// This will invoke the exact same function that is invoked when the client actually sends a message.
+	// All global and network-specific scripts will be run as normal.
+	//
+	// @param channel: The name of the channel to send the message to
+	// @param command: The command (e.g. privmsg, action, join..)
+	// @param message: The message
+	SendFakeMessage(channel string, command string, message string)
+
+	// Emulate a message receive event.
+	// This will invoke the exact same function that is invoked when a message is received from the IRC server.
+	// All global and network-specific scripts will be run as normal.
+	//
+	// @param channel: The name of the channel the message was received on
+	// @param sender: The user who sent the message
+	// @param command: The command (e.g. privmsg, action, join..)
+	// @param message: The message
+	ReceiveFakeMessage(channel string, sender string, command string, message string)
+
+	// IRC contains all bindings for running IRC commands. Function names are usually the IRC command in lowercase with
+	// the first letter uppercased.
+	irc module
+		// Change the users nickname
+		Nick(nick string)
+		// Join the given channel and use the given password (can be empty)
+		Join(channel string, password string)
+		// Part the given channel with the given reason
+		Part(channel string, reason string)
+		// Set the topic of the given channel to the given topic
+		Topic(channel string, topic string)
+		// Send the given message to the given channel (or user)
+		Privmsg(channel string, message string)
 
 // User contains all user-specific things (send messages to client, etc...)
-user
+user module
+	// Get the email of the user
+	GetEmail() string
+	// Send a message to the client and store it in the database, so the client will see the message even after a reload.
+	//
+	// @param network: The name of the network to send the message to
+	// @param channel: The name of the channel to send the message to
+	// @param timestamp: The amount of seconds from EPOCH when the message was sent
+	// @param sender: The name of the user who sent the message
+	// @param command: The command used (e.g. privmsg, action, join..)
+	// @param message: The message
+	// @param ownmsg: Whether or not the message was sent by the user
+	SendMessage(network string, channel string, timestamp int64, sender string, command string, message string, ownmsg bool)
+	// Send a message directly to the client; don't store it anywhere.
+	//
+	// @param id: The ID of the message. On normal messages, this is an automatically incrementing always unique ID.
+	//            With SendDirectMessage the value doesn't affect anything permanently, since the message will not be
+	//            stored in the database.
+	// @param network: The name of the network to send the message to
+	// @param channel: The name of the channel to send the message to
+	// @param timestamp: The amount of seconds from EPOCH when the message was sent
+	// @param sender: The name of the user who sent the message
+	// @param command: The command used (e.g. privmsg, action, join..)
+	// @param message: The message
+	// @param ownmsg: Whether or not the message was sent by the user
+	SendDirectMessage(id int64, network string, channel string, timestamp int64, sender string, command string, message string, ownmsg bool)
+	// Send a raw JSON message to the client.
+	//
+	// @param typ: The type of the message (e.g. message, action, clear..)
+	// @param data: The raw JSON data to send
+	SendRawMessage(typ string, data string)
+	// Get a list of the networks the user is connected to.
+	GetNetworks() []string
