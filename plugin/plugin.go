@@ -19,6 +19,7 @@ package plugin
 
 import (
 	"fmt"
+	builtins "github.com/mattn/anko/builtins"
 	"github.com/mattn/anko/vm"
 	"maunium.net/go/mauircd/interfaces"
 )
@@ -43,6 +44,8 @@ func (s Script) GetScript() string {
 func (s Script) Run(evt *mauircdi.Event) {
 	var env = vm.NewEnv()
 
+	builtins.Import(env)
+	LoadImport(env)
 	var event = env.NewModule("event")
 	LoadEvent(event, evt)
 	var network = env.NewModule("network")

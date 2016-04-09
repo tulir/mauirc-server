@@ -18,11 +18,56 @@
 package plugin
 
 import (
+	"fmt"
+	anko_encoding_json "github.com/mattn/anko/builtins/encoding/json"
+	anko_flag "github.com/mattn/anko/builtins/flag"
+	anko_io "github.com/mattn/anko/builtins/io"
+	anko_io_ioutil "github.com/mattn/anko/builtins/io/ioutil"
+	anko_math "github.com/mattn/anko/builtins/math"
+	anko_net "github.com/mattn/anko/builtins/net"
+	anko_net_http "github.com/mattn/anko/builtins/net/http"
+	anko_net_url "github.com/mattn/anko/builtins/net/url"
+	anko_os "github.com/mattn/anko/builtins/os"
+	anko_os_exec "github.com/mattn/anko/builtins/os/exec"
+	anko_path "github.com/mattn/anko/builtins/path"
+	anko_path_filepath "github.com/mattn/anko/builtins/path/filepath"
+	anko_regexp "github.com/mattn/anko/builtins/regexp"
+	anko_sort "github.com/mattn/anko/builtins/sort"
+	anko_strings "github.com/mattn/anko/builtins/strings"
 	"github.com/mattn/anko/vm"
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/interfaces"
 	"maunium.net/go/mauircd/util/preview"
+	"reflect"
 )
+
+// LoadImport loads the import() function into the given environment to allow importing some Go packages
+func LoadImport(env *vm.Env) {
+	tbl := map[string]func(env *vm.Env) *vm.Env{
+		"encoding/json": anko_encoding_json.Import,
+		"flag":          anko_flag.Import,
+		"io":            anko_io.Import,
+		"io/ioutil":     anko_io_ioutil.Import,
+		"math":          anko_math.Import,
+		"net":           anko_net.Import,
+		"net/http":      anko_net_http.Import,
+		"net/url":       anko_net_url.Import,
+		"os":            anko_os.Import,
+		"os/exec":       anko_os_exec.Import,
+		"path":          anko_path.Import,
+		"path/filepath": anko_path_filepath.Import,
+		"regexp":        anko_regexp.Import,
+		"sort":          anko_sort.Import,
+		"strings":       anko_strings.Import,
+	}
+
+	env.Define("import", reflect.ValueOf(func(s string) interface{} {
+		if loader, ok := tbl[s]; ok {
+			return loader(env)
+		}
+		panic(fmt.Sprintf("package '%s' not found", s))
+	}))
+}
 
 // LoadAll load all the bindings into the given Anko VM environment
 func LoadAll(env *vm.Env, evt *mauircdi.Event) {
@@ -33,14 +78,54 @@ func LoadAll(env *vm.Env, evt *mauircdi.Event) {
 
 // LoadEvent loads event things into the given Anko VM environment
 func LoadEvent(env *vm.Env, evt *mauircdi.Event) {
-	env.Define("network", evt.Message.Network)
-	env.Define("channel", evt.Message.Channel)
-	env.Define("timestamp", evt.Message.Timestamp)
-	env.Define("sender", evt.Message.Sender)
-	env.Define("command", evt.Message.Command)
-	env.Define("message", evt.Message.Message)
-	env.Define("ownmsg", evt.Message.OwnMsg)
-	env.Define("cancelled", evt.Cancelled)
+	env.Define("GetNetwork", func() string {
+		return evt.Message.Network
+	})
+	env.Define("SetNetwork", func(val string) {
+		evt.Message.Network = val
+	})
+	env.Define("GetChannel", func() string {
+		return evt.Message.Channel
+	})
+	env.Define("SetChannel", func(val string) {
+		evt.Message.Channel = val
+	})
+	env.Define("GetTimestamp", func() int64 {
+		return evt.Message.Timestamp
+	})
+	env.Define("SetTimestamp", func(val int64) {
+		evt.Message.Timestamp = val
+	})
+	env.Define("GetSender", func() string {
+		return evt.Message.Sender
+	})
+	env.Define("SetSender", func(val string) {
+		evt.Message.Sender = val
+	})
+	env.Define("GetCommand", func() string {
+		return evt.Message.Command
+	})
+	env.Define("SetCommand", func(val string) {
+		evt.Message.Command = val
+	})
+	env.Define("GetMessage", func() string {
+		return evt.Message.Message
+	})
+	env.Define("SetMessage", func(val string) {
+		evt.Message.Message = val
+	})
+	env.Define("IsOwnMsg", func() bool {
+		return evt.Message.OwnMsg
+	})
+	env.Define("SetOwnMsg", func(val bool) {
+		evt.Message.OwnMsg = val
+	})
+	env.Define("IsCancelled", func() bool {
+		return evt.Cancelled
+	})
+	env.Define("SetCancelled", func(val bool) {
+		evt.Cancelled = val
+	})
 	LoadPreview(env.NewModule("preview"), evt)
 }
 
