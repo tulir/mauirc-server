@@ -127,9 +127,9 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 
 	go c.writePump()
 
-	var netlist []string
+	var netlist map[string]bool
 	c.user.GetNetworks().ForEach(func(net mauircdi.Network) {
-		netlist = append(netlist, net.GetName())
+		netlist[net.GetName()] = net.IsConnected()
 		net.GetActiveChannels().ForEach(func(chd mauircdi.ChannelData) {
 			c.user.GetMessageChan() <- mauircdi.Message{Type: "chandata", Object: chd}
 		})
