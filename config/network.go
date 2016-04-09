@@ -71,6 +71,7 @@ func (net *netImpl) Open() {
 	i.AddCallback("TOPIC", net.topic)
 	i.AddCallback("NICK", net.nick)
 	i.AddCallback("QUIT", net.quit)
+	i.AddCallback("DISCONNECTED", net.disconnected)
 	i.AddCallback("001", net.connected)
 	i.AddCallback("353", net.userlist)
 	i.AddCallback("366", net.userlistend)
@@ -79,10 +80,6 @@ func (net *netImpl) Open() {
 	i.AddCallback("332", net.topicresp)
 	i.AddCallback("333", net.topicset)
 	i.AddCallback("482", net.noperms)
-
-	i.AddCallback("DISCONNECTED", func(event *irc.Event) {
-		fmt.Printf("Disconnected from %s:%d\n", net.IP, net.Port)
-	})
 
 	if err := net.Connect(); err != nil {
 		fmt.Printf("Failed to connect to %s:%d: %s", net.IP, net.Port, err)

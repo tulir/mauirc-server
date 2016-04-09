@@ -18,6 +18,7 @@
 package config
 
 import (
+	"fmt"
 	"github.com/thoj/go-ircevent"
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/interfaces"
@@ -190,4 +191,10 @@ func (net *netImpl) connected(evt *irc.Event) {
 	for _, channel := range net.Channels {
 		net.IRC.Join(channel)
 	}
+	net.GetOwner().GetMessageChan() <- mauircdi.Message{Type: "netdata", Object: mauircdi.NetData{Name: net.GetName(), Connected: true}}
+}
+
+func (net *netImpl) disconnected(event *irc.Event) {
+	fmt.Printf("Disconnected from %s:%d\n", net.IP, net.Port)
+	net.GetOwner().GetMessageChan() <- mauircdi.Message{Type: "netdata", Object: mauircdi.NetData{Name: net.GetName(), Connected: false}}
 }
