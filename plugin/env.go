@@ -77,6 +77,12 @@ func LoadAll(env *vm.Env, evt *mauircdi.Event) {
 
 // LoadEvent loads event things into the given Anko VM environment
 func LoadEvent(env *vm.Env, evt *mauircdi.Event) {
+	env.Define("GetID", func() int64 {
+		return evt.Message.ID
+	})
+	env.Define("SetID", func(val int64) {
+		evt.Message.ID = val
+	})
 	env.Define("GetNetwork", func() string {
 		return evt.Message.Network
 	})
@@ -214,6 +220,9 @@ func LoadNetwork(env *vm.Env, evt *mauircdi.Event) {
 		})
 		irc.Define("Topic", func(channel string, topic string) {
 			evt.Network.SendRaw("TOPIC %s :%s", channel, topic)
+		})
+		irc.Define("Privmsg", func(channel string, message string) {
+			evt.Network.SendRaw("PRIVMSG %s :%s", channel, message)
 		})
 	}
 }
