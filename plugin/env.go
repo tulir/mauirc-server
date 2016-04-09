@@ -21,14 +21,14 @@ import (
 	"fmt"
 	anko_encoding_json "github.com/mattn/anko/builtins/encoding/json"
 	anko_flag "github.com/mattn/anko/builtins/flag"
-	anko_io "github.com/mattn/anko/builtins/io"
-	anko_io_ioutil "github.com/mattn/anko/builtins/io/ioutil"
+	//anko_io "github.com/mattn/anko/builtins/io"
+	//anko_io_ioutil "github.com/mattn/anko/builtins/io/ioutil"
 	anko_math "github.com/mattn/anko/builtins/math"
 	anko_net "github.com/mattn/anko/builtins/net"
 	anko_net_http "github.com/mattn/anko/builtins/net/http"
 	anko_net_url "github.com/mattn/anko/builtins/net/url"
-	anko_os "github.com/mattn/anko/builtins/os"
-	anko_os_exec "github.com/mattn/anko/builtins/os/exec"
+	//anko_os "github.com/mattn/anko/builtins/os"
+	//anko_os_exec "github.com/mattn/anko/builtins/os/exec"
 	anko_path "github.com/mattn/anko/builtins/path"
 	anko_path_filepath "github.com/mattn/anko/builtins/path/filepath"
 	anko_regexp "github.com/mattn/anko/builtins/regexp"
@@ -45,14 +45,14 @@ func LoadImport(env *vm.Env) {
 	tbl := map[string]func(env *vm.Env) *vm.Env{
 		"encoding/json": anko_encoding_json.Import,
 		"flag":          anko_flag.Import,
-		"io":            anko_io.Import,
-		"io/ioutil":     anko_io_ioutil.Import,
-		"math":          anko_math.Import,
-		"net":           anko_net.Import,
-		"net/http":      anko_net_http.Import,
-		"net/url":       anko_net_url.Import,
-		"os":            anko_os.Import,
-		"os/exec":       anko_os_exec.Import,
+		//"io":            anko_io.Import,
+		//"io/ioutil":     anko_io_ioutil.Import,
+		"math":     anko_math.Import,
+		"net":      anko_net.Import,
+		"net/http": anko_net_http.Import,
+		"net/url":  anko_net_url.Import,
+		//"os":            anko_os.Import,
+		//"os/exec":       anko_os_exec.Import,
 		"path":          anko_path.Import,
 		"path/filepath": anko_path_filepath.Import,
 		"regexp":        anko_regexp.Import,
