@@ -207,32 +207,33 @@ func LoadNetwork(env *vm.Env, evt *mauircdi.Event) {
 	env.Define("SendFakeMessage", evt.Network.SendMessage)
 	env.Define("ReceiveFakeMessage", evt.Network.ReceiveMessage)
 
-	var irc = env.NewModule("irc")
-	{
-		irc.Define("Nick", func(nick string) {
-			evt.Network.SendRaw("NICK %s", nick)
-		})
-		irc.Define("Join", func(channel string, keys string) {
-			evt.Network.SendRaw("JOIN %s %s", channel, keys)
-		})
-		irc.Define("Part", func(channel string, reason string) {
-			evt.Network.SendRaw("PART %s :%s", channel, reason)
-		})
-		irc.Define("Topic", func(channel string, topic string) {
-			evt.Network.SendRaw("TOPIC %s :%s", channel, topic)
-		})
-		irc.Define("Privmsg", func(channel string, message string) {
-			evt.Network.SendRaw("PRIVMSG %s :%s", channel, message)
-		})
-	}
+	LoadIRC(env.NewModule("irc"), evt)
+}
+
+// LoadIRC loads irc command bindings into the given Anko VM environment
+func LoadIRC(env *vm.Env, evt *mauircdi.Event) {
+	env.Define("Nick", func(nick string) {
+		evt.Network.SendRaw("NICK %s", nick)
+	})
+	env.Define("Join", func(channel string, keys string) {
+		evt.Network.SendRaw("JOIN %s %s", channel, keys)
+	})
+	env.Define("Part", func(channel string, reason string) {
+		evt.Network.SendRaw("PART %s :%s", channel, reason)
+	})
+	env.Define("Topic", func(channel string, topic string) {
+		evt.Network.SendRaw("TOPIC %s :%s", channel, topic)
+	})
+	env.Define("Privmsg", func(channel string, message string) {
+		evt.Network.SendRaw("PRIVMSG %s :%s", channel, message)
+	})
 }
 
 // LoadUser loads user things into the given Anko VM environment
 func LoadUser(env *vm.Env, evt *mauircdi.Event) {
-	env.Define("email", evt.Network.GetOwner().GetEmail())
-	env.Define("SendMessage", func(id int64, network, channel string, timestamp int64, sender, command, message string, ownmsg bool) {
+	env.Define("GetEmail", evt.Network.GetOwner().GetEmail)
+	env.Define("SendMessage", func(network, channel string, timestamp int64, sender, command, message string, ownmsg bool) {
 		evt.Network.InsertAndSend(database.Message{
-			ID:        id,
 			Network:   network,
 			Channel:   channel,
 			Timestamp: timestamp,
