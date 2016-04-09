@@ -68,9 +68,9 @@ func (net *netImpl) SaveScripts(path string) error {
 	}
 
 	for _, script := range net.Scripts {
-		err := ioutil.WriteFile(filepath.Join(path, script.GetName()+".lua"), []byte(script.GetScript()), 0644)
+		err := ioutil.WriteFile(filepath.Join(path, script.GetName()+".ank"), []byte(script.GetScript()), 0644)
 		if err != nil {
-			fmt.Printf("Failed to save script \"%s\" for network %s owned by %s\n", script.GetName()+".lua", net.Name, net.Owner.Email)
+			fmt.Printf("Failed to save script \"%s\" for network %s owned by %s\n", script.GetName()+".ank", net.Name, net.Owner.Email)
 		}
 	}
 	return nil
