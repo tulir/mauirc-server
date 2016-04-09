@@ -184,3 +184,10 @@ func (net *netImpl) privmsg(evt *irc.Event) {
 func (net *netImpl) action(evt *irc.Event) {
 	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "action", evt.Message())
 }
+
+func (net *netImpl) connected(evt *irc.Event) {
+	net.IRC.SendRaw("LIST")
+	for _, channel := range net.Channels {
+		net.IRC.Join(channel)
+	}
+}

@@ -71,6 +71,7 @@ func (net *netImpl) Open() {
 	i.AddCallback("TOPIC", net.topic)
 	i.AddCallback("NICK", net.nick)
 	i.AddCallback("QUIT", net.quit)
+	i.AddCallback("001", net.connected)
 	i.AddCallback("353", net.userlist)
 	i.AddCallback("366", net.userlistend)
 	i.AddCallback("322", net.chanlist)
@@ -79,21 +80,26 @@ func (net *netImpl) Open() {
 	i.AddCallback("333", net.topicset)
 	i.AddCallback("482", net.noperms)
 
-	i.AddCallback("001", func(evt *irc.Event) {
-		i.SendRaw("LIST") // TODO update channel list properly
-		for _, channel := range net.Channels {
-			i.Join(channel)
-		}
-	})
-
 	i.AddCallback("DISCONNECTED", func(event *irc.Event) {
 		fmt.Printf("Disconnected from %s:%d\n", net.IP, net.Port)
 	})
 
-	err := i.Connect(fmt.Sprintf("%s:%d", net.IP, net.Port))
-	if err != nil {
-		panic(err)
+	if err := net.Connect(); err != nil {
+		fmt.Printf("Failed to connect to %s:%d: %s", net.IP, net.Port, err)
 	}
+}
+
+func (net *netImpl) Connect() error {
+	err := net.IRC.Connect(fmt.Sprintf("%s:%d", net.IP, net.Port))
+	return err
+}
+
+func (net *netImpl) Disconnect() {
+	net.IRC.Disconnect()
+}
+
+func (net *netImpl) IsConnected() bool {
+	return net.IRC.Connected()
 }
 
 // ReceiveMessage stores the message and sends it to the client

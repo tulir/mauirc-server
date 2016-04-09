@@ -31,6 +31,10 @@ type Network interface {
 	SendRaw(msg string, args ...interface{})
 	Close()
 
+	Connect() error
+	Disconnect()
+	IsConnected() bool
+
 	GetOwner() User
 	GetName() string
 	GetNick() string
