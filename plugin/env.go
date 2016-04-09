@@ -38,7 +38,6 @@ import (
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/interfaces"
 	"maunium.net/go/mauircd/util/preview"
-	"reflect"
 )
 
 // LoadImport loads the import() function into the given environment to allow importing some Go packages
@@ -61,12 +60,12 @@ func LoadImport(env *vm.Env) {
 		"strings":       anko_strings.Import,
 	}
 
-	env.Define("import", reflect.ValueOf(func(s string) interface{} {
+	env.Define("import", func(s string) interface{} {
 		if loader, ok := tbl[s]; ok {
 			return loader(env)
 		}
 		panic(fmt.Sprintf("package '%s' not found", s))
-	}))
+	})
 }
 
 // LoadAll load all the bindings into the given Anko VM environment
