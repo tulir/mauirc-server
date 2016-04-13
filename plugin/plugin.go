@@ -26,8 +26,8 @@ import (
 
 // Script wraps a Lua script.
 type Script struct {
-	TheScript string
-	Name      string
+	TheScript string `json:"script"`
+	Name      string `json:"name"`
 }
 
 // GetName returns the name of the script
