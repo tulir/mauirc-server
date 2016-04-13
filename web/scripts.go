@@ -35,8 +35,7 @@ func script(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	args := strings.Split(r.RequestURI, "/")[1:]
-
+	args := strings.Split(r.RequestURI, "/")[2:]
 	if r.Method == http.MethodGet {
 		getScripts(w, r, args, user)
 	} else if r.Method == http.MethodDelete {
