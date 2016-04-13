@@ -68,8 +68,8 @@ func checkAuth(w http.ResponseWriter, r *http.Request) (bool, mauircdi.User) {
 }
 
 func httpAuthCheck(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		w.Header().Add("Allow", "GET")
+	if r.Method != http.MethodGet {
+		w.Header().Add("Allow", http.MethodGet)
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
