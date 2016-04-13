@@ -46,7 +46,8 @@ type Network interface {
 	GetAllChannels() []string
 
 	GetScripts() []Script
-	AddScript(s Script)
+	AddScript(s Script) bool
+	RemoveScript(name string) bool
 }
 
 // ChannelDataList contains a list of channel data objects

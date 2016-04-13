@@ -31,7 +31,7 @@ func Load(c mauircdi.Configuration) {
 	initStore(config.GetExternalAddr())
 
 	http.HandleFunc("/history", history)
-	http.HandleFunc("/scripts/get", getScripts)
+	http.HandleFunc("/script", script)
 	http.HandleFunc("/auth/login", auth)
 	http.HandleFunc("/auth/check", httpAuthCheck)
 	http.HandleFunc("/socket", serveWs)

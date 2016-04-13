@@ -280,14 +280,31 @@ func (net *netImpl) GetScripts() []mauircdi.Script {
 	return net.Scripts
 }
 
-func (net *netImpl) AddScript(s mauircdi.Script) {
+func (net *netImpl) AddScript(s mauircdi.Script) bool {
 	for i := 0; i < len(net.Scripts); i++ {
 		if net.Scripts[i].GetName() == s.GetName() {
 			net.Scripts[i] = s
-			return
+			return false
 		}
 	}
 	net.Scripts = append(net.Scripts, s)
+	return true
+}
+
+func (net *netImpl) RemoveScript(name string) bool {
+	for i := 0; i < len(net.Scripts); i++ {
+		if net.Scripts[i].GetName() == name {
+			if i == 0 {
+				net.Scripts = net.Scripts[1:]
+			} else if i == len(net.Scripts)-1 {
+				net.Scripts = net.Scripts[:len(net.Scripts)-1]
+			} else {
+				net.Scripts = append(net.Scripts[:i], net.Scripts[i+1:]...)
+			}
+			return true
+		}
+	}
+	return false
 }
 
 type chanDataImpl struct {

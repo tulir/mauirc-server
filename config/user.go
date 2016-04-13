@@ -127,12 +127,29 @@ func (user *userImpl) GetGlobalScripts() []mauircdi.Script {
 	return user.GlobalScripts
 }
 
-func (user *userImpl) AddGlobalScript(s mauircdi.Script) {
+func (user *userImpl) AddGlobalScript(s mauircdi.Script) bool {
 	for i := 0; i < len(user.GlobalScripts); i++ {
 		if user.GlobalScripts[i].GetName() == s.GetName() {
 			user.GlobalScripts[i] = s
-			return
+			return false
 		}
 	}
 	user.GlobalScripts = append(user.GlobalScripts, s)
+	return true
+}
+
+func (user *userImpl) RemoveGlobalScript(name string) bool {
+	for i := 0; i < len(user.GlobalScripts); i++ {
+		if user.GlobalScripts[i].GetName() == name {
+			if i == 0 {
+				user.GlobalScripts = user.GlobalScripts[1:]
+			} else if i == len(user.GlobalScripts)-1 {
+				user.GlobalScripts = user.GlobalScripts[:len(user.GlobalScripts)-1]
+			} else {
+				user.GlobalScripts = append(user.GlobalScripts[:i], user.GlobalScripts[i+1:]...)
+			}
+			return true
+		}
+	}
+	return false
 }

@@ -56,7 +56,8 @@ type User interface {
 	HandleCommand(data *gabs.Container)
 
 	GetGlobalScripts() []Script
-	AddGlobalScript(s Script)
+	AddGlobalScript(s Script) bool
+	RemoveGlobalScript(name string) bool
 
 	GetMessageChan() chan Message
 }

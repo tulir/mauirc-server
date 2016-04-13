@@ -19,35 +19,67 @@ package web
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"maunium.net/go/mauircd/interfaces"
+	"maunium.net/go/mauircd/plugin"
 	"net/http"
 	"strings"
 )
 
-func getScripts(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		w.Header().Add("Allow", http.MethodGet)
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-	network := string(strings.ToLower(r.RequestURI)[len("/scripts/get/")])
+const global = "global"
 
+func script(w http.ResponseWriter, r *http.Request) {
 	authd, user := checkAuth(w, r)
 	if !authd {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
+	args := strings.Split(r.RequestURI, "/")[1:]
+
+	if r.Method == http.MethodGet {
+		getScripts(w, r, args, user)
+	} else if r.Method == http.MethodDelete {
+		deleteScript(w, r, args, user)
+	} else if r.Method == http.MethodPut {
+		putScript(w, r, args, user)
+	} else {
+		w.Header().Add("Allow", http.MethodGet+","+http.MethodDelete+","+http.MethodPut)
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
+}
+
+func putScript(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	script := plugin.Script{Name: args[1], TheScript: string(data)}
+
+	if args[0] == global {
+		user.AddGlobalScript(script)
+	} else {
+		net := user.GetNetwork(args[0])
+		if net == nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		net.AddScript(script)
+	}
+}
+
+func getScripts(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
 	var scripts []mauircdi.Script
-	if network == "all" {
+	if args[0] == "all" {
 		scripts = user.GetGlobalScripts()
 		user.GetNetworks().ForEach(func(net mauircdi.Network) {
 			scripts = append(scripts, net.GetScripts()...)
 		})
-	} else if network == "global" {
+	} else if args[0] == global {
 		scripts = user.GetGlobalScripts()
 	} else {
-		net := user.GetNetwork(network)
+		net := user.GetNetwork(args[0])
 		if net == nil {
 			w.WriteHeader(http.StatusNotFound)
 			return
@@ -63,4 +95,25 @@ func getScripts(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
+}
+
+func deleteScript(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
+	if args[0] == "global" {
+		if !user.RemoveGlobalScript(args[1]) {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	} else {
+		net := user.GetNetwork(args[0])
+		if net == nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		if !net.RemoveScript(args[1]) {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}
 }
