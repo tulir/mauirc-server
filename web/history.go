@@ -22,6 +22,7 @@ import (
 	"maunium.net/go/mauircd/database"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 func history(w http.ResponseWriter, r *http.Request) {
@@ -30,19 +31,27 @@ func history(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
-	n, err := strconv.Atoi(r.URL.Query().Get("n"))
-	if err != nil || n <= 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
 
-	success, user := checkAuth(w, r)
-	if !success {
+	authd, user := checkAuth(w, r)
+	if !authd {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	results, err := database.GetHistory(user.GetEmail(), n)
+	n, err := strconv.Atoi(r.URL.Query().Get("n"))
+	if err != nil || n <= 0 {
+		n = 256
+	}
+
+	var results []database.Message
+	args := strings.Split(r.RequestURI, "/")[2:]
+	if len(args) == 0 {
+		results, err = database.GetHistory(user.GetEmail(), n)
+	} else if len(args) == 1 {
+		results, err = database.GetNetworkHistory(user.GetEmail(), args[0], n)
+	} else {
+		results, err = database.GetChannelHistory(user.GetEmail(), args[0], args[1], n)
+	}
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
