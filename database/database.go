@@ -78,6 +78,24 @@ func GetHistory(email string, n int) ([]Message, error) {
 	return scanMessages(results)
 }
 
+// GetNetworkHistory gets the last n messages on the given network
+func GetNetworkHistory(email, network string, n int) ([]Message, error) {
+	results, err := db.Query("SELECT id, network, channel, timestamp, sender, command, message, ownmessage, preview FROM messages WHERE email=? AND network=? ORDER BY id DESC LIMIT ?", email, network, n)
+	if err != nil {
+		return nil, err
+	}
+	return scanMessages(results)
+}
+
+// GetChannelHistory gets the last n messages on the given channel
+func GetChannelHistory(email, network, channel string, n int) ([]Message, error) {
+	results, err := db.Query("SELECT id, network, channel, timestamp, sender, command, message, ownmessage, preview FROM messages WHERE email=? AND network=? AND channel=? ORDER BY id DESC LIMIT ?", email, network, channel, n)
+	if err != nil {
+		return nil, err
+	}
+	return scanMessages(results)
+}
+
 func scanMessages(results *sql.Rows) ([]Message, error) {
 	var messages []Message
 	for results.Next() {

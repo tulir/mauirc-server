@@ -57,37 +57,4 @@ func (s Script) Run(evt *mauircdi.Event) {
 	if err != nil {
 		fmt.Println(val, err)
 	}
-
-	evt.Message.Network = getString(event, "network", evt.Message.Network)
-	evt.Message.Channel = getString(event, "channel", evt.Message.Channel)
-	evt.Message.Timestamp = getInt(event, "timestamp", evt.Message.Timestamp)
-	evt.Message.Sender = getString(event, "sender", evt.Message.Sender)
-	evt.Message.Command = getString(event, "command", evt.Message.Command)
-	evt.Message.Message = getString(event, "message", evt.Message.Message)
-	evt.Message.OwnMsg = getBool(event, "ownevt.Message", evt.Message.OwnMsg)
-	evt.Cancelled = getBool(event, "cancelled", evt.Cancelled)
-}
-
-func getString(env *vm.Env, path string, def string) string {
-	val, err := env.Get(path)
-	if err != nil {
-		return def
-	}
-	return val.String()
-}
-
-func getBool(env *vm.Env, path string, def bool) bool {
-	val, err := env.Get(path)
-	if err != nil {
-		return def
-	}
-	return val.Bool()
-}
-
-func getInt(env *vm.Env, path string, def int64) int64 {
-	val, err := env.Get(path)
-	if err != nil {
-		return def
-	}
-	return val.Int()
 }
