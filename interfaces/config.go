@@ -24,6 +24,7 @@ import (
 // Configuration contains the main config
 type Configuration interface {
 	Load() error
+	Connect()
 	Save() error
 
 	GetSQLString() string

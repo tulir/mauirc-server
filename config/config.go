@@ -75,16 +75,6 @@ func (config *configImpl) Load() error {
 		return err
 	}
 
-	for _, user := range config.Users {
-		user.NewMessages = make(chan mauircdi.Message, 64)
-		for _, network := range user.Networks {
-			network.ChannelInfo = make(map[string]*chanDataImpl)
-			network.Owner = user
-			network.Open()
-			network.LoadScripts(config.Path)
-		}
-	}
-
 	if len(config.CSecretB64) > 0 {
 		cs, err := base64.StdEncoding.DecodeString(config.CSecretB64)
 		if err != nil {
@@ -102,6 +92,18 @@ func (config *configImpl) Load() error {
 	}
 
 	return nil
+}
+
+func (config *configImpl) Connect() {
+	for _, user := range config.Users {
+		user.NewMessages = make(chan mauircdi.Message, 64)
+		for _, network := range user.Networks {
+			network.ChannelInfo = make(map[string]*chanDataImpl)
+			network.Owner = user
+			network.Open()
+			network.LoadScripts(config.Path)
+		}
+	}
 }
 
 // Save the configuration file
