@@ -44,7 +44,12 @@ func history(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var results []database.Message
+
 	args := strings.Split(r.RequestURI, "/")[2:]
+	if len(args[len(args)-1]) == 0 {
+		args = args[:len(args)-1]
+	}
+
 	if len(args) == 0 {
 		results, err = database.GetHistory(user.GetEmail(), n)
 	} else if len(args) == 1 {
@@ -52,6 +57,7 @@ func history(w http.ResponseWriter, r *http.Request) {
 	} else {
 		results, err = database.GetChannelHistory(user.GetEmail(), args[0], args[1], n)
 	}
+
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
