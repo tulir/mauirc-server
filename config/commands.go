@@ -22,9 +22,7 @@ import (
 	"github.com/Jeffail/gabs"
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/interfaces"
-	"maunium.net/go/mauircd/plugin"
 	"strconv"
-	"strings"
 )
 
 type cmdResponse struct {
@@ -67,8 +65,6 @@ func (user *userImpl) HandleCommand(data *gabs.Container) {
 		user.cmdClearHistory(data)
 	case "delete":
 		user.cmdDeleteMessage(data)
-	case "importscript":
-		user.cmdImportScript(data)
 	default:
 		user.respond(false, "unknown-type", "Unknown message type: %s", typ)
 	}
@@ -91,57 +87,6 @@ func (user *userImpl) rawMessage(data *gabs.Container) {
 	}
 
 	net.SendRaw(message)
-}
-
-func (user *userImpl) cmdImportScript(data *gabs.Container) {
-	name, ok := data.Path("name").Data().(string)
-	if !ok {
-		return
-	}
-
-	url, ok := data.Path("url").Data().(string)
-	if !ok {
-		return
-	}
-
-	var network = ""
-	if data.Exists("network") {
-		network, _ = data.Path("network").Data().(string)
-	}
-
-	name = strings.ToLower(name)
-	scriptData, err := download(url)
-
-	if err != nil {
-		user.respond(false, "download-failed", "Failed to download script from http://pastebin.com/raw/%s", url)
-		return
-	}
-
-	var net mauircdi.Network
-
-	if len(network) != 0 {
-		net = user.GetNetwork(network)
-		if net == nil {
-			user.respond(false, "no-such-network", "No such network: %s", network)
-			return
-		}
-	}
-
-	/*for i := 0; i < len(scriptList); i++ {
-		if scriptList[i].Name == name {
-			scriptList[i].TheScript = scriptData
-			return
-		}
-	}
-	scriptList = append(scriptList, plugin.Script{TheScript: scriptData, Name: name})*/
-
-	if net != nil {
-		net.AddScript(plugin.Script{TheScript: scriptData, Name: name})
-		user.respond(true, "script-loaded-network", "Successfully loaded script %s on %s", name, net.GetName())
-	} else {
-		user.AddGlobalScript(plugin.Script{TheScript: scriptData, Name: name})
-		user.respond(true, "script-loaded-global", "Successfully loaded global script %s", name)
-	}
 }
 
 func (user *userImpl) cmdDeleteMessage(data *gabs.Container) {
