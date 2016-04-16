@@ -26,7 +26,10 @@ import (
 	"strings"
 )
 
-const global = "global"
+const (
+	all    = "all"
+	global = "global"
+)
 
 func script(w http.ResponseWriter, r *http.Request) {
 	authd, user := checkAuth(w, r)
@@ -70,7 +73,7 @@ func putScript(w http.ResponseWriter, r *http.Request, args []string, user mauir
 
 func getScripts(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
 	var scripts []mauircdi.Script
-	if args[0] == "all" {
+	if args[0] == all {
 		scripts = user.GetGlobalScripts()
 		user.GetNetworks().ForEach(func(net mauircdi.Network) {
 			scripts = append(scripts, net.GetScripts()...)
