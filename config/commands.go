@@ -114,22 +114,17 @@ func (user *userImpl) cmdClearHistory(data *gabs.Container) {
 		return
 	}
 
-	net := user.GetNetwork(network)
-	if net == nil {
-		return
-	}
-
 	channel, ok := data.Path("channel").Data().(string)
 	if !ok {
 		return
 	}
 
-	err := database.ClearChannel(user.GetEmail(), net.GetName(), channel)
+	err := database.ClearChannel(user.GetEmail(), network, channel)
 	if err != nil {
-		fmt.Printf("<%s> Failed to clear history of %s@%s: %s", user.GetEmail(), channel, net.GetName(), err)
+		fmt.Printf("<%s> Failed to clear history of %s@%s: %s", user.GetEmail(), channel, network, err)
 		return
 	}
-	user.NewMessages <- mauircdi.Message{Type: "clear", Object: clearhistory{Channel: channel, Network: net.GetName()}}
+	user.NewMessages <- mauircdi.Message{Type: "clear", Object: clearhistory{Channel: channel, Network: network}}
 }
 
 func (user *userImpl) cmdUserlist(data *gabs.Container) {
