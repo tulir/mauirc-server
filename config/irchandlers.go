@@ -77,7 +77,7 @@ func (net *netImpl) userlist(evt *irc.Event) {
 	}
 
 	if ci.ReceivingUserList {
-		ci.UserList.Merge(users)
+		ci.UserList = ci.UserList.Merge(users)
 	} else {
 		ci.UserList = userlist.List(users)
 		ci.ReceivingUserList = true

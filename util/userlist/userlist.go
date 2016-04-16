@@ -61,7 +61,7 @@ func (s List) Less(i, j int) bool {
 }
 
 // Merge the given string list with this user list
-func (s List) Merge(other []string) {
+func (s List) Merge(other []string) List {
 Outer:
 	for _, str := range other {
 		if len(str) == 0 {
@@ -74,6 +74,7 @@ Outer:
 		}
 		s = append(s, str)
 	}
+	return s
 }
 
 // Contains checks if the given user is in this UserList
