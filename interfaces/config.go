@@ -61,6 +61,9 @@ type User interface {
 	RemoveGlobalScript(name string) bool
 
 	GetMessageChan() chan Message
+
+	GetSettings() interface{}
+	SetSettings(val interface{})
 }
 
 // NetworkList is a list of networks that can be looped through

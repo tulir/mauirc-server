@@ -33,6 +33,7 @@ type userImpl struct {
 	AuthTokens    []authToken           `json:"authtokens,omitempty"`
 	NewMessages   chan mauircdi.Message `json:"-"`
 	GlobalScripts []mauircdi.Script     `json:"-"`
+	Settings      interface{}           `json:"settings"`
 }
 
 type authToken struct {
@@ -152,4 +153,12 @@ func (user *userImpl) RemoveGlobalScript(name string) bool {
 		}
 	}
 	return false
+}
+
+func (user *userImpl) GetSettings() interface{} {
+	return user.Settings
+}
+
+func (user *userImpl) SetSettings(val interface{}) {
+	user.Settings = val
 }
