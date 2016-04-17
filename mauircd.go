@@ -57,6 +57,7 @@ func main() {
 			user.GetNetworks().ForEach(func(net mauircdi.Network) {
 				net.Close()
 				net.SaveScripts(config.GetPath())
+				net.Save()
 			})
 		})
 		time.Sleep(2 * time.Second)
