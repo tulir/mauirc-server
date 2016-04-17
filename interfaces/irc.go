@@ -56,6 +56,7 @@ type ChannelDataList interface {
 	Get(channel string) (ChannelData, bool)
 	Put(data ChannelData)
 	Remove(channel string)
+	Has(channel string) bool
 	ForEach(do func(ChannelData))
 }
 

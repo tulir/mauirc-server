@@ -137,6 +137,10 @@ func (net *netImpl) ReceiveMessage(channel, sender, command, message string) {
 		return
 	}
 
+	if !strings.HasPrefix(channel, "#") && !strings.HasPrefix(channel, "*") && !net.GetActiveChannels().Has(channel) {
+		net.GetActiveChannels().Put(&chanDataImpl{Network: net.Name, Name: channel})
+	}
+
 	net.InsertAndSend(msg)
 }
 
@@ -355,6 +359,11 @@ func (cdl cdlImpl) Put(data mauircdi.ChannelData) {
 
 func (cdl cdlImpl) Remove(channel string) {
 	delete(cdl, channel)
+}
+
+func (cdl cdlImpl) Has(channel string) bool {
+	_, ok := cdl[channel]
+	return ok
 }
 
 func (cdl cdlImpl) ForEach(do func(mauircdi.ChannelData)) {
