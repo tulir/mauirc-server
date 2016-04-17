@@ -188,8 +188,10 @@ func (net *netImpl) action(evt *irc.Event) {
 
 func (net *netImpl) connected(evt *irc.Event) {
 	net.IRC.SendRaw("LIST")
-	for _, channel := range net.Channels {
-		net.IRC.Join(channel)
+	for channel := range net.ChannelInfo {
+		if strings.HasPrefix(channel, "#") {
+			net.IRC.Join(channel)
+		}
 	}
 	net.GetOwner().GetMessageChan() <- mauircdi.Message{Type: "netdata", Object: mauircdi.NetData{Name: net.GetName(), Connected: true}}
 }

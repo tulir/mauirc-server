@@ -39,13 +39,20 @@ type netImpl struct {
 	Port     int      `json:"port"`
 	Password string   `json:"password"`
 	SSL      bool     `json:"ssl"`
-	Channels []string `json:"channels"`
+	Chs      []string `json:"channels"`
 
 	Owner       *userImpl         `json:"-"`
 	IRC         *irc.Connection   `json:"-"`
 	Scripts     []mauircdi.Script `json:"-"`
 	ChannelInfo cdlImpl           `json:"-"`
 	ChannelList []string          `json:"-"`
+}
+
+func (net *netImpl) Save() {
+	net.Chs = []string{}
+	for ch := range net.ChannelInfo {
+		net.Chs = append(net.Chs, ch)
+	}
 }
 
 // Open an IRC connection
@@ -56,6 +63,10 @@ func (net *netImpl) Open() {
 	i.QuitMessage = "mauIRCd shutting down..."
 	if len(net.Password) > 0 {
 		i.Password = net.Password
+	}
+
+	for _, ch := range net.Chs {
+		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: ch})
 	}
 
 	net.IRC = i
@@ -209,14 +220,10 @@ func (net *netImpl) Close() {
 }
 
 func (net *netImpl) joinpartMe(channel string, part bool) {
-	for i, ch := range net.Channels {
+	for ch := range net.ChannelInfo {
 		if ch == channel {
 			if part {
-				net.Channels[i] = net.Channels[len(net.Channels)-1]
-				net.Channels = net.Channels[:len(net.Channels)-1]
-				net.ChannelInfo[channel].UserList = userlist.List{}
-				net.ChannelInfo[channel].TopicSetAt = 0
-				net.ChannelInfo[channel].TopicSetBy = ""
+				net.ChannelInfo.Remove(ch)
 			} else {
 				if net.ChannelInfo[channel] == nil {
 					net.ChannelInfo.Put(&chanDataImpl{Name: channel, Network: net.Name})
@@ -227,7 +234,6 @@ func (net *netImpl) joinpartMe(channel string, part bool) {
 	}
 	if !part {
 		net.ChannelInfo.Put(&chanDataImpl{Name: channel, Network: net.Name})
-		net.Channels = append(net.Channels, channel)
 	}
 }
 
@@ -345,6 +351,10 @@ func (cdl cdlImpl) Put(data mauircdi.ChannelData) {
 	if ok {
 		cdl[data.GetName()] = dat
 	}
+}
+
+func (cdl cdlImpl) Remove(channel string) {
+	delete(cdl, channel)
 }
 
 func (cdl cdlImpl) ForEach(do func(mauircdi.ChannelData)) {

@@ -63,6 +63,10 @@ func (user *userImpl) HandleCommand(data *gabs.Container) {
 		user.cmdUserlist(data)
 	case "clear":
 		user.cmdClearHistory(data)
+	case "close":
+		user.cmdCloseChannel(data)
+	case "open":
+		user.cmdOpenChannel(data)
 	case "delete":
 		user.cmdDeleteMessage(data)
 	default:
@@ -125,6 +129,44 @@ func (user *userImpl) cmdClearHistory(data *gabs.Container) {
 		return
 	}
 	user.NewMessages <- mauircdi.Message{Type: "clear", Object: clearhistory{Channel: channel, Network: network}}
+}
+
+func (user *userImpl) cmdCloseChannel(data *gabs.Container) {
+	net, ok := data.Path("network").Data().(string)
+	if !ok {
+		return
+	}
+
+	network := user.GetNetwork(net)
+	if network == nil {
+		return
+	}
+
+	channel, ok := data.Path("channel").Data().(string)
+	if !ok {
+		return
+	}
+
+	network.GetActiveChannels().Remove(channel)
+}
+
+func (user *userImpl) cmdOpenChannel(data *gabs.Container) {
+	net, ok := data.Path("network").Data().(string)
+	if !ok {
+		return
+	}
+
+	network := user.GetNetwork(net)
+	if network == nil {
+		return
+	}
+
+	channel, ok := data.Path("channel").Data().(string)
+	if !ok {
+		return
+	}
+
+	network.GetActiveChannels().Put(&chanDataImpl{Network: network.GetName(), Name: channel})
 }
 
 func (user *userImpl) cmdUserlist(data *gabs.Container) {

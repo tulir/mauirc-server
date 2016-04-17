@@ -46,6 +46,8 @@ type UserList interface {
 
 // User contains the authentication and network data of an user
 type User interface {
+	Save()
+
 	GetNetworks() NetworkList
 	GetNetwork(name string) Network
 

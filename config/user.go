@@ -49,6 +49,12 @@ func (nl netListImpl) ForEach(do func(net mauircdi.Network)) {
 	}
 }
 
+func (user *userImpl) Save() {
+	for _, net := range user.Networks {
+		net.Save()
+	}
+}
+
 // CheckPassword checks if the password is correct
 func (user *userImpl) CheckPassword(password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))

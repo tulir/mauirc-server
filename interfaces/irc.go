@@ -23,6 +23,7 @@ import (
 
 // Network is a single IRC network
 type Network interface {
+	Save()
 	Open()
 	ReceiveMessage(channel, sender, command, message string)
 	SendMessage(channel, command, message string)
@@ -54,6 +55,7 @@ type Network interface {
 type ChannelDataList interface {
 	Get(channel string) (ChannelData, bool)
 	Put(data ChannelData)
+	Remove(channel string)
 	ForEach(do func(ChannelData))
 }
 
