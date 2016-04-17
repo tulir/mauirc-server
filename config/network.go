@@ -123,6 +123,9 @@ func (net *netImpl) ReceiveMessage(channel, sender, command, message string) {
 	if msg.Channel == "AUTH" || msg.Channel == "*" {
 		return
 	} else if msg.Channel == net.Nick {
+		if len(msg.Sender) > 0 {
+			net.GetActiveChannels().Put(&chanDataImpl{Network: net.Name, Name: msg.Sender})
+		}
 		msg.Channel = msg.Sender
 	}
 
@@ -135,10 +138,6 @@ func (net *netImpl) ReceiveMessage(channel, sender, command, message string) {
 
 	if len(msg.Channel) == 0 || len(msg.Command) == 0 {
 		return
-	}
-
-	if !strings.HasPrefix(channel, "#") && !strings.HasPrefix(channel, "*") && !net.GetActiveChannels().Has(channel) {
-		net.GetActiveChannels().Put(&chanDataImpl{Network: net.Name, Name: channel})
 	}
 
 	net.InsertAndSend(msg)
