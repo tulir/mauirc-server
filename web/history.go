@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"maunium.net/go/mauircd/database"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 )
@@ -46,7 +47,7 @@ func history(w http.ResponseWriter, r *http.Request) {
 	var results []database.Message
 
 	args := strings.Split(r.RequestURI, "/")[2:]
-	if len(args[len(args)-1]) == 0 {
+	if len(args) > 0 && len(args[len(args)-1]) == 0 {
 		args = args[:len(args)-1]
 	}
 
@@ -55,7 +56,8 @@ func history(w http.ResponseWriter, r *http.Request) {
 	} else if len(args) == 1 {
 		results, err = database.GetNetworkHistory(user.GetEmail(), args[0], n)
 	} else {
-		results, err = database.GetChannelHistory(user.GetEmail(), args[0], args[1], n)
+		channel, _ := url.QueryUnescape(args[1])
+		results, err = database.GetChannelHistory(user.GetEmail(), args[0], channel, n)
 	}
 
 	if err != nil {
