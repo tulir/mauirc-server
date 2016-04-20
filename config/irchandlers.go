@@ -29,19 +29,14 @@ import (
 	"time"
 )
 
-func (net *netImpl) joinpart(user, channel string, part bool) {
-	if user == net.Nick {
-		net.joinpartMe(channel, part)
-	} else {
-		net.joinpartOther(user, channel, part)
-	}
-}
-
 func (net *netImpl) mode(evt *irc.Event) {
 	if evt.Arguments[0][0] == '#' {
 		net.IRC.SendRawf("NAMES %s", evt.Arguments[0])
 	}
-	// TODO Send message to user about mode changes
+	// TODO add proper MODE handling
+	fmt.Println(evt.Arguments)
+	fmt.Println(evt.User, evt.Source, evt.Nick, evt.Host, evt.Code)
+	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "action", evt.Message())
 }
 
 func (net *netImpl) nick(evt *irc.Event) {
@@ -178,6 +173,11 @@ func (net *netImpl) part(evt *irc.Event) {
 	net.joinpart(evt.Nick, evt.Arguments[0], true)
 }
 
+func (net *netImpl) kick(evt *irc.Event) {
+	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "kick", evt.Message())
+	net.joinpart(evt.Nick, evt.Arguments[0], true)
+}
+
 func (net *netImpl) privmsg(evt *irc.Event) {
 	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "privmsg", evt.Message())
 }
@@ -199,4 +199,51 @@ func (net *netImpl) connected(evt *irc.Event) {
 func (net *netImpl) disconnected(event *irc.Event) {
 	fmt.Printf("Disconnected from %s:%d\n", net.IP, net.Port)
 	net.GetOwner().GetMessageChan() <- mauircdi.Message{Type: "netdata", Object: mauircdi.NetData{Name: net.GetName(), Connected: false}}
+}
+
+func (net *netImpl) joinpart(user, channel string, part bool) {
+	if user == net.Nick {
+		net.joinpartMe(channel, part)
+	} else {
+		net.joinpartOther(user, channel, part)
+	}
+}
+
+func (net *netImpl) joinpartMe(channel string, part bool) {
+	for ch := range net.ChannelInfo {
+		if ch == channel {
+			if part {
+				net.ChannelInfo.Remove(ch)
+			} else {
+				if net.ChannelInfo[channel] == nil {
+					net.ChannelInfo.Put(&chanDataImpl{Name: channel, Network: net.Name})
+				}
+				return
+			}
+		}
+	}
+	if !part {
+		net.ChannelInfo.Put(&chanDataImpl{Name: channel, Network: net.Name})
+	}
+}
+
+func (net *netImpl) joinpartOther(user, channel string, part bool) {
+	ci := net.ChannelInfo[channel]
+	if ci == nil {
+		return
+	}
+
+	contains, i := ci.UserList.Contains(user)
+	if contains {
+		if part {
+			ci.UserList[i] = ci.UserList[len(ci.UserList)-1]
+			ci.UserList = ci.UserList[:len(ci.UserList)-1]
+		} else {
+			return
+		}
+	} else if !part {
+		ci.UserList = append(ci.UserList, user)
+	}
+	sort.Sort(ci.UserList)
+	net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 }

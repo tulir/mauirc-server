@@ -25,7 +25,6 @@ import (
 	"maunium.net/go/mauircd/util/preview"
 	"maunium.net/go/mauircd/util/split"
 	"maunium.net/go/mauircd/util/userlist"
-	"sort"
 	"strings"
 	"time"
 )
@@ -78,6 +77,7 @@ func (net *netImpl) Open() {
 	i.AddCallback("CTCP_ACTION", net.action)
 	i.AddCallback("JOIN", net.join)
 	i.AddCallback("PART", net.part)
+	i.AddCallback("KICK", net.kick)
 	i.AddCallback("MODE", net.mode)
 	i.AddCallback("TOPIC", net.topic)
 	i.AddCallback("NICK", net.nick)
@@ -220,45 +220,6 @@ func (net *netImpl) Close() {
 	if net.IRC.Connected() {
 		net.IRC.Quit()
 	}
-}
-
-func (net *netImpl) joinpartMe(channel string, part bool) {
-	for ch := range net.ChannelInfo {
-		if ch == channel {
-			if part {
-				net.ChannelInfo.Remove(ch)
-			} else {
-				if net.ChannelInfo[channel] == nil {
-					net.ChannelInfo.Put(&chanDataImpl{Name: channel, Network: net.Name})
-				}
-				return
-			}
-		}
-	}
-	if !part {
-		net.ChannelInfo.Put(&chanDataImpl{Name: channel, Network: net.Name})
-	}
-}
-
-func (net *netImpl) joinpartOther(user, channel string, part bool) {
-	ci := net.ChannelInfo[channel]
-	if ci == nil {
-		return
-	}
-
-	contains, i := ci.UserList.Contains(user)
-	if contains {
-		if part {
-			ci.UserList[i] = ci.UserList[len(ci.UserList)-1]
-			ci.UserList = ci.UserList[:len(ci.UserList)-1]
-		} else {
-			return
-		}
-	} else if !part {
-		ci.UserList = append(ci.UserList, user)
-	}
-	sort.Sort(ci.UserList)
-	net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 }
 
 func (net *netImpl) GetOwner() mauircdi.User {
