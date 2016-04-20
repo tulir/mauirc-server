@@ -22,7 +22,6 @@ import (
 	"io/ioutil"
 	"maunium.net/go/mauircd/interfaces"
 	"maunium.net/go/mauircd/plugin"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -104,23 +103,4 @@ func (net *netImpl) RunScript(s mauircdi.Script, evt *mauircdi.Event, receiving 
 		evt.Message.Network = net.Name
 	}
 	return false
-}
-
-func download(pasteID string) (string, error) {
-	response, err := http.Get("http://pastebin.com/raw/" + pasteID)
-	if err != nil {
-		return "", err
-	}
-	defer response.Body.Close()
-	data, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return "", err
-	}
-	response.Body.Close()
-
-	if len(data) == 0 {
-		return "", fmt.Errorf("No data received!")
-	}
-
-	return string(data), nil
 }
