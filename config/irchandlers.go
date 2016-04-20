@@ -36,7 +36,7 @@ func (net *netImpl) mode(evt *irc.Event) {
 	// TODO add proper MODE handling
 	fmt.Println(evt.Arguments)
 	fmt.Println(evt.User, evt.Source, evt.Nick, evt.Host, evt.Code)
-	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "action", evt.Message())
+	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "mode", strings.Join(evt.Arguments[1:], " "))
 }
 
 func (net *netImpl) nick(evt *irc.Event) {
