@@ -56,14 +56,10 @@ func (net *netImpl) nick(evt *irc.Event) {
 }
 
 func (net *netImpl) userlist(evt *irc.Event) {
-	ciInt, ok := net.ChannelInfo.Get(evt.Arguments[2])
-	if !ok {
-		return
-	}
-
-	ci, ok := ciInt.(*chanDataImpl)
-	if !ok {
-		return
+	ci := net.ChannelInfo[evt.Arguments[1]]
+	if ci == nil {
+		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Arguments[1]})
+		ci = net.ChannelInfo[evt.Arguments[1]]
 	}
 
 	users := strings.Split(evt.Message(), " ")
@@ -80,14 +76,10 @@ func (net *netImpl) userlist(evt *irc.Event) {
 }
 
 func (net *netImpl) userlistend(evt *irc.Event) {
-	ciInt, ok := net.ChannelInfo.Get(evt.Arguments[1])
-	if !ok {
-		return
-	}
-
-	ci, ok := ciInt.(*chanDataImpl)
-	if !ok {
-		return
+	ci := net.ChannelInfo[evt.Arguments[1]]
+	if ci == nil {
+		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Arguments[1]})
+		ci = net.ChannelInfo[evt.Arguments[1]]
 	}
 
 	ci.ReceivingUserList = false
@@ -210,14 +202,12 @@ func (net *netImpl) joinpart(user, channel string, part bool) {
 }
 
 func (net *netImpl) joinpartMe(channel string, part bool) {
-	for ch := range net.ChannelInfo {
-		if ch == channel {
-			if part {
-				net.ChannelInfo.Remove(ch)
-			} else {
-				if net.ChannelInfo[channel] == nil {
-					net.ChannelInfo.Put(&chanDataImpl{Name: channel, Network: net.Name})
-				}
+	if net.ChannelInfo.Has(channel) {
+		if part {
+			net.ChannelInfo.Remove(channel)
+		} else {
+			if net.ChannelInfo[channel] == nil {
+				net.ChannelInfo.Put(&chanDataImpl{Name: channel, Network: net.Name})
 				return
 			}
 		}
@@ -230,7 +220,8 @@ func (net *netImpl) joinpartMe(channel string, part bool) {
 func (net *netImpl) joinpartOther(user, channel string, part bool) {
 	ci := net.ChannelInfo[channel]
 	if ci == nil {
-		return
+		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: channel})
+		ci = net.ChannelInfo[channel]
 	}
 
 	contains, i := ci.UserList.Contains(user)
