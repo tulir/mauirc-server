@@ -183,6 +183,8 @@ func (net *netImpl) sendToIRC(msg database.Message) bool {
 			return true
 		case "topic":
 			net.IRC.SendRawf("TOPIC %s :%s", msg.Channel, msg.Message)
+		case "mode":
+			net.IRC.SendRawf("MODE %s %s", msg.Channel, msg.Message)
 		case "join":
 			net.IRC.Join(msg.Channel)
 		case "part":
