@@ -174,7 +174,7 @@ func (net *netImpl) part(evt *irc.Event) {
 }
 
 func (net *netImpl) kick(evt *irc.Event) {
-	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "kick", evt.Message())
+	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "kick", evt.Arguments[1]+":"+evt.Message())
 	net.joinpart(evt.Nick, evt.Arguments[0], true)
 }
 
