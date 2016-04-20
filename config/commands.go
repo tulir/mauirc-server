@@ -25,28 +25,6 @@ import (
 	"strconv"
 )
 
-type cmdResponse struct {
-	Success       bool   `json:"success"`
-	SimpleMessage string `json:"simple-message"`
-	Message       string `json:"message"`
-}
-
-type clearhistory struct {
-	Network string `json:"network"`
-	Channel string `json:"channel"`
-}
-
-func (user *userImpl) respond(success bool, simple, message string, args ...interface{}) {
-	user.NewMessages <- mauircdi.Message{
-		Type: "cmdresponse",
-		Object: cmdResponse{
-			Success:       success,
-			SimpleMessage: simple,
-			Message:       fmt.Sprintf(message, args...),
-		},
-	}
-}
-
 // HandleCommand handles mauIRC commands from clients
 func (user *userImpl) HandleCommand(data *gabs.Container) {
 	typ, ok := data.Path("type").Data().(string)
@@ -59,8 +37,10 @@ func (user *userImpl) HandleCommand(data *gabs.Container) {
 		user.rawMessage(data)
 	case "message":
 		user.cmdMessage(data)
-	case "userlist":
-		user.cmdUserlist(data)
+	case "kick":
+		user.cmdKick(data)
+	case "mode":
+		user.cmdMode(data)
 	case "clear":
 		user.cmdClearHistory(data)
 	case "close":
@@ -69,8 +49,6 @@ func (user *userImpl) HandleCommand(data *gabs.Container) {
 		user.cmdOpenChannel(data)
 	case "delete":
 		user.cmdDeleteMessage(data)
-	default:
-		user.respond(false, "unknown-type", "Unknown message type: %s", typ)
 	}
 }
 
@@ -128,7 +106,7 @@ func (user *userImpl) cmdClearHistory(data *gabs.Container) {
 		fmt.Printf("<%s> Failed to clear history of %s@%s: %s", user.GetEmail(), channel, network, err)
 		return
 	}
-	user.NewMessages <- mauircdi.Message{Type: "clear", Object: clearhistory{Channel: channel, Network: network}}
+	user.NewMessages <- mauircdi.Message{Type: "clear", Object: mauircdi.ClearHistory{Channel: channel, Network: network}}
 }
 
 func (user *userImpl) cmdCloseChannel(data *gabs.Container) {
@@ -169,29 +147,6 @@ func (user *userImpl) cmdOpenChannel(data *gabs.Container) {
 	network.GetActiveChannels().Put(&chanDataImpl{Network: network.GetName(), Name: channel})
 }
 
-func (user *userImpl) cmdUserlist(data *gabs.Container) {
-	network, ok := data.Path("network").Data().(string)
-	if !ok {
-		return
-	}
-
-	net := user.GetNetwork(network)
-	if net == nil {
-		return
-	}
-
-	channel, ok := data.Path("channel").Data().(string)
-	if !ok {
-		return
-	}
-
-	cd, ok := net.GetActiveChannels().Get(channel)
-
-	if ok {
-		user.NewMessages <- mauircdi.Message{Type: "userlist", Object: cd.GetUsers()}
-	}
-}
-
 func (user *userImpl) cmdMessage(data *gabs.Container) {
 	network, ok := data.Path("network").Data().(string)
 	if !ok {
@@ -211,5 +166,50 @@ func (user *userImpl) cmdMessage(data *gabs.Container) {
 	}
 	if len(channel) > 0 && len(command) > 0 && len(message) > 0 {
 		net.SendMessage(channel, command, message)
+	}
+}
+
+func (user *userImpl) cmdKick(data *gabs.Container) {
+	network, ok := data.Path("network").Data().(string)
+	if !ok {
+		return
+	}
+
+	net := user.GetNetwork(network)
+	if net == nil {
+		return
+	}
+
+	channel, okChan := data.Path("channel").Data().(string)
+	usr, okUser := data.Path("user").Data().(string)
+	message, okMsg := data.Path("message").Data().(string)
+	if !okChan || !okUser || !okMsg {
+		return
+	}
+
+	if len(channel) > 0 && len(usr) > 0 && len(message) > 0 {
+		net.SendRaw("KICK %s %s :%s", channel, usr, message)
+	}
+}
+
+func (user *userImpl) cmdMode(data *gabs.Container) {
+	network, ok := data.Path("network").Data().(string)
+	if !ok {
+		return
+	}
+
+	net := user.GetNetwork(network)
+	if net == nil {
+		return
+	}
+
+	target, okChan := data.Path("target").Data().(string)
+	message, okMsg := data.Path("message").Data().(string)
+	if !okChan || !okMsg {
+		return
+	}
+
+	if len(target) > 0 && len(message) > 0 {
+		net.SendRaw("MODE %s %s", target, message)
 	}
 }
