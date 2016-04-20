@@ -97,21 +97,25 @@ func (net *netImpl) chanlistend(evt *irc.Event) {
 
 func (net *netImpl) topic(evt *irc.Event) {
 	ci := net.ChannelInfo[evt.Arguments[0]]
-	if ci != nil {
-		ci.Topic = evt.Message()
-		ci.TopicSetBy = evt.Nick
-		ci.TopicSetAt = time.Now().Unix()
-		net.ReceiveMessage(ci.Name, evt.Nick, "topic", evt.Message())
-		net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
+	if ci == nil {
+		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Arguments[0]})
+		ci = net.ChannelInfo[evt.Arguments[0]]
 	}
+	ci.Topic = evt.Message()
+	ci.TopicSetBy = evt.Nick
+	ci.TopicSetAt = time.Now().Unix()
+	net.ReceiveMessage(ci.Name, evt.Nick, "topic", evt.Message())
+	net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 }
 
 func (net *netImpl) topicresp(evt *irc.Event) {
 	ci := net.ChannelInfo[evt.Arguments[1]]
-	if ci != nil {
-		ci.Topic = evt.Message()
-		net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
+	if ci == nil {
+		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Arguments[1]})
+		ci = net.ChannelInfo[evt.Arguments[1]]
 	}
+	ci.Topic = evt.Message()
+	net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 }
 
 func (net *netImpl) noperms(evt *irc.Event) {
@@ -132,14 +136,16 @@ func (net *netImpl) noperms(evt *irc.Event) {
 
 func (net *netImpl) topicset(evt *irc.Event) {
 	ci := net.ChannelInfo[evt.Arguments[1]]
-	if ci != nil {
-		ci.TopicSetBy = evt.Arguments[2]
-		setAt, err := strconv.ParseInt(evt.Arguments[3], 10, 64)
-		if err != nil {
-			ci.TopicSetAt = setAt
-		}
-		net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
+	if ci == nil {
+		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Arguments[1]})
+		ci = net.ChannelInfo[evt.Arguments[1]]
 	}
+	ci.TopicSetBy = evt.Arguments[2]
+	setAt, err := strconv.ParseInt(evt.Arguments[3], 10, 64)
+	if err != nil {
+		ci.TopicSetAt = setAt
+	}
+	net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 }
 
 func (net *netImpl) quit(evt *irc.Event) {
