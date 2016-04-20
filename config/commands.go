@@ -203,13 +203,13 @@ func (user *userImpl) cmdMode(data *gabs.Container) {
 		return
 	}
 
-	target, okChan := data.Path("target").Data().(string)
+	channel, okChan := data.Path("channel").Data().(string)
 	message, okMsg := data.Path("message").Data().(string)
 	if !okChan || !okMsg {
 		return
 	}
 
-	if len(target) > 0 && len(message) > 0 {
-		net.SendRaw("MODE %s %s", target, message)
+	if len(channel) > 0 && len(message) > 0 {
+		net.SendRaw("MODE %s %s", channel, message)
 	}
 }
