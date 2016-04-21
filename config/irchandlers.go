@@ -76,10 +76,10 @@ func (net *netImpl) userlist(evt *irc.Event) {
 }
 
 func (net *netImpl) userlistend(evt *irc.Event) {
-	ci := net.ChannelInfo[evt.Arguments[1]]
+	ci := net.ChannelInfo[evt.Arguments[0]]
 	if ci == nil {
-		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Arguments[1]})
-		ci = net.ChannelInfo[evt.Arguments[1]]
+		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Arguments[0]})
+		ci = net.ChannelInfo[evt.Arguments[0]]
 	}
 
 	ci.ReceivingUserList = false
