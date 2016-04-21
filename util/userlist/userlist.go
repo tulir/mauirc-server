@@ -82,9 +82,33 @@ func (s List) Contains(user string) (bool, int) {
 	for i, u := range s {
 		if user == u {
 			return true, i
-		} else if (u[0] == '~' || u[0] == '&' || u[0] == '@' || u[0] == '%' || u[0] == '+') && user == u[1:] {
+		} else if s.levelOf(u[0]) > 0 && user == u[1:] {
 			return true, i
 		}
 	}
 	return false, -1
+}
+
+// SetPrefix sets the prefix of the given user
+func (s List) SetPrefix(user string, prefix string) bool {
+	if s.levelOf(prefix[0]) == 0 {
+		prefix = ""
+	}
+	if s.levelOf(user[0]) > 0 {
+		user = user[1:]
+	}
+	for i, u := range s {
+		if s.levelOf(u[0]) > 0 {
+			if u[1:] == user {
+				s[i] = prefix + u
+				return true
+			}
+		} else {
+			if u == user {
+				s[i] = prefix + u
+				return true
+			}
+		}
+	}
+	return false
 }
