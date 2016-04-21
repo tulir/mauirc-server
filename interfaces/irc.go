@@ -66,4 +66,8 @@ type ChannelData interface {
 	GetName() string
 	GetTopic() string
 	GetNetwork() string
+	GetModes() []rune
+	HasMode(mode rune) (bool, int)
+	AddMode(mode rune) bool
+	RemoveMode(mode rune) bool
 }

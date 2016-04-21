@@ -284,6 +284,7 @@ type chanDataImpl struct {
 	Topic             string        `json:"topic"`
 	TopicSetBy        string        `json:"topicsetby"`
 	TopicSetAt        int64         `json:"topicsetat"`
+	Modes             []rune        `json:"modes"`
 	ReceivingUserList bool          `json:"-"`
 }
 
@@ -301,6 +302,36 @@ func (cd *chanDataImpl) GetTopic() string {
 
 func (cd *chanDataImpl) GetNetwork() string {
 	return cd.Network
+}
+
+func (cd *chanDataImpl) GetModes() []rune {
+	return cd.Modes
+}
+
+func (cd *chanDataImpl) HasMode(mode rune) (bool, int) {
+	for i, r := range cd.Modes {
+		if r == mode {
+			return true, i
+		}
+	}
+	return false, -1
+}
+
+func (cd *chanDataImpl) AddMode(mode rune) bool {
+	if has, _ := cd.HasMode(mode); has {
+		cd.Modes = append(cd.Modes, mode)
+		return true
+	}
+	return false
+}
+
+func (cd *chanDataImpl) RemoveMode(mode rune) bool {
+	if has, index := cd.HasMode(mode); has {
+		cd.Modes[index] = cd.Modes[len(cd.Modes)-1]
+		cd.Modes = cd.Modes[:len(cd.Modes)-1]
+		return true
+	}
+	return false
 }
 
 type cdlImpl map[string]*chanDataImpl
