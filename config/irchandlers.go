@@ -44,16 +44,16 @@ func (net *netImpl) mode(evt *irc.Event) {
 
 		if evt.Arguments[1][0] == '-' {
 			for _, mode := range evt.Arguments[1][1:] {
-				ci.ModeList = ci.ModeList.AddMode(mode, target)
+				ci.ModeList = ci.ModeList.RemoveMode(mode, target)
 			}
 		} else {
 			for _, mode := range evt.Arguments[1][1:] {
-				ci.ModeList = ci.ModeList.RemoveMode(mode, target)
+				ci.ModeList = ci.ModeList.AddMode(mode, target)
 			}
 		}
 
 		if len(target) > 0 {
-			ci.UserList.SetPrefix(target, fmt.Sprintf("%c", ci.Modes().PrefixOf(target)))
+			ci.UserList.SetPrefix(target, fmt.Sprintf("%c", ci.ModeList.PrefixOf(target)))
 		}
 		net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 	}
