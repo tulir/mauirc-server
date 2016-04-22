@@ -62,6 +62,7 @@ func (net *netImpl) mode(evt *irc.Event) {
 
 				if len(target) > 0 {
 					ci.UserList.SetPrefix(target, fmt.Sprintf("%c", ci.ModeList.PrefixOf(target)))
+					sort.Sort(ci.UserList)
 				}
 				ii++
 			}
