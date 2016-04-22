@@ -40,28 +40,30 @@ func (net *netImpl) mode(evt *irc.Event) {
 		var targets = evt.Arguments[2:]
 
 		var add = true
-		for i, r := range evt.Arguments[1] {
+		var ii = 0
+		for _, r := range evt.Arguments[1] {
 			if r == '-' {
 				add = false
 			} else if r == '+' {
 				add = true
 			} else {
 				var target string
-				if len(targets) == 0 {
+				if len(targets) > ii {
+					target = targets[ii]
+				} else {
 					target = ""
-				} else if len(targets) > i {
-					target = targets[i]
-				} else {
-					target = targets[len(targets)-1]
 				}
+
 				if add {
-					ci.ModeList = ci.ModeList.RemoveMode(r, target)
-				} else {
 					ci.ModeList = ci.ModeList.AddMode(r, target)
+				} else {
+					ci.ModeList = ci.ModeList.RemoveMode(r, target)
 				}
+
 				if len(target) > 0 {
 					ci.UserList.SetPrefix(target, fmt.Sprintf("%c", ci.ModeList.PrefixOf(target)))
 				}
+				ii++
 			}
 		}
 
