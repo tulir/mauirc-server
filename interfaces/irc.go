@@ -19,6 +19,7 @@ package mauircdi
 
 import (
 	"maunium.net/go/mauircd/database"
+	"maunium.net/go/mauircd/util/userlist"
 )
 
 // Network is a single IRC network
@@ -66,8 +67,54 @@ type ChannelData interface {
 	GetName() string
 	GetTopic() string
 	GetNetwork() string
-	GetModes() []rune
-	HasMode(mode rune) (bool, int)
-	AddMode(mode rune) bool
-	RemoveMode(mode rune) bool
+	Modes() *ModeList
+}
+
+// ModeList is a list of Modes
+type ModeList []Mode
+
+// Mode contains a channel mode rune and the target.
+type Mode struct {
+	Mode   rune   `json:"mode"`
+	Target string `json:"target"`
+}
+
+// HasMode checks if the given mode list contains the given rune with the given target.
+func (ml *ModeList) HasMode(r rune, target string) bool {
+	for _, mode := range *ml {
+		if mode.Mode == r && mode.Target == target {
+			return true
+		}
+	}
+	return false
+}
+
+// AddMode adds the given mode with the given target
+func (ml *ModeList) AddMode(r rune, target string) {
+	if !ml.HasMode(r, target) {
+		*ml = append(*ml, Mode{Mode: r, Target: target})
+	}
+}
+
+// RemoveMode removes the given mode with the given target
+func (ml *ModeList) RemoveMode(r rune, target string) {
+	for i, mode := range *ml {
+		if mode.Mode == r && mode.Target == target {
+			(*ml)[i] = (*ml)[len(*ml)-1]
+			*ml = (*ml)[:len(*ml)-1]
+		}
+	}
+}
+
+func (ml *ModeList) PrefixOf(user string) rune {
+	level := 0
+	for _, mode := range *ml {
+		if mode.Target == user {
+			lvl := userlist.LevelOf(mode.Mode)
+			if lvl > level {
+				level = lvl
+			}
+		}
+	}
+	return userlist.PrefixOf(level)
 }

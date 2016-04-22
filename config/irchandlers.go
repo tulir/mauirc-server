@@ -31,11 +31,32 @@ import (
 
 func (net *netImpl) mode(evt *irc.Event) {
 	if evt.Arguments[0][0] == '#' {
-		net.IRC.SendRawf("NAMES %s", evt.Arguments[0])
+		ci := net.ChannelInfo[evt.Arguments[0]]
+		if ci == nil {
+			net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Arguments[0]})
+			ci = net.ChannelInfo[evt.Arguments[0]]
+		}
+
+		var target = ""
+		if len(evt.Arguments) > 2 {
+			target = evt.Arguments[2]
+		}
+
+		if evt.Arguments[1][0] == '-' {
+			for _, mode := range evt.Arguments[1][1:] {
+				ci.Modes().AddMode(mode, target)
+			}
+		} else {
+			for _, mode := range evt.Arguments[1][1:] {
+				ci.Modes().RemoveMode(mode, target)
+			}
+		}
+
+		if len(target) > 0 {
+			ci.UserList.SetPrefix(target, fmt.Sprintf("%c", ci.Modes().PrefixOf(target)))
+		}
+		net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 	}
-	// TODO add proper MODE handling
-	fmt.Println(evt.Arguments)
-	fmt.Println(evt.User, evt.Source, evt.Nick, evt.Host, evt.Code)
 	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "mode", strings.Join(evt.Arguments[1:], " "))
 }
 
