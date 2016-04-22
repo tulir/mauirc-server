@@ -124,12 +124,12 @@ func (s List) SetPrefix(user string, prefix string) bool {
 	for i, u := range s {
 		if LevelOfByte(u[0]) > 0 {
 			if u[1:] == user {
-				s[i] = prefix + u
+				s[i] = prefix + user
 				return true
 			}
 		} else {
 			if u == user {
-				s[i] = prefix + u
+				s[i] = prefix + user
 				return true
 			}
 		}
