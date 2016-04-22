@@ -278,14 +278,14 @@ func (net *netImpl) RemoveScript(name string) bool {
 }
 
 type chanDataImpl struct {
-	Network           string             `json:"network"`
-	Name              string             `json:"name"`
-	UserList          userlist.List      `json:"userlist"`
-	Topic             string             `json:"topic"`
-	TopicSetBy        string             `json:"topicsetby"`
-	TopicSetAt        int64              `json:"topicsetat"`
-	ModeList          *mauircdi.ModeList `json:"modes"`
-	ReceivingUserList bool               `json:"-"`
+	Network           string            `json:"network"`
+	Name              string            `json:"name"`
+	UserList          userlist.List     `json:"userlist"`
+	Topic             string            `json:"topic"`
+	TopicSetBy        string            `json:"topicsetby"`
+	TopicSetAt        int64             `json:"topicsetat"`
+	ModeList          mauircdi.ModeList `json:"modes"`
+	ReceivingUserList bool              `json:"-"`
 }
 
 func (cd *chanDataImpl) GetUsers() []string {

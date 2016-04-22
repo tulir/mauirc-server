@@ -90,22 +90,25 @@ func (ml *ModeList) HasMode(r rune, target string) bool {
 }
 
 // AddMode adds the given mode with the given target
-func (ml *ModeList) AddMode(r rune, target string) {
+func (ml ModeList) AddMode(r rune, target string) ModeList {
 	if !ml.HasMode(r, target) {
-		*ml = append(*ml, Mode{Mode: r, Target: target})
+		ml = append(ml, Mode{Mode: r, Target: target})
 	}
+	return ml
 }
 
 // RemoveMode removes the given mode with the given target
-func (ml *ModeList) RemoveMode(r rune, target string) {
-	for i, mode := range *ml {
+func (ml ModeList) RemoveMode(r rune, target string) ModeList {
+	for i, mode := range ml {
 		if mode.Mode == r && mode.Target == target {
-			(*ml)[i] = (*ml)[len(*ml)-1]
-			*ml = (*ml)[:len(*ml)-1]
+			ml[i] = ml[len(ml)-1]
+			ml = ml[:len(ml)-1]
 		}
 	}
+	return ml
 }
 
+// PrefixOf gets the prefix of the given user
 func (ml *ModeList) PrefixOf(user string) rune {
 	level := 0
 	for _, mode := range *ml {

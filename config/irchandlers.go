@@ -44,11 +44,11 @@ func (net *netImpl) mode(evt *irc.Event) {
 
 		if evt.Arguments[1][0] == '-' {
 			for _, mode := range evt.Arguments[1][1:] {
-				ci.Modes().AddMode(mode, target)
+				ci.ModeList = ci.ModeList.AddMode(mode, target)
 			}
 		} else {
 			for _, mode := range evt.Arguments[1][1:] {
-				ci.Modes().RemoveMode(mode, target)
+				ci.ModeList = ci.ModeList.RemoveMode(mode, target)
 			}
 		}
 
