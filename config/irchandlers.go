@@ -221,30 +221,6 @@ func (net *netImpl) disconnected(event *irc.Event) {
 }
 
 func (net *netImpl) joinpart(user, channel string, part bool) {
-	if user == net.Nick {
-		net.joinpartMe(channel, part)
-	} else {
-		net.joinpartOther(user, channel, part)
-	}
-}
-
-func (net *netImpl) joinpartMe(channel string, part bool) {
-	if net.ChannelInfo.Has(channel) {
-		if part {
-			net.ChannelInfo.Remove(channel)
-		} else {
-			if net.ChannelInfo[channel] == nil {
-				net.ChannelInfo.Put(&chanDataImpl{Name: channel, Network: net.Name})
-				return
-			}
-		}
-	}
-	if !part {
-		net.ChannelInfo.Put(&chanDataImpl{Name: channel, Network: net.Name})
-	}
-}
-
-func (net *netImpl) joinpartOther(user, channel string, part bool) {
 	ci := net.ChannelInfo[channel]
 	if ci == nil {
 		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: channel})
@@ -264,4 +240,8 @@ func (net *netImpl) joinpartOther(user, channel string, part bool) {
 	}
 	sort.Sort(ci.UserList)
 	net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
+
+	if user == net.Nick && part {
+		net.ChannelInfo.Remove(channel)
+	}
 }
