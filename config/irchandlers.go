@@ -37,24 +37,34 @@ func (net *netImpl) mode(evt *irc.Event) {
 			ci = net.ChannelInfo[evt.Arguments[0]]
 		}
 
-		var target = ""
-		if len(evt.Arguments) > 2 {
-			target = evt.Arguments[2]
+		var targets = evt.Arguments[2:]
+
+		var add = true
+		for i, r := range evt.Arguments[1] {
+			if r == '-' {
+				add = false
+			} else if r == '+' {
+				add = true
+			} else {
+				var target string
+				if len(targets) == 0 {
+					target = ""
+				} else if len(targets) > i {
+					target = targets[i]
+				} else {
+					target = targets[len(targets)-1]
+				}
+				if add {
+					ci.ModeList = ci.ModeList.RemoveMode(r, target)
+				} else {
+					ci.ModeList = ci.ModeList.AddMode(r, target)
+				}
+				if len(target) > 0 {
+					ci.UserList.SetPrefix(target, fmt.Sprintf("%c", ci.ModeList.PrefixOf(target)))
+				}
+			}
 		}
 
-		if evt.Arguments[1][0] == '-' {
-			for _, mode := range evt.Arguments[1][1:] {
-				ci.ModeList = ci.ModeList.RemoveMode(mode, target)
-			}
-		} else {
-			for _, mode := range evt.Arguments[1][1:] {
-				ci.ModeList = ci.ModeList.AddMode(mode, target)
-			}
-		}
-
-		if len(target) > 0 {
-			ci.UserList.SetPrefix(target, fmt.Sprintf("%c", ci.ModeList.PrefixOf(target)))
-		}
 		net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 	}
 	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "mode", strings.Join(evt.Arguments[1:], " "))
