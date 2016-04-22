@@ -31,7 +31,8 @@ func (s List) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
-func (s List) levelOf(r byte) int {
+// LevelOf gets the int level of the given rune
+func LevelOf(r rune) int {
 	switch r {
 	case '~':
 		return 5
@@ -48,9 +49,32 @@ func (s List) levelOf(r byte) int {
 	}
 }
 
+// LevelOfByte gets the int level of the given byte
+func LevelOfByte(b byte) int {
+	return LevelOf(rune(b))
+}
+
+// PrefixOf gets the rune prefix of the given level
+func PrefixOf(level int) rune {
+	switch level {
+	case 5:
+		return '~'
+	case 4:
+		return '&'
+	case 3:
+		return '@'
+	case 2:
+		return '%'
+	case 1:
+		return '+'
+	default:
+		return 0
+	}
+}
+
 func (s List) Less(i, j int) bool {
-	levelI := s.levelOf(s[i][0])
-	levelJ := s.levelOf(s[j][0])
+	levelI := LevelOfByte(s[i][0])
+	levelJ := LevelOfByte(s[j][0])
 	if levelI > levelJ {
 		return true
 	} else if levelI < levelJ {
@@ -82,7 +106,7 @@ func (s List) Contains(user string) (bool, int) {
 	for i, u := range s {
 		if user == u {
 			return true, i
-		} else if s.levelOf(u[0]) > 0 && user == u[1:] {
+		} else if LevelOfByte(u[0]) > 0 && user == u[1:] {
 			return true, i
 		}
 	}
@@ -91,14 +115,14 @@ func (s List) Contains(user string) (bool, int) {
 
 // SetPrefix sets the prefix of the given user
 func (s List) SetPrefix(user string, prefix string) bool {
-	if s.levelOf(prefix[0]) == 0 {
+	if LevelOfByte(prefix[0]) == 0 {
 		prefix = ""
 	}
-	if s.levelOf(user[0]) > 0 {
+	if LevelOfByte(user[0]) > 0 {
 		user = user[1:]
 	}
 	for i, u := range s {
-		if s.levelOf(u[0]) > 0 {
+		if LevelOfByte(u[0]) > 0 {
 			if u[1:] == user {
 				s[i] = prefix + u
 				return true
