@@ -67,7 +67,7 @@ type ChannelData interface {
 	GetName() string
 	GetTopic() string
 	GetNetwork() string
-	Modes() *ModeList
+	Modes() ModeList
 }
 
 // ModeList is a list of Modes
@@ -80,8 +80,8 @@ type Mode struct {
 }
 
 // HasMode checks if the given mode list contains the given rune with the given target.
-func (ml *ModeList) HasMode(r rune, target string) bool {
-	for _, mode := range *ml {
+func (ml ModeList) HasMode(r rune, target string) bool {
+	for _, mode := range ml {
 		if mode.Mode == r && mode.Target == target {
 			return true
 		}
@@ -109,9 +109,9 @@ func (ml ModeList) RemoveMode(r rune, target string) ModeList {
 }
 
 // PrefixOf gets the prefix of the given user
-func (ml *ModeList) PrefixOf(user string) rune {
+func (ml ModeList) PrefixOf(user string) rune {
 	level := 0
-	for _, mode := range *ml {
+	for _, mode := range ml {
 		if mode.Target == user {
 			lvl := userlist.LevelOf(mode.Mode)
 			if lvl > level {

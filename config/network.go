@@ -304,7 +304,7 @@ func (cd *chanDataImpl) GetNetwork() string {
 	return cd.Network
 }
 
-func (cd *chanDataImpl) Modes() *mauircdi.ModeList {
+func (cd *chanDataImpl) Modes() mauircdi.ModeList {
 	return cd.ModeList
 }
 
