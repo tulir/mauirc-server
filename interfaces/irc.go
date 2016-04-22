@@ -113,11 +113,28 @@ func (ml ModeList) PrefixOf(user string) rune {
 	level := 0
 	for _, mode := range ml {
 		if mode.Target == user {
-			lvl := userlist.LevelOf(mode.Mode)
+			lvl := ml.levelOfMode(mode.Mode)
 			if lvl > level {
 				level = lvl
 			}
 		}
 	}
 	return userlist.PrefixOf(level)
+}
+
+func (ml ModeList) levelOfMode(r rune) int {
+	switch r {
+	case 'q':
+		return 5
+	case 'a':
+		return 4
+	case 'o':
+		return 3
+	case 'h':
+		return 2
+	case 'v':
+		return 1
+	default:
+		return 0
+	}
 }
