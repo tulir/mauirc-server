@@ -40,12 +40,12 @@ type netImpl struct {
 	SSL      bool     `json:"ssl"`
 	Chs      []string `json:"channels"`
 
-	Owner       *userImpl         `json:"-"`
-	IRC         *irc.Connection   `json:"-"`
-	Scripts     []mauircdi.Script `json:"-"`
-	ChannelInfo cdlImpl           `json:"-"`
-	ChannelList []string          `json:"-"`
-	WhoisData   *whoisData        `json:"-"`
+	Owner       *userImpl             `json:"-"`
+	IRC         *irc.Connection       `json:"-"`
+	Scripts     []mauircdi.Script     `json:"-"`
+	ChannelInfo cdlImpl               `json:"-"`
+	ChannelList []string              `json:"-"`
+	WhoisData   map[string]*whoisData `json:"-"`
 }
 
 type whoisData struct {
@@ -106,6 +106,13 @@ func (net *netImpl) Open() {
 	i.AddCallback("332", net.topicresp)
 	i.AddCallback("333", net.topicset)
 	i.AddCallback("482", net.noperms)
+	i.AddCallback("301", net.isAway)
+	i.AddCallback("311", net.whoisUser)
+	i.AddCallback("312", net.whoisServer)
+	i.AddCallback("313", net.whoisOperator)
+	i.AddCallback("317", net.whoisIdle)
+	i.AddCallback("318", net.whoisEnd)
+	i.AddCallback("319", net.whoisChannels)
 
 	if err := net.Connect(); err != nil {
 		fmt.Printf("Failed to connect to %s:%d: %s", net.IP, net.Port, err)
@@ -292,6 +299,28 @@ func (net *netImpl) RemoveScript(name string) bool {
 		}
 	}
 	return false
+}
+
+func (net *netImpl) GetWhoisData(name string) *whoisData {
+	data, ok := net.WhoisData[name]
+	if !ok {
+		net.WhoisData[name] = &whoisData{Nick: name}
+		return net.WhoisData[name]
+	}
+	return data
+}
+
+func (net *netImpl) GetWhoisDataIfExists(name string) *whoisData {
+	data, ok := net.WhoisData[name]
+	if !ok {
+		return nil
+	}
+	return data
+}
+
+func (net *netImpl) RemoveWhoisData(name string) {
+	net.WhoisData[name] = nil
+	delete(net.WhoisData, name)
 }
 
 type chanDataImpl struct {

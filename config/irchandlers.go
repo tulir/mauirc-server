@@ -258,3 +258,60 @@ func (net *netImpl) joinpart(user, channel string, part bool) {
 		net.ChannelInfo.Remove(channel)
 	}
 }
+
+func (net *netImpl) isAway(evt *irc.Event) {
+	data := net.GetWhoisDataIfExists(evt.Arguments[1])
+	if data != nil {
+		data.Away = evt.Message()
+	}
+}
+
+func (net *netImpl) whoisUser(evt *irc.Event) {
+	data := net.GetWhoisData(evt.Arguments[1])
+	data.User = evt.Arguments[2]
+	data.Host = evt.Arguments[3]
+	data.RealName = evt.Message()
+
+}
+
+func (net *netImpl) whoisServer(evt *irc.Event) {
+	data := net.GetWhoisData(evt.Arguments[1])
+	data.Server = evt.Arguments[2]
+	data.ServerInfo = evt.Message()
+}
+
+func (net *netImpl) whoisSecure(evt *irc.Event) {
+	data := net.GetWhoisData(evt.Arguments[1])
+	data.SecureConn = true
+}
+
+func (net *netImpl) whoisOperator(evt *irc.Event) {
+	data := net.GetWhoisData(evt.Arguments[1])
+	data.Operator = true
+}
+
+func (net *netImpl) whoisIdle(evt *irc.Event) {
+	data := net.GetWhoisData(evt.Arguments[1])
+	time, _ := strconv.ParseInt(evt.Arguments[2], 10, 64)
+	data.IdleTime = time
+}
+
+func (net *netImpl) whoisChannels(evt *irc.Event) {
+	data := net.GetWhoisData(evt.Arguments[1])
+
+	data.Channels = make(map[string]rune)
+	for _, ch := range strings.Split(evt.Message(), " ") {
+		var prefix rune
+		if userlist.LevelOfByte(ch[0]) > 0 {
+			prefix = rune(ch[0])
+			ch = ch[1:]
+		}
+		data.Channels[ch] = prefix
+	}
+}
+
+func (net *netImpl) whoisEnd(evt *irc.Event) {
+	data := net.GetWhoisData(evt.Arguments[1])
+	net.Owner.NewMessages <- mauircdi.Message{Type: "whois", Object: data}
+	net.RemoveWhoisData(evt.Arguments[1])
+}
