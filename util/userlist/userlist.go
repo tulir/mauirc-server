@@ -49,6 +49,24 @@ func LevelOf(r rune) int {
 	}
 }
 
+// NameOf gets a basic name of the given level
+func NameOf(level int) string {
+	switch level {
+	case 5:
+		return "owner"
+	case 4:
+		return "admin"
+	case 3:
+		return "operator"
+	case 2:
+		return "half-op"
+	case 1:
+		return "voice"
+	default:
+		return ""
+	}
+}
+
 // LevelOfByte gets the int level of the given byte
 func LevelOfByte(b byte) int {
 	return LevelOf(rune(b))
