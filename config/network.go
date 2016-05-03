@@ -114,6 +114,7 @@ func (net *netImpl) Open() {
 	i.AddCallback("317", net.whoisIdle)
 	i.AddCallback("318", net.whoisEnd)
 	i.AddCallback("319", net.whoisChannels)
+	i.AddCallback("617", net.whoisSecure)
 
 	if err := net.Connect(); err != nil {
 		fmt.Printf("Failed to connect to %s:%d: %s", net.IP, net.Port, err)
