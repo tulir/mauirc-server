@@ -299,14 +299,14 @@ func (net *netImpl) whoisIdle(evt *irc.Event) {
 func (net *netImpl) whoisChannels(evt *irc.Event) {
 	data := net.GetWhoisData(evt.Arguments[1])
 
-	data.Channels = make(map[string]rune)
+	data.Channels = make(map[string]string)
 	for _, ch := range strings.Split(evt.Message(), " ") {
 		if len(ch) <= 0 {
 			continue
 		}
-		var prefix rune
+		var prefix string
 		if userlist.LevelOfByte(ch[0]) > 0 {
-			prefix = rune(ch[0])
+			prefix = userlist.NameOf(userlist.LevelOfByte(ch[0]))
 			ch = ch[1:]
 		}
 		data.Channels[ch] = prefix
