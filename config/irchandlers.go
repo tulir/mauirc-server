@@ -301,6 +301,9 @@ func (net *netImpl) whoisChannels(evt *irc.Event) {
 
 	data.Channels = make(map[string]rune)
 	for _, ch := range strings.Split(evt.Message(), " ") {
+		if len(ch) <= 0 {
+			continue
+		}
 		var prefix rune
 		if userlist.LevelOfByte(ch[0]) > 0 {
 			prefix = rune(ch[0])
