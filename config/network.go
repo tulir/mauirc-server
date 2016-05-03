@@ -45,6 +45,21 @@ type netImpl struct {
 	Scripts     []mauircdi.Script `json:"-"`
 	ChannelInfo cdlImpl           `json:"-"`
 	ChannelList []string          `json:"-"`
+	WhoisData   *whoisData        `json:"-"`
+}
+
+type whoisData struct {
+	Channels   map[string]rune `json:"channels"`
+	Nick       string          `json:"nick"`
+	User       string          `json:"user"`
+	Host       string          `json:"host"`
+	RealName   string          `json:"realname"`
+	Away       string          `json:"away"`
+	Server     string          `json:"server"`
+	ServerInfo string          `json:"server-info"`
+	IdleTime   int64           `json:"idle"`
+	SecureConn bool            `json:"secure-connection"`
+	Operator   bool            `json:"operator"`
 }
 
 func (net *netImpl) Save() {
