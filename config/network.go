@@ -82,6 +82,7 @@ func (net *netImpl) Open() {
 	for _, ch := range net.Chs {
 		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: ch})
 	}
+	net.WhoisData = make(map[string]*whoisData)
 
 	net.IRC = i
 
