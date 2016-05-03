@@ -189,6 +189,8 @@ func (net *netImpl) sendToIRC(msg database.Message) bool {
 			net.IRC.Part(msg.Channel)
 		case "nick":
 			net.IRC.Nick(msg.Message)
+		case "whois":
+			net.IRC.Whois(msg.Channel)
 		}
 	}
 	return false
