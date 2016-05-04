@@ -34,7 +34,7 @@ var nws = flag.StringP("config", "c", "/etc/mauircd/", "The path to mauIRCd conf
 var config mauircdi.Configuration
 
 func init() {
-	libmauirc.Version = "mauIRC 0.1"
+	libmauirc.Version = "mauIRC 0.2"
 }
 
 func main() {
