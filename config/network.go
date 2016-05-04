@@ -306,7 +306,7 @@ func (net *netImpl) RemoveScript(name string) bool {
 func (net *netImpl) GetWhoisData(name string) *whoisData {
 	data, ok := net.WhoisData[name]
 	if !ok {
-		net.WhoisData[name] = &whoisData{Nick: name}
+		net.WhoisData[name] = &whoisData{Nick: name, Channels: make(map[string]string)}
 		return net.WhoisData[name]
 	}
 	return data
