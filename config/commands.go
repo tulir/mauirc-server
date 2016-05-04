@@ -68,7 +68,7 @@ func (user *userImpl) rawMessage(data *gabs.Container) {
 		return
 	}
 
-	net.SendRaw(message)
+	net.ParseAndSend(message)
 }
 
 func (user *userImpl) cmdDeleteMessage(data *gabs.Container) {
@@ -188,7 +188,7 @@ func (user *userImpl) cmdKick(data *gabs.Container) {
 	}
 
 	if len(channel) > 0 && len(usr) > 0 && len(message) > 0 {
-		net.SendRaw("KICK %s %s :%s", channel, usr, message)
+		net.ParseAndSend("KICK %s %s :%s", channel, usr, message)
 	}
 }
 
@@ -210,6 +210,6 @@ func (user *userImpl) cmdMode(data *gabs.Container) {
 	}
 
 	if len(channel) > 0 && len(message) > 0 {
-		net.SendRaw("MODE %s %s", channel, message)
+		net.ParseAndSend("MODE %s %s", channel, message)
 	}
 }

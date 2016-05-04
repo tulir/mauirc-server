@@ -19,7 +19,7 @@ package config
 
 import (
 	"fmt"
-	"github.com/thoj/go-ircevent"
+	msg "github.com/sorcix/irc"
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/interfaces"
 	"maunium.net/go/mauircd/util/userlist"
@@ -29,19 +29,22 @@ import (
 	"time"
 )
 
-func (net *netImpl) mode(evt *irc.Event) {
-	if evt.Arguments[0][0] == '#' {
-		ci := net.ChannelInfo[evt.Arguments[0]]
+func (net *netImpl) mode(evt *msg.Message) {
+	if len(evt.Host) == 0 {
+		return
+	}
+	if evt.Params[0][0] == '#' {
+		ci := net.ChannelInfo[evt.Params[0]]
 		if ci == nil {
-			net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Arguments[0]})
-			ci = net.ChannelInfo[evt.Arguments[0]]
+			net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Params[0]})
+			ci = net.ChannelInfo[evt.Params[0]]
 		}
 
-		var targets = evt.Arguments[2:]
+		var targets = evt.Params[2:]
 
 		var add = true
 		var ii = 0
-		for _, r := range evt.Arguments[1] {
+		for _, r := range evt.Params[1] {
 			if r == '-' {
 				add = false
 			} else if r == '+' {
@@ -70,33 +73,33 @@ func (net *netImpl) mode(evt *irc.Event) {
 
 		net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 	}
-	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "mode", strings.Join(evt.Arguments[1:], " "))
+	net.ReceiveMessage(evt.Params[0], evt.Name, "mode", strings.Join(evt.Params[1:], " "))
 }
 
-func (net *netImpl) nick(evt *irc.Event) {
-	if evt.Nick == net.Nick {
-		net.Owner.NewMessages <- mauircdi.Message{Type: "nickchange", Object: mauircdi.NickChange{Network: net.Name, Nick: evt.Message()}}
-		net.Nick = evt.Message()
+func (net *netImpl) nick(evt *msg.Message) {
+	if evt.Name == net.Nick {
+		net.Owner.NewMessages <- mauircdi.Message{Type: "nickchange", Object: mauircdi.NickChange{Network: net.Name, Nick: evt.Trailing}}
+		net.Nick = evt.Trailing
 	}
 	for _, ci := range net.ChannelInfo {
-		if b, i := ci.UserList.Contains(evt.Nick); b {
-			ci.UserList[i] = evt.Message()
+		if b, i := ci.UserList.Contains(evt.Name); b {
+			ci.UserList[i] = evt.Trailing
 			sort.Sort(ci.UserList)
 
-			net.ReceiveMessage(ci.Name, evt.Nick, "nick", evt.Message())
+			net.ReceiveMessage(ci.Name, evt.Name, "nick", evt.Trailing)
 			net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 		}
 	}
 }
 
-func (net *netImpl) userlist(evt *irc.Event) {
-	ci := net.ChannelInfo[evt.Arguments[2]]
+func (net *netImpl) userlist(evt *msg.Message) {
+	ci := net.ChannelInfo[evt.Params[2]]
 	if ci == nil {
-		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Arguments[2]})
-		ci = net.ChannelInfo[evt.Arguments[2]]
+		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Params[2]})
+		ci = net.ChannelInfo[evt.Params[2]]
 	}
 
-	users := strings.Split(evt.Message(), " ")
+	users := strings.Split(evt.Trailing, " ")
 	if len(users[len(users)-1]) == 0 {
 		users = users[:len(users)-1]
 	}
@@ -109,11 +112,11 @@ func (net *netImpl) userlist(evt *irc.Event) {
 	}
 }
 
-func (net *netImpl) userlistend(evt *irc.Event) {
-	ci := net.ChannelInfo[evt.Arguments[1]]
+func (net *netImpl) userlistend(evt *msg.Message) {
+	ci := net.ChannelInfo[evt.Params[1]]
 	if ci == nil {
-		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Arguments[1]})
-		ci = net.ChannelInfo[evt.Arguments[1]]
+		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Params[1]})
+		ci = net.ChannelInfo[evt.Params[1]]
 	}
 
 	ci.ReceivingUserList = false
@@ -121,105 +124,108 @@ func (net *netImpl) userlistend(evt *irc.Event) {
 	net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 }
 
-func (net *netImpl) chanlist(evt *irc.Event) {
-	net.ChannelList = append(net.ChannelList, evt.Arguments[1])
+func (net *netImpl) chanlist(evt *msg.Message) {
+	net.ChannelList = append(net.ChannelList, evt.Params[1])
 }
 
-func (net *netImpl) chanlistend(evt *irc.Event) {
+func (net *netImpl) chanlistend(evt *msg.Message) {
 	net.Owner.NewMessages <- mauircdi.Message{Type: "chanlist", Object: mauircdi.ChanList{Network: net.Name, List: net.ChannelList}}
 }
 
-func (net *netImpl) topic(evt *irc.Event) {
-	ci := net.ChannelInfo[evt.Arguments[0]]
+func (net *netImpl) topic(evt *msg.Message) {
+	ci := net.ChannelInfo[evt.Params[0]]
 	if ci == nil {
-		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Arguments[0]})
-		ci = net.ChannelInfo[evt.Arguments[0]]
+		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Params[0]})
+		ci = net.ChannelInfo[evt.Params[0]]
 	}
-	ci.Topic = evt.Message()
-	ci.TopicSetBy = evt.Nick
+	ci.Topic = evt.Trailing
+	ci.TopicSetBy = evt.Name
 	ci.TopicSetAt = time.Now().Unix()
-	net.ReceiveMessage(ci.Name, evt.Nick, "topic", evt.Message())
+	net.ReceiveMessage(ci.Name, evt.Name, "topic", evt.Trailing)
 	net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 }
 
-func (net *netImpl) topicresp(evt *irc.Event) {
-	ci := net.ChannelInfo[evt.Arguments[1]]
+func (net *netImpl) topicresp(evt *msg.Message) {
+	ci := net.ChannelInfo[evt.Params[1]]
 	if ci == nil {
-		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Arguments[1]})
-		ci = net.ChannelInfo[evt.Arguments[1]]
+		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Params[1]})
+		ci = net.ChannelInfo[evt.Params[1]]
 	}
-	ci.Topic = evt.Message()
+	ci.Topic = evt.Trailing
 	net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 }
 
-func (net *netImpl) noperms(evt *irc.Event) {
+func (net *netImpl) noperms(evt *msg.Message) {
 	net.Owner.NewMessages <- mauircdi.Message{
 		Type: "message",
 		Object: database.Message{
 			ID:        -1,
 			Network:   net.Name,
-			Channel:   evt.Arguments[1],
+			Channel:   evt.Params[1],
 			Timestamp: time.Now().Unix(),
 			Sender:    "[" + net.Name + "]",
 			Command:   "privmsg",
-			Message:   evt.Message(),
+			Message:   evt.Trailing,
 			OwnMsg:    false,
 		},
 	}
 }
 
-func (net *netImpl) topicset(evt *irc.Event) {
-	ci := net.ChannelInfo[evt.Arguments[1]]
+func (net *netImpl) topicset(evt *msg.Message) {
+	ci := net.ChannelInfo[evt.Params[1]]
 	if ci == nil {
-		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Arguments[1]})
-		ci = net.ChannelInfo[evt.Arguments[1]]
+		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Params[1]})
+		ci = net.ChannelInfo[evt.Params[1]]
 	}
-	ci.TopicSetBy = evt.Arguments[2]
-	setAt, err := strconv.ParseInt(evt.Arguments[3], 10, 64)
+	ci.TopicSetBy = evt.Params[2]
+	setAt, err := strconv.ParseInt(evt.Params[3], 10, 64)
 	if err != nil {
 		ci.TopicSetAt = setAt
 	}
 	net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 }
 
-func (net *netImpl) quit(evt *irc.Event) {
+func (net *netImpl) quit(evt *msg.Message) {
 	for _, ci := range net.ChannelInfo {
-		if b, i := ci.UserList.Contains(evt.Nick); b {
+		if b, i := ci.UserList.Contains(evt.Name); b {
 			ci.UserList[i] = ci.UserList[len(ci.UserList)-1]
 			ci.UserList = ci.UserList[:len(ci.UserList)-1]
 			sort.Sort(ci.UserList)
 
-			net.ReceiveMessage(ci.Name, evt.Nick, "quit", evt.Message())
+			net.ReceiveMessage(ci.Name, evt.Name, "quit", evt.Trailing)
 			net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 		}
 	}
 }
 
-func (net *netImpl) join(evt *irc.Event) {
-	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "join", evt.Message())
-	net.joinpart(evt.Nick, evt.Arguments[0], false)
+func (net *netImpl) join(evt *msg.Message) {
+	net.ReceiveMessage(evt.Params[0], evt.Name, "join", evt.Trailing)
+	net.joinpart(evt.Name, evt.Params[0], false)
 }
 
-func (net *netImpl) part(evt *irc.Event) {
-	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "part", evt.Message())
-	net.joinpart(evt.Nick, evt.Arguments[0], true)
+func (net *netImpl) part(evt *msg.Message) {
+	net.ReceiveMessage(evt.Params[0], evt.Name, "part", evt.Trailing)
+	net.joinpart(evt.Name, evt.Params[0], true)
 }
 
-func (net *netImpl) kick(evt *irc.Event) {
-	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "kick", evt.Arguments[1]+":"+evt.Message())
-	net.joinpart(evt.Arguments[1], evt.Arguments[0], true)
+func (net *netImpl) kick(evt *msg.Message) {
+	net.ReceiveMessage(evt.Params[0], evt.Name, "kick", evt.Params[1]+":"+evt.Trailing)
+	net.joinpart(evt.Params[1], evt.Params[0], true)
 }
 
-func (net *netImpl) privmsg(evt *irc.Event) {
-	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "privmsg", evt.Message())
+func (net *netImpl) privmsg(evt *msg.Message) {
+	if evt.IsServer() {
+		return
+	}
+	net.ReceiveMessage(evt.Params[0], evt.Name, "privmsg", evt.Trailing)
 }
 
-func (net *netImpl) action(evt *irc.Event) {
-	net.ReceiveMessage(evt.Arguments[0], evt.Nick, "action", evt.Message())
+func (net *netImpl) action(evt *msg.Message) {
+	net.ReceiveMessage(evt.Params[0], evt.Name, "action", evt.Trailing)
 }
 
-func (net *netImpl) connected(evt *irc.Event) {
-	net.IRC.SendRaw("LIST")
+func (net *netImpl) connected(evt *msg.Message) {
+	net.IRC.List()
 	for channel := range net.ChannelInfo {
 		if strings.HasPrefix(channel, "#") {
 			net.IRC.Join(channel)
@@ -228,7 +234,7 @@ func (net *netImpl) connected(evt *irc.Event) {
 	net.GetOwner().GetMessageChan() <- mauircdi.Message{Type: "netdata", Object: mauircdi.NetData{Name: net.GetName(), Connected: true}}
 }
 
-func (net *netImpl) disconnected(event *irc.Event) {
+func (net *netImpl) disconnected(evt *msg.Message) {
 	fmt.Printf("Disconnected from %s:%d\n", net.IP, net.Port)
 	net.GetOwner().GetMessageChan() <- mauircdi.Message{Type: "netdata", Object: mauircdi.NetData{Name: net.GetName(), Connected: false}}
 }
@@ -259,46 +265,46 @@ func (net *netImpl) joinpart(user, channel string, part bool) {
 	}
 }
 
-func (net *netImpl) isAway(evt *irc.Event) {
-	data := net.GetWhoisDataIfExists(evt.Arguments[1])
+func (net *netImpl) isAway(evt *msg.Message) {
+	data := net.GetWhoisDataIfExists(evt.Params[1])
 	if data != nil {
-		data.Away = evt.Message()
+		data.Away = evt.Trailing
 	}
 }
 
-func (net *netImpl) whoisUser(evt *irc.Event) {
-	data := net.GetWhoisData(evt.Arguments[1])
-	data.User = evt.Arguments[2]
-	data.Host = evt.Arguments[3]
-	data.RealName = evt.Message()
+func (net *netImpl) whoisUser(evt *msg.Message) {
+	data := net.GetWhoisData(evt.Params[1])
+	data.User = evt.Params[2]
+	data.Host = evt.Params[3]
+	data.RealName = evt.Trailing
 
 }
 
-func (net *netImpl) whoisServer(evt *irc.Event) {
-	data := net.GetWhoisData(evt.Arguments[1])
-	data.Server = evt.Arguments[2]
-	data.ServerInfo = evt.Message()
+func (net *netImpl) whoisServer(evt *msg.Message) {
+	data := net.GetWhoisData(evt.Params[1])
+	data.Server = evt.Params[2]
+	data.ServerInfo = evt.Trailing
 }
 
-func (net *netImpl) whoisSecure(evt *irc.Event) {
-	data := net.GetWhoisData(evt.Arguments[1])
+func (net *netImpl) whoisSecure(evt *msg.Message) {
+	data := net.GetWhoisData(evt.Params[1])
 	data.SecureConn = true
 }
 
-func (net *netImpl) whoisOperator(evt *irc.Event) {
-	data := net.GetWhoisData(evt.Arguments[1])
+func (net *netImpl) whoisOperator(evt *msg.Message) {
+	data := net.GetWhoisData(evt.Params[1])
 	data.Operator = true
 }
 
-func (net *netImpl) whoisIdle(evt *irc.Event) {
-	data := net.GetWhoisData(evt.Arguments[1])
-	time, _ := strconv.ParseInt(evt.Arguments[2], 10, 64)
+func (net *netImpl) whoisIdle(evt *msg.Message) {
+	data := net.GetWhoisData(evt.Params[1])
+	time, _ := strconv.ParseInt(evt.Params[2], 10, 64)
 	data.IdleTime = time
 }
 
-func (net *netImpl) whoisChannels(evt *irc.Event) {
-	data := net.GetWhoisData(evt.Arguments[1])
-	for _, ch := range strings.Split(evt.Message(), " ") {
+func (net *netImpl) whoisChannels(evt *msg.Message) {
+	data := net.GetWhoisData(evt.Params[1])
+	for _, ch := range strings.Split(evt.Trailing, " ") {
 		if len(ch) <= 0 {
 			continue
 		}
@@ -311,8 +317,8 @@ func (net *netImpl) whoisChannels(evt *irc.Event) {
 	}
 }
 
-func (net *netImpl) whoisEnd(evt *irc.Event) {
-	data := net.GetWhoisData(evt.Arguments[1])
+func (net *netImpl) whoisEnd(evt *msg.Message) {
+	data := net.GetWhoisData(evt.Params[1])
 	net.Owner.NewMessages <- mauircdi.Message{Type: "whois", Object: data}
-	net.RemoveWhoisData(evt.Arguments[1])
+	net.RemoveWhoisData(evt.Params[1])
 }

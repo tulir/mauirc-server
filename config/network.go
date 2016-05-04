@@ -19,24 +19,29 @@ package config
 
 import (
 	"fmt"
-	"github.com/thoj/go-ircevent"
+	flag "github.com/ogier/pflag"
+	msg "github.com/sorcix/irc"
+	irc "maunium.net/go/libmauirc"
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/interfaces"
 	"maunium.net/go/mauircd/util/preview"
 	"maunium.net/go/mauircd/util/split"
 	"maunium.net/go/mauircd/util/userlist"
+	"os"
 	"strings"
 	"time"
 )
+
+var debug = flag.BoolP("debug", "d", false, "Use to enable debug prints")
 
 type netImpl struct {
 	Name     string   `json:"name"`
 	Nick     string   `json:"nick"`
 	User     string   `json:"user"`
 	Realname string   `json:"realname"`
-	IP       string   `json:"ip"`
-	Port     int      `json:"port"`
 	Password string   `json:"password"`
+	IP       string   `json:"ip"`
+	Port     uint16   `json:"port"`
 	SSL      bool     `json:"ssl"`
 	Chs      []string `json:"channels"`
 
@@ -71,12 +76,22 @@ func (net *netImpl) Save() {
 
 // Open an IRC connection
 func (net *netImpl) Open() {
-	i := irc.IRC(net.Nick, net.User)
-
+	i := irc.Create(net.Nick, net.User, irc.IPv4Address{IP: net.IP, Port: net.Port})
+	i.RealName = net.Realname
 	i.UseTLS = net.SSL
-	i.QuitMessage = "mauIRCd shutting down..."
+	i.QuitMsg = "mauIRCd shutting down..."
+
+	if *debug {
+		i.DebugWriter = os.Stdout
+		go func() {
+			for err := range i.Errors {
+				os.Stderr.WriteString("Error: " + err.Error())
+			}
+		}()
+	}
+
 	if len(net.Password) > 0 {
-		i.Password = net.Password
+		i.Auth = append(i.Auth, &irc.PasswordAuth{Password: net.Password})
 	}
 
 	for _, ch := range net.Chs {
@@ -86,35 +101,35 @@ func (net *netImpl) Open() {
 
 	net.IRC = i
 
-	i.AddCallback("PRIVMSG", net.privmsg)
-	i.AddCallback("NOTICE", net.privmsg)
-	i.AddCallback("CPRIVMSG", net.privmsg)
-	i.AddCallback("CNOTICE", net.privmsg)
-	i.AddCallback("CTCP_ACTION", net.action)
-	i.AddCallback("JOIN", net.join)
-	i.AddCallback("PART", net.part)
-	i.AddCallback("KICK", net.kick)
-	i.AddCallback("MODE", net.mode)
-	i.AddCallback("TOPIC", net.topic)
-	i.AddCallback("NICK", net.nick)
-	i.AddCallback("QUIT", net.quit)
-	i.AddCallback("DISCONNECTED", net.disconnected)
-	i.AddCallback("001", net.connected)
-	i.AddCallback("353", net.userlist)
-	i.AddCallback("366", net.userlistend)
-	i.AddCallback("322", net.chanlist)
-	i.AddCallback("323", net.chanlistend)
-	i.AddCallback("332", net.topicresp)
-	i.AddCallback("333", net.topicset)
-	i.AddCallback("482", net.noperms)
-	i.AddCallback("301", net.isAway)
-	i.AddCallback("311", net.whoisUser)
-	i.AddCallback("312", net.whoisServer)
-	i.AddCallback("313", net.whoisOperator)
-	i.AddCallback("317", net.whoisIdle)
-	i.AddCallback("318", net.whoisEnd)
-	i.AddCallback("319", net.whoisChannels)
-	i.AddCallback("617", net.whoisSecure)
+	i.AddHandler(msg.PRIVMSG, net.privmsg)
+	i.AddHandler(msg.NOTICE, net.privmsg)
+	i.AddHandler("CPRIVMSG", net.privmsg)
+	i.AddHandler("CNOTICE", net.privmsg)
+	i.AddHandler("CTCP_ACTION", net.action)
+	i.AddHandler(msg.JOIN, net.join)
+	i.AddHandler(msg.PART, net.part)
+	i.AddHandler(msg.KICK, net.kick)
+	i.AddHandler(msg.MODE, net.mode)
+	i.AddHandler(msg.TOPIC, net.topic)
+	i.AddHandler(msg.NICK, net.nick)
+	i.AddHandler(msg.QUIT, net.quit)
+	i.AddHandler("DISCONNECTED", net.disconnected)
+	i.AddHandler(msg.RPL_WELCOME, net.connected)
+	i.AddHandler(msg.RPL_NAMREPLY, net.userlist)
+	i.AddHandler(msg.RPL_ENDOFNAMES, net.userlistend)
+	i.AddHandler(msg.RPL_LIST, net.chanlist)
+	i.AddHandler(msg.RPL_LISTEND, net.chanlistend)
+	i.AddHandler(msg.RPL_TOPIC, net.topicresp)
+	i.AddHandler(msg.RPL_TOPICWHOTIME, net.topicset)
+	i.AddHandler(msg.ERR_CHANOPRIVSNEEDED, net.noperms)
+	i.AddHandler(msg.RPL_AWAY, net.isAway)
+	i.AddHandler(msg.RPL_WHOISUSER, net.whoisUser)
+	i.AddHandler(msg.RPL_WHOISSERVER, net.whoisServer)
+	i.AddHandler(msg.RPL_WHOISOPERATOR, net.whoisOperator)
+	i.AddHandler(msg.RPL_WHOISIDLE, net.whoisIdle)
+	i.AddHandler(msg.RPL_ENDOFWHOIS, net.whoisEnd)
+	i.AddHandler(msg.RPL_WHOISCHANNELS, net.whoisChannels)
+	i.AddHandler("617", net.whoisSecure)
 
 	if err := net.Connect(); err != nil {
 		fmt.Printf("Failed to connect to %s:%d: %s", net.IP, net.Port, err)
@@ -122,8 +137,7 @@ func (net *netImpl) Open() {
 }
 
 func (net *netImpl) Connect() error {
-	err := net.IRC.Connect(fmt.Sprintf("%s:%d", net.IP, net.Port))
-	return err
+	return net.IRC.Connect()
 }
 
 func (net *netImpl) Disconnect() {
@@ -206,13 +220,13 @@ func (net *netImpl) sendToIRC(msg database.Message) bool {
 			net.IRC.Action(msg.Channel, msg.Message)
 			return true
 		case "topic":
-			net.IRC.SendRawf("TOPIC %s :%s", msg.Channel, msg.Message)
+			net.IRC.Topic(msg.Channel, msg.Message)
 		case "join":
 			net.IRC.Join(msg.Channel)
 		case "part":
-			net.IRC.Part(msg.Channel)
+			net.IRC.Part(msg.Channel, msg.Message)
 		case "nick":
-			net.IRC.Nick(msg.Message)
+			net.IRC.SetNick(msg.Message)
 		case "whois":
 			net.IRC.Whois(msg.Channel)
 		}
@@ -268,8 +282,8 @@ func (net *netImpl) GetAllChannels() []string {
 	return net.ChannelList
 }
 
-func (net *netImpl) SendRaw(msg string, args ...interface{}) {
-	net.IRC.SendRawf(msg, args...)
+func (net *netImpl) ParseAndSend(f string, args ...interface{}) {
+	net.IRC.Send(msg.ParseMessage(fmt.Sprintf(f, args...)))
 }
 
 func (net *netImpl) GetScripts() []mauircdi.Script {

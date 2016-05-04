@@ -30,7 +30,7 @@ type Network interface {
 	SendMessage(channel, command, message string)
 	SwitchMessageNetwork(msg database.Message, receiving bool) bool
 	InsertAndSend(msg database.Message)
-	SendRaw(msg string, args ...interface{})
+	ParseAndSend(msg string, args ...interface{})
 	Close()
 
 	Connect() error

@@ -19,6 +19,7 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	flag "github.com/ogier/pflag"
+	"maunium.net/go/libmauirc"
 	cfg "maunium.net/go/mauircd/config"
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/interfaces"
@@ -31,6 +32,10 @@ import (
 
 var nws = flag.StringP("config", "c", "/etc/mauircd/", "The path to mauIRCd configurations")
 var config mauircdi.Configuration
+
+func init() {
+	libmauirc.Version = "mauIRC 0.1"
+}
 
 func main() {
 	flag.Parse()

@@ -2,7 +2,7 @@ image: golang:1.6
 
 before_script:
 - "go get -u github.com/ogier/pflag"
-- "go get -u github.com/thoj/go-ircevent"
+- "go get -u github.com/sorcix/irc"
 - "go get -u github.com/go-sql-driver/mysql"
 - "go get -u github.com/gorilla/context"
 - "go get -u github.com/gorilla/sessions"
@@ -12,6 +12,7 @@ before_script:
 - "go get -u golang.org/x/crypto/bcrypt"
 - "go get -u github.com/dyatlov/go-opengraph/opengraph"
 - "go get -u github.com/mvdan/xurls"
+- "go get -u maunium.net/go/libmauirc"
 - "mkdir -p /go/src/maunium.net/go"
 - "ln -s /builds/Tulir293/mauircd /go/src/maunium.net/go/mauircd"
 
