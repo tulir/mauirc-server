@@ -152,7 +152,7 @@ func (net *netImpl) IsConnected() bool {
 func (net *netImpl) ReceiveMessage(channel, sender, command, message string) {
 	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
 
-	if msg.Sender == net.Nick || (command == "nick" && message == net.Nick) {
+	if msg.Sender == net.IRC.Nick || (command == "nick" && message == net.IRC.Nick) {
 		msg.OwnMsg = true
 	} else {
 		msg.OwnMsg = false
@@ -160,7 +160,7 @@ func (net *netImpl) ReceiveMessage(channel, sender, command, message string) {
 
 	if msg.Channel == "AUTH" || msg.Channel == "*" {
 		return
-	} else if msg.Channel == net.Nick {
+	} else if msg.Channel == net.IRC.Nick {
 		if len(msg.Sender) > 0 {
 			net.GetActiveChannels().Put(&chanDataImpl{Network: net.Name, Name: msg.Sender})
 		}
@@ -183,13 +183,7 @@ func (net *netImpl) ReceiveMessage(channel, sender, command, message string) {
 
 // SendMessage sends the given message to the given channel
 func (net *netImpl) SendMessage(channel, command, message string) {
-	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: net.Nick, Command: command, Message: message}
-
-	if msg.Sender == net.Nick {
-		msg.OwnMsg = true
-	} else {
-		msg.OwnMsg = false
-	}
+	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: net.IRC.Nick, Command: command, Message: message, OwnMsg: true}
 
 	var evt = &mauircdi.Event{Message: msg, Network: net, Cancelled: false}
 	net.RunScripts(evt, true)
@@ -271,7 +265,7 @@ func (net *netImpl) GetName() string {
 }
 
 func (net *netImpl) GetNick() string {
-	return net.Nick
+	return net.IRC.Nick
 }
 
 func (net *netImpl) GetActiveChannels() mauircdi.ChannelDataList {
