@@ -18,6 +18,7 @@
 package mauircdi
 
 import (
+	"maunium.net/go/libmauirc"
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/util/userlist"
 )
@@ -30,7 +31,7 @@ type Network interface {
 	SendMessage(channel, command, message string)
 	SwitchMessageNetwork(msg database.Message, receiving bool) bool
 	InsertAndSend(msg database.Message)
-	ParseAndSend(msg string, args ...interface{})
+	Tunnel() libmauirc.Tunnel
 	Close()
 
 	Connect() error

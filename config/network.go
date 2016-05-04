@@ -222,7 +222,7 @@ func (net *netImpl) sendToIRC(msg database.Message) bool {
 		case "topic":
 			net.IRC.Topic(msg.Channel, msg.Message)
 		case "join":
-			net.IRC.Join(msg.Channel)
+			net.IRC.Join(msg.Channel, "")
 		case "part":
 			net.IRC.Part(msg.Channel, msg.Message)
 		case "nick":
@@ -282,8 +282,12 @@ func (net *netImpl) GetAllChannels() []string {
 	return net.ChannelList
 }
 
-func (net *netImpl) ParseAndSend(f string, args ...interface{}) {
+/*func (net *netImpl) ParseAndSend(f string, args ...interface{}) {
 	net.IRC.Send(msg.ParseMessage(fmt.Sprintf(f, args...)))
+}*/
+
+func (net *netImpl) Tunnel() irc.Tunnel {
+	return net.IRC
 }
 
 func (net *netImpl) GetScripts() []mauircdi.Script {

@@ -213,19 +213,19 @@ func LoadNetwork(env *vm.Env, evt *mauircdi.Event) {
 // LoadIRC loads irc command bindings into the given Anko VM environment
 func LoadIRC(env *vm.Env, evt *mauircdi.Event) {
 	env.Define("Nick", func(nick string) {
-		evt.Network.ParseAndSend("NICK %s", nick)
+		evt.Network.Tunnel().SetNick(nick)
 	})
-	env.Define("Join", func(channel string, keys string) {
-		evt.Network.ParseAndSend("JOIN %s %s", channel, keys)
+	env.Define("Join", func(channels string, keys string) {
+		evt.Network.Tunnel().Join(channels, keys)
 	})
 	env.Define("Part", func(channel string, reason string) {
-		evt.Network.ParseAndSend("PART %s :%s", channel, reason)
+		evt.Network.Tunnel().Part(channel, reason)
 	})
 	env.Define("Topic", func(channel string, topic string) {
-		evt.Network.ParseAndSend("TOPIC %s :%s", channel, topic)
+		evt.Network.Tunnel().Topic(channel, topic)
 	})
 	env.Define("Privmsg", func(channel string, message string) {
-		evt.Network.ParseAndSend("PRIVMSG %s :%s", channel, message)
+		evt.Network.Tunnel().Privmsg(channel, message)
 	})
 }
 

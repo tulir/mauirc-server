@@ -228,7 +228,7 @@ func (net *netImpl) connected(evt *msg.Message) {
 	net.IRC.List()
 	for channel := range net.ChannelInfo {
 		if strings.HasPrefix(channel, "#") {
-			net.IRC.Join(channel)
+			net.IRC.Join(channel, "")
 		}
 	}
 	net.GetOwner().GetMessageChan() <- mauircdi.Message{Type: "netdata", Object: mauircdi.NetData{Name: net.GetName(), Connected: true}}

@@ -20,6 +20,7 @@ package config
 import (
 	"fmt"
 	"github.com/Jeffail/gabs"
+	msg "github.com/sorcix/irc"
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/interfaces"
 	"strconv"
@@ -68,7 +69,7 @@ func (user *userImpl) rawMessage(data *gabs.Container) {
 		return
 	}
 
-	net.ParseAndSend(message)
+	net.Tunnel().Send(msg.ParseMessage(message))
 }
 
 func (user *userImpl) cmdDeleteMessage(data *gabs.Container) {
@@ -188,7 +189,7 @@ func (user *userImpl) cmdKick(data *gabs.Container) {
 	}
 
 	if len(channel) > 0 && len(usr) > 0 && len(message) > 0 {
-		net.ParseAndSend("KICK %s %s :%s", channel, usr, message)
+		net.Tunnel().Kick(channel, usr, message)
 	}
 }
 
@@ -210,6 +211,6 @@ func (user *userImpl) cmdMode(data *gabs.Container) {
 	}
 
 	if len(channel) > 0 && len(message) > 0 {
-		net.ParseAndSend("MODE %s %s", channel, message)
+		net.Tunnel().Mode(channel, message, "")
 	}
 }
