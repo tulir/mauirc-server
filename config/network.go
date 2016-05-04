@@ -161,7 +161,7 @@ func (net *netImpl) ReceiveMessage(channel, sender, command, message string) {
 	if msg.Channel == "AUTH" || msg.Channel == "*" {
 		return
 	} else if msg.Channel == net.IRC.Nick {
-		if len(msg.Sender) > 0 {
+		if len(msg.Sender) > 0 && net.GetActiveChannels().Has(msg.Sender) {
 			net.GetActiveChannels().Put(&chanDataImpl{Network: net.Name, Name: msg.Sender})
 		}
 		msg.Channel = msg.Sender
@@ -173,10 +173,6 @@ func (net *netImpl) ReceiveMessage(channel, sender, command, message string) {
 		return
 	}
 	msg = evt.Message
-
-	if len(msg.Channel) == 0 || len(msg.Command) == 0 {
-		return
-	}
 
 	net.InsertAndSend(msg)
 }
@@ -244,6 +240,9 @@ func (net *netImpl) SwitchMessageNetwork(msg database.Message, receiving bool) b
 
 // InsertAndSend inserts the given message into the database and sends it to the client
 func (net *netImpl) InsertAndSend(msg database.Message) {
+	if len(msg.Command) == 0 {
+		return
+	}
 	msg.Preview, _ = preview.GetPreview(msg.Message)
 	msg.ID = database.Insert(net.Owner.Email, msg)
 	net.Owner.NewMessages <- mauircdi.Message{Type: "message", Object: msg}
