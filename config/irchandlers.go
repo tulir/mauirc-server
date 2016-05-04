@@ -77,7 +77,7 @@ func (net *netImpl) mode(evt *msg.Message) {
 }
 
 func (net *netImpl) nick(evt *msg.Message) {
-	if evt.Name == net.IRC.Nick {
+	if evt.Name == net.IRC.GetNick() {
 		net.Owner.NewMessages <- mauircdi.Message{Type: "nickchange", Object: mauircdi.NickChange{Network: net.Name, Nick: evt.Trailing}}
 		net.Nick = evt.Trailing
 	}
@@ -260,7 +260,7 @@ func (net *netImpl) joinpart(user, channel string, part bool) {
 	sort.Sort(ci.UserList)
 	net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
 
-	if user == net.IRC.Nick && part {
+	if user == net.IRC.GetNick() && part {
 		net.ChannelInfo.Remove(channel)
 	}
 }

@@ -46,7 +46,7 @@ type netImpl struct {
 	Chs      []string `json:"channels"`
 
 	Owner       *userImpl             `json:"-"`
-	IRC         *irc.Connection       `json:"-"`
+	IRC         irc.Connection        `json:"-"`
 	Scripts     []mauircdi.Script     `json:"-"`
 	ChannelInfo cdlImpl               `json:"-"`
 	ChannelList []string              `json:"-"`
@@ -77,21 +77,21 @@ func (net *netImpl) Save() {
 // Open an IRC connection
 func (net *netImpl) Open() {
 	i := irc.Create(net.Nick, net.User, irc.IPv4Address{IP: net.IP, Port: net.Port})
-	i.RealName = net.Realname
-	i.UseTLS = net.SSL
-	i.QuitMsg = "mauIRCd shutting down..."
+	i.SetRealName(net.Realname)
+	i.SetQuitMessage("mauIRCd shutting down...")
+	i.SetUseTLS(net.SSL)
 
 	if *debug {
-		i.DebugWriter = os.Stdout
+		i.SetDebugWriter(os.Stdout)
 		go func() {
-			for err := range i.Errors {
+			for err := range i.Errors() {
 				os.Stderr.WriteString("Error: " + err.Error())
 			}
 		}()
 	}
 
 	if len(net.Password) > 0 {
-		i.Auth = append(i.Auth, &irc.PasswordAuth{Password: net.Password})
+		i.AddAuth(&irc.PasswordAuth{Password: net.Password})
 	}
 
 	for _, ch := range net.Chs {
@@ -152,7 +152,7 @@ func (net *netImpl) IsConnected() bool {
 func (net *netImpl) ReceiveMessage(channel, sender, command, message string) {
 	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
 
-	if msg.Sender == net.IRC.Nick || (command == "nick" && message == net.IRC.Nick) {
+	if msg.Sender == net.IRC.GetNick() || (command == "nick" && message == net.IRC.GetNick()) {
 		msg.OwnMsg = true
 	} else {
 		msg.OwnMsg = false
@@ -160,7 +160,7 @@ func (net *netImpl) ReceiveMessage(channel, sender, command, message string) {
 
 	if msg.Channel == "AUTH" || msg.Channel == "*" {
 		return
-	} else if msg.Channel == net.IRC.Nick {
+	} else if msg.Channel == net.IRC.GetNick() {
 		if len(msg.Sender) > 0 && net.GetActiveChannels().Has(msg.Sender) {
 			net.GetActiveChannels().Put(&chanDataImpl{Network: net.Name, Name: msg.Sender})
 		}
@@ -179,7 +179,7 @@ func (net *netImpl) ReceiveMessage(channel, sender, command, message string) {
 
 // SendMessage sends the given message to the given channel
 func (net *netImpl) SendMessage(channel, command, message string) {
-	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: net.IRC.Nick, Command: command, Message: message, OwnMsg: true}
+	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: net.IRC.GetNick(), Command: command, Message: message, OwnMsg: true}
 
 	var evt = &mauircdi.Event{Message: msg, Network: net, Cancelled: false}
 	net.RunScripts(evt, true)
@@ -264,7 +264,7 @@ func (net *netImpl) GetName() string {
 }
 
 func (net *netImpl) GetNick() string {
-	return net.IRC.Nick
+	return net.IRC.GetNick()
 }
 
 func (net *netImpl) GetActiveChannels() mauircdi.ChannelDataList {
