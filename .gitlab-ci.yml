@@ -8,7 +8,6 @@ before_script:
 - "go get -u github.com/gorilla/sessions"
 - "go get -u github.com/gorilla/websocket"
 - "go get -u github.com/mattn/anko"
-- "go get -u github.com/Jeffail/gabs"
 - "go get -u golang.org/x/crypto/bcrypt"
 - "go get -u github.com/dyatlov/go-opengraph/opengraph"
 - "go get -u github.com/mvdan/xurls"

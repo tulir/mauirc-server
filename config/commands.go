@@ -19,7 +19,6 @@ package config
 
 import (
 	"fmt"
-	"github.com/Jeffail/gabs"
 	msg "github.com/sorcix/irc"
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/interfaces"
@@ -27,13 +26,8 @@ import (
 )
 
 // HandleCommand handles mauIRC commands from clients
-func (user *userImpl) HandleCommand(data *gabs.Container) {
-	typ, ok := data.Path("type").Data().(string)
-	if !ok {
-		return
-	}
-
-	switch typ {
+func (user *userImpl) HandleCommand(data map[string]string) {
+	switch data["type"] {
 	case "raw":
 		user.rawMessage(data)
 	case "message":
@@ -53,31 +47,25 @@ func (user *userImpl) HandleCommand(data *gabs.Container) {
 	}
 }
 
-func (user *userImpl) rawMessage(data *gabs.Container) {
-	network, ok := data.Path("network").Data().(string)
-	if !ok {
+func (user *userImpl) rawMessage(data map[string]string) {
+	if len(data["network"]) == 0 || len(data["message"]) == 0 {
 		return
 	}
 
-	net := user.GetNetwork(network)
+	net := user.GetNetwork(data["network"])
 	if net == nil {
 		return
 	}
 
-	message, ok := data.Path("message").Data().(string)
-	if !ok {
-		return
-	}
-
-	net.Tunnel().Send(msg.ParseMessage(message))
+	net.Tunnel().Send(msg.ParseMessage(data["message"]))
 }
 
-func (user *userImpl) cmdDeleteMessage(data *gabs.Container) {
-	idS, ok := data.Path("id").Data().(string)
-	if !ok {
+func (user *userImpl) cmdDeleteMessage(data map[string]string) {
+	if len(data["id"]) == 0 {
 		return
 	}
-	id, err := strconv.ParseInt(idS, 10, 64)
+
+	id, err := strconv.ParseInt(data["id"], 10, 64)
 	if err != nil {
 		return
 	}
@@ -91,126 +79,84 @@ func (user *userImpl) cmdDeleteMessage(data *gabs.Container) {
 	user.NewMessages <- mauircdi.Message{Type: "delete", Object: id}
 }
 
-func (user *userImpl) cmdClearHistory(data *gabs.Container) {
-	network, ok := data.Path("network").Data().(string)
-	if !ok {
+func (user *userImpl) cmdClearHistory(data map[string]string) {
+	if len(data["network"]) == 0 || len(data["channel"]) == 0 {
 		return
 	}
 
-	channel, ok := data.Path("channel").Data().(string)
-	if !ok {
-		return
-	}
-
-	err := database.ClearChannel(user.GetEmail(), network, channel)
+	err := database.ClearChannel(user.GetEmail(), data["network"], data["channel"])
 	if err != nil {
-		fmt.Printf("<%s> Failed to clear history of %s@%s: %s", user.GetEmail(), channel, network, err)
+		fmt.Printf("<%s> Failed to clear history of %s@%s: %s", user.GetEmail(), data["network"], data["channel"], err)
 		return
 	}
-	user.NewMessages <- mauircdi.Message{Type: "clear", Object: mauircdi.ClearHistory{Channel: channel, Network: network}}
+
+	user.NewMessages <- mauircdi.Message{Type: "clear", Object: mauircdi.ClearHistory{Channel: data["channel"], Network: data["network"]}}
 }
 
-func (user *userImpl) cmdCloseChannel(data *gabs.Container) {
-	net, ok := data.Path("network").Data().(string)
-	if !ok {
+func (user *userImpl) cmdCloseChannel(data map[string]string) {
+	if len(data["network"]) == 0 || len(data["channel"]) == 0 {
 		return
 	}
 
-	network := user.GetNetwork(net)
+	network := user.GetNetwork(data["network"])
 	if network == nil {
 		return
 	}
 
-	channel, ok := data.Path("channel").Data().(string)
-	if !ok {
-		return
-	}
-
-	network.GetActiveChannels().Remove(channel)
+	network.GetActiveChannels().Remove(data["channel"])
 }
 
-func (user *userImpl) cmdOpenChannel(data *gabs.Container) {
-	net, ok := data.Path("network").Data().(string)
-	if !ok {
+func (user *userImpl) cmdOpenChannel(data map[string]string) {
+	if len(data["network"]) == 0 || len(data["channel"]) == 0 {
 		return
 	}
 
-	network := user.GetNetwork(net)
+	network := user.GetNetwork(data["network"])
 	if network == nil {
 		return
 	}
 
-	channel, ok := data.Path("channel").Data().(string)
-	if !ok {
-		return
-	}
-
-	network.GetActiveChannels().Put(&chanDataImpl{Network: network.GetName(), Name: channel})
+	network.GetActiveChannels().Put(&chanDataImpl{Network: network.GetName(), Name: data["channel"]})
 }
 
-func (user *userImpl) cmdMessage(data *gabs.Container) {
-	network, ok := data.Path("network").Data().(string)
-	if !ok {
+func (user *userImpl) cmdMessage(data map[string]string) {
+	if len(data["network"]) == 0 || len(data["channel"]) == 0 || len(data["command"]) == 0 || len(data["message"]) == 0 {
 		return
 	}
 
-	net := user.GetNetwork(network)
+	net := user.GetNetwork(data["network"])
 	if net == nil {
 		return
 	}
 
-	channel, okChan := data.Path("channel").Data().(string)
-	command, okCmd := data.Path("command").Data().(string)
-	message, okMsg := data.Path("message").Data().(string)
-	if !okChan || !okCmd || !okMsg {
+	if len(data["channel"]) == 0 || len(data["command"]) == 0 || len(data["message"]) == 0 {
 		return
 	}
-	if len(channel) > 0 && len(command) > 0 && len(message) > 0 {
-		net.SendMessage(channel, command, message)
-	}
+	net.SendMessage(data["channel"], data["command"], data["message"])
 }
 
-func (user *userImpl) cmdKick(data *gabs.Container) {
-	network, ok := data.Path("network").Data().(string)
-	if !ok {
+func (user *userImpl) cmdKick(data map[string]string) {
+	if len(data["network"]) == 0 || len(data["channel"]) == 0 || len(data["user"]) == 0 || len(data["message"]) == 0 {
 		return
 	}
 
-	net := user.GetNetwork(network)
+	net := user.GetNetwork(data["network"])
 	if net == nil {
 		return
 	}
 
-	channel, okChan := data.Path("channel").Data().(string)
-	usr, okUser := data.Path("user").Data().(string)
-	message, okMsg := data.Path("message").Data().(string)
-	if !okChan || !okUser || !okMsg {
-		return
-	}
-
-	if len(channel) > 0 && len(usr) > 0 && len(message) > 0 {
-		net.Tunnel().Kick(channel, usr, message)
-	}
+	net.Tunnel().Kick(data["channel"], data["user"], data["message"])
 }
 
-func (user *userImpl) cmdMode(data *gabs.Container) {
-	network, ok := data.Path("network").Data().(string)
-	if !ok {
+func (user *userImpl) cmdMode(data map[string]string) {
+	if len(data["network"]) == 0 || len(data["channel"]) == 0 || len(data["message"]) == 0 {
 		return
 	}
 
-	net := user.GetNetwork(network)
+	net := user.GetNetwork(data["network"])
 	if net == nil {
 		return
 	}
 
-	channel, okChan := data.Path("channel").Data().(string)
-	message, okMsg := data.Path("message").Data().(string)
-	if !okChan || !okMsg {
-		return
-	}
-
-	if len(channel) > 0 && len(message) > 0 {
-		net.Tunnel().Mode(channel, message, "")
-	}
+	net.Tunnel().Mode(data["channel"], data["message"], "")
 }

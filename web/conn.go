@@ -18,8 +18,8 @@
 package web
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/Jeffail/gabs"
 	"github.com/gorilla/websocket"
 	"maunium.net/go/mauircd/interfaces"
 	"net/http"
@@ -56,11 +56,11 @@ func (c *connection) readPump() {
 			break
 		}
 
-		data, err := gabs.ParseJSON(message)
+		var data = make(map[string]string)
+		err = json.Unmarshal(message, &data)
 		if err != nil {
 			continue
 		}
-
 		c.user.HandleCommand(data)
 	}
 }

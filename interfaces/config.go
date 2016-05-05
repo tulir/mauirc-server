@@ -17,10 +17,6 @@
 // Package mauircdi contains interfaces
 package mauircdi
 
-import (
-	"github.com/Jeffail/gabs"
-)
-
 // Configuration contains the main config
 type Configuration interface {
 	Load() error
@@ -56,7 +52,7 @@ type User interface {
 	CheckAuthToken(token string) bool
 	CheckPassword(password string) bool
 
-	HandleCommand(data *gabs.Container)
+	HandleCommand(data map[string]string)
 
 	GetGlobalScripts() []Script
 	AddGlobalScript(s Script) bool
