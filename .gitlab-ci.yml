@@ -12,7 +12,6 @@ before_script:
 - "go get -u github.com/dyatlov/go-opengraph/opengraph"
 - "go get -u github.com/mvdan/xurls"
 - "go get -u maunium.net/go/libmauirc"
-- "mkdir -p /go/src/maunium.net/go"
 - "ln -s /builds/Tulir293/mauircd /go/src/maunium.net/go/mauircd"
 
 build:
