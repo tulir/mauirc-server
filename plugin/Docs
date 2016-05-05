@@ -1,5 +1,5 @@
 // Event contains all event-specific things
-event
+event module
 	// The name of the network the message was sent on.
 	// If this is changed, the message will be transferred to the other network immediately after this script.
 	<Get|Set>Network() string
