@@ -2,28 +2,28 @@
 event
 	// The name of the network the message was sent on.
 	// If this is changed, the message will be transferred to the other network immediately after this script.
-	func <Get|Set>Network string
+	<Get|Set>Network() string
 
 	// The name of the channel the message was sent to.
-	<Get|Set>Channel string
+	<Get|Set>Channel() string
 
 	// The timestamp of the message.
-	<Get|Set>Timestamp int64
+	<Get|Set>Timestamp() int64
 
 	// The plain nick of the user who sent the message.
-	<Get|Set>Sender string
+	<Get|Set>Sender() string
 
 	// The command used (e.g. privmsg, action, join..)
-	<Get|Set>Command string
+	<Get|Set>Command() string
 
 	// The message.
-	<Get|Set>Message string
+	<Get|Set>Message() string
 
 	// Whether or not the message is from the mauIRC user.
-	<Is|Set>OwnMsg bool
+	<Is|Set>OwnMsg() bool
 
 	// Whether or not the message has been cancelled by a plugin.
-	<Is|Set>Cancelled bool
+	<Is|Set>Cancelled() bool
 
 	// Module that contains methods to modify the preview of the URLs in the message.
 	preview module
