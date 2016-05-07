@@ -20,7 +20,6 @@ package plugin
 import (
 	"fmt"
 	anko_encoding_json "github.com/mattn/anko/builtins/encoding/json"
-	anko_flag "github.com/mattn/anko/builtins/flag"
 	//anko_io "github.com/mattn/anko/builtins/io"
 	//anko_io_ioutil "github.com/mattn/anko/builtins/io/ioutil"
 	anko_math "github.com/mattn/anko/builtins/math"
@@ -44,7 +43,6 @@ import (
 func LoadImport(env *vm.Env) {
 	tbl := map[string]func(env *vm.Env) *vm.Env{
 		"encoding/json": anko_encoding_json.Import,
-		"flag":          anko_flag.Import,
 		//"io":            anko_io.Import,
 		//"io/ioutil":     anko_io_ioutil.Import,
 		"math":     anko_math.Import,
