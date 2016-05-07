@@ -100,6 +100,14 @@ network module
 		Topic(channel string, topic string)
 		// Send the given message to the given channel (or user)
 		Privmsg(channel string, message string)
+		// Send the given CTCP Action to the given channel (or user)
+		Action(channel string, message string)
+		// Mark away status
+		Away(message string)
+		// Unmark away status
+		NotAway()
+		// Send a raw IRC message. This is parsed before sending to make sure it's valid.
+		Raw(message string)
 
 // User contains all user-specific things (send messages to client, etc...)
 user module

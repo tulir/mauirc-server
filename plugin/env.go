@@ -20,6 +20,7 @@ package plugin
 import (
 	"fmt"
 	anko_encoding_json "github.com/mattn/anko/builtins/encoding/json"
+	"github.com/sorcix/irc"
 	//anko_io "github.com/mattn/anko/builtins/io"
 	//anko_io_ioutil "github.com/mattn/anko/builtins/io/ioutil"
 	anko_math "github.com/mattn/anko/builtins/math"
@@ -224,6 +225,18 @@ func LoadIRC(env *vm.Env, evt *mauircdi.Event) {
 	})
 	env.Define("Privmsg", func(channel string, message string) {
 		evt.Network.Tunnel().Privmsg(channel, message)
+	})
+	env.Define("Action", func(channel string, message string) {
+		evt.Network.Tunnel().Action(channel, message)
+	})
+	env.Define("Away", func(message string) {
+		evt.Network.Tunnel().Away(message)
+	})
+	env.Define("RemoveAway", func() {
+		evt.Network.Tunnel().RemoveAway()
+	})
+	env.Define("Raw", func(message string) {
+		evt.Network.Tunnel().Send(irc.ParseMessage(message))
 	})
 }
 
