@@ -371,23 +371,23 @@ func (cd *chanDataImpl) Modes() mauircdi.ModeList {
 type cdlImpl map[string]*chanDataImpl
 
 func (cdl cdlImpl) Get(channel string) (mauircdi.ChannelData, bool) {
-	val, ok := cdl[channel]
+	val, ok := cdl[strings.ToLower(channel)]
 	return val, ok
 }
 
 func (cdl cdlImpl) Put(data mauircdi.ChannelData) {
 	dat, ok := data.(*chanDataImpl)
 	if ok {
-		cdl[data.GetName()] = dat
+		cdl[strings.ToLower(data.GetName())] = dat
 	}
 }
 
 func (cdl cdlImpl) Remove(channel string) {
-	delete(cdl, channel)
+	delete(cdl, strings.ToLower(channel))
 }
 
 func (cdl cdlImpl) Has(channel string) bool {
-	_, ok := cdl[channel]
+	_, ok := cdl[strings.ToLower(channel)]
 	return ok
 }
 
