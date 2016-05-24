@@ -39,13 +39,14 @@ func script(w http.ResponseWriter, r *http.Request) {
 	}
 
 	args := strings.Split(r.RequestURI, "/")[2:]
-	if r.Method == http.MethodGet {
+	switch r.Method {
+	case http.MethodGet:
 		getScripts(w, r, args, user)
-	} else if r.Method == http.MethodDelete {
+	case http.MethodDelete:
 		deleteScript(w, r, args, user)
-	} else if r.Method == http.MethodPut {
+	case http.MethodPut:
 		putScript(w, r, args, user)
-	} else {
+	default:
 		w.Header().Add("Allow", http.MethodGet+","+http.MethodDelete+","+http.MethodPut)
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
