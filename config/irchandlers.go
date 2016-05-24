@@ -34,10 +34,10 @@ func (net *netImpl) mode(evt *msg.Message) {
 		return
 	}
 	if evt.Params[0][0] == '#' {
-		ci := net.ChannelInfo[evt.Params[0]]
+		ci := net.ChannelInfo.get(evt.Params[0])
 		if ci == nil {
 			net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Params[0]})
-			ci = net.ChannelInfo[evt.Params[0]]
+			ci = net.ChannelInfo.get(evt.Params[0])
 		}
 
 		var targets = evt.Params[2:]
@@ -93,10 +93,10 @@ func (net *netImpl) nick(evt *msg.Message) {
 }
 
 func (net *netImpl) userlist(evt *msg.Message) {
-	ci := net.ChannelInfo[evt.Params[2]]
+	ci := net.ChannelInfo.get(evt.Params[2])
 	if ci == nil {
 		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Params[2]})
-		ci = net.ChannelInfo[evt.Params[2]]
+		ci = net.ChannelInfo.get(evt.Params[2])
 	}
 
 	users := strings.Split(evt.Trailing, " ")
@@ -113,10 +113,10 @@ func (net *netImpl) userlist(evt *msg.Message) {
 }
 
 func (net *netImpl) userlistend(evt *msg.Message) {
-	ci := net.ChannelInfo[evt.Params[1]]
+	ci := net.ChannelInfo.get(evt.Params[1])
 	if ci == nil {
 		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Params[1]})
-		ci = net.ChannelInfo[evt.Params[1]]
+		ci = net.ChannelInfo.get(evt.Params[1])
 	}
 
 	ci.ReceivingUserList = false
@@ -133,10 +133,10 @@ func (net *netImpl) chanlistend(evt *msg.Message) {
 }
 
 func (net *netImpl) topic(evt *msg.Message) {
-	ci := net.ChannelInfo[evt.Params[0]]
+	ci := net.ChannelInfo.get(evt.Params[0])
 	if ci == nil {
 		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Params[0]})
-		ci = net.ChannelInfo[evt.Params[0]]
+		ci = net.ChannelInfo.get(evt.Params[0])
 	}
 	ci.Topic = evt.Trailing
 	ci.TopicSetBy = evt.Name
@@ -146,10 +146,10 @@ func (net *netImpl) topic(evt *msg.Message) {
 }
 
 func (net *netImpl) topicresp(evt *msg.Message) {
-	ci := net.ChannelInfo[evt.Params[1]]
+	ci := net.ChannelInfo.get(evt.Params[1])
 	if ci == nil {
 		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Params[1]})
-		ci = net.ChannelInfo[evt.Params[1]]
+		ci = net.ChannelInfo.get(evt.Params[1])
 	}
 	ci.Topic = evt.Trailing
 	net.Owner.NewMessages <- mauircdi.Message{Type: "chandata", Object: ci}
@@ -172,10 +172,10 @@ func (net *netImpl) noperms(evt *msg.Message) {
 }
 
 func (net *netImpl) topicset(evt *msg.Message) {
-	ci := net.ChannelInfo[evt.Params[1]]
+	ci := net.ChannelInfo.get(evt.Params[1])
 	if ci == nil {
 		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: evt.Params[1]})
-		ci = net.ChannelInfo[evt.Params[1]]
+		ci = net.ChannelInfo.get(evt.Params[1])
 	}
 	ci.TopicSetBy = evt.Params[2]
 	setAt, err := strconv.ParseInt(evt.Params[3], 10, 64)
@@ -248,12 +248,11 @@ func (net *netImpl) disconnected(evt *msg.Message) {
 }
 
 func (net *netImpl) joinpart(user, channel string, part bool) {
-	ci := net.ChannelInfo[channel]
+	ci := net.ChannelInfo.get(channel)
 	if ci == nil {
 		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: channel})
-		ci = net.ChannelInfo[channel]
+		ci = net.ChannelInfo.get(channel)
 	}
-
 	contains, i := ci.UserList.Contains(user)
 	if contains {
 		if part {

@@ -375,6 +375,10 @@ func (cdl cdlImpl) Get(channel string) (mauircdi.ChannelData, bool) {
 	return val, ok
 }
 
+func (cdl cdlImpl) get(channel string) *chanDataImpl {
+	return cdl[strings.ToLower(channel)]
+}
+
 func (cdl cdlImpl) Put(data mauircdi.ChannelData) {
 	dat, ok := data.(*chanDataImpl)
 	if ok {
