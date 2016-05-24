@@ -103,6 +103,7 @@ func (net *netImpl) Open() {
 
 	i.AddHandler(msg.PRIVMSG, net.privmsg)
 	i.AddHandler(msg.NOTICE, net.privmsg)
+	i.AddHandler(msg.INVITE, net.invite)
 	i.AddHandler("CPRIVMSG", net.privmsg)
 	i.AddHandler("CNOTICE", net.privmsg)
 	i.AddHandler("CTCP_ACTION", net.action)

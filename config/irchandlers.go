@@ -224,6 +224,14 @@ func (net *netImpl) action(evt *msg.Message) {
 	net.ReceiveMessage(evt.Params[0], evt.Name, "action", evt.Trailing)
 }
 
+func (net *netImpl) invite(evt *msg.Message) {
+	net.GetOwner().GetMessageChan() <- mauircdi.Message{Type: "invite", Object: mauircdi.Invite{
+		Network: net.Name,
+		Channel: evt.Params[1],
+		Sender:  evt.Name,
+	}}
+}
+
 func (net *netImpl) connected(evt *msg.Message) {
 	net.IRC.List()
 	for channel := range net.ChannelInfo {

@@ -41,6 +41,13 @@ type ChanList struct {
 	List    []string `json:"list"`
 }
 
+// Invite an user to a channel
+type Invite struct {
+	Network string `json:"network"`
+	Channel string `json:"channel"`
+	Sender  string `json:"sender"`
+}
+
 // CommandResponse is a response to an user-sent internal command
 type CommandResponse struct {
 	Success       bool   `json:"success"`
