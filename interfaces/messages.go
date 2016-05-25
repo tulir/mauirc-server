@@ -23,6 +23,12 @@ type Message struct {
 	Object interface{} `json:"object"`
 }
 
+// RawMessage is a raw IRC message
+type RawMessage struct {
+	Network string `json:"network"`
+	Message string `json:"message"`
+}
+
 // NickChange is the message for IRC nick changes
 type NickChange struct {
 	Network string `json:"network"`

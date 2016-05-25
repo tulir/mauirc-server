@@ -131,6 +131,7 @@ func (net *netImpl) Open() {
 	i.AddHandler(msg.RPL_ENDOFWHOIS, net.whoisEnd)
 	i.AddHandler(msg.RPL_WHOISCHANNELS, net.whoisChannels)
 	i.AddHandler("617", net.whoisSecure)
+	i.AddHandler("*", net.rawHandler)
 
 	if err := net.Connect(); err != nil {
 		fmt.Printf("Failed to connect to %s:%d: %s", net.IP, net.Port, err)

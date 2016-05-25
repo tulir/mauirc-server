@@ -329,3 +329,7 @@ func (net *netImpl) whoisEnd(evt *msg.Message) {
 	net.Owner.NewMessages <- mauircdi.Message{Type: "whois", Object: data}
 	net.RemoveWhoisData(evt.Params[1])
 }
+
+func (net *netImpl) rawHandler(evt *msg.Message) {
+	net.Owner.NewMessages <- mauircdi.Message{Type: "raw", Object: mauircdi.RawMessage{Network: net.GetName(), Message: evt.String()}}
+}
