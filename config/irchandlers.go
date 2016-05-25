@@ -331,5 +331,7 @@ func (net *netImpl) whoisEnd(evt *msg.Message) {
 }
 
 func (net *netImpl) rawHandler(evt *msg.Message) {
+	// libmauirc adds the trailing text as a param, remove it.
+	evt.Params = evt.Params[:len(evt.Params)]
 	net.Owner.NewMessages <- mauircdi.Message{Type: "raw", Object: mauircdi.RawMessage{Network: net.GetName(), Message: evt.String()}}
 }
