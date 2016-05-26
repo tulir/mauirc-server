@@ -96,6 +96,8 @@ func (config *configImpl) Load() error {
 		user.HostConf = config
 	}
 
+	config.ClearIdent()
+
 	return nil
 }
 
