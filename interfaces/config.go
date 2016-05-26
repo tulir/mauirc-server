@@ -33,6 +33,9 @@ type Configuration interface {
 	GetExternalAddr() string
 
 	GetCookieSecret() []byte
+
+	AddIdent(name, ip string, port int) error
+	ClearIdent() error
 }
 
 // IdentConf contains info about the ident client
