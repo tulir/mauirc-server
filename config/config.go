@@ -35,14 +35,15 @@ func NewConfig(path string) mauircdi.Configuration {
 }
 
 type configImpl struct {
-	Path         string       `json:"-"`
-	SQL          mysqlImpl    `json:"sql"`
-	Users        userListImpl `json:"users"`
-	IP           string       `json:"ip"`
-	Port         int          `json:"port"`
-	Address      string       `json:"external-address"`
-	CSecretB64   string       `json:"cookie-secret"`
-	CookieSecret []byte       `json:"-"`
+	Path         string             `json:"-"`
+	SQL          mysqlImpl          `json:"sql"`
+	Users        userListImpl       `json:"users"`
+	IP           string             `json:"ip"`
+	Port         int                `json:"port"`
+	Address      string             `json:"external-address"`
+	CSecretB64   string             `json:"cookie-secret"`
+	Ident        mauircdi.IdentConf `json:"ident"`
+	CookieSecret []byte             `json:"-"`
 }
 
 type mysqlImpl struct {

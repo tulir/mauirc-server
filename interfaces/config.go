@@ -35,6 +35,12 @@ type Configuration interface {
 	GetCookieSecret() []byte
 }
 
+// IdentConf contains info about the ident client
+type IdentConf struct {
+	File   string `json:"file"`
+	Format string `json:"format"`
+}
+
 // UserList is a list of users that can be looped through
 type UserList interface {
 	ForEach(func(user User))
