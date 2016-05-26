@@ -58,6 +58,7 @@ type User interface {
 
 	NewAuthToken() string
 	GetEmail() string
+	GetNameFromEmail() string
 	CheckAuthToken(token string) bool
 	CheckPassword(password string) bool
 

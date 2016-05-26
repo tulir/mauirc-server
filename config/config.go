@@ -92,6 +92,10 @@ func (config *configImpl) Load() error {
 		config.CSecretB64 = base64.StdEncoding.EncodeToString(cs)
 	}
 
+	for _, user := range config.Users {
+		user.HostConf = config
+	}
+
 	return nil
 }
 

@@ -27,13 +27,14 @@ import (
 )
 
 type userImpl struct {
-	Networks      netListImpl           `json:"networks"`
-	Email         string                `json:"email"`
-	Password      string                `json:"password"`
-	AuthTokens    []authToken           `json:"authtokens,omitempty"`
-	NewMessages   chan mauircdi.Message `json:"-"`
-	GlobalScripts []mauircdi.Script     `json:"-"`
-	Settings      interface{}           `json:"settings"`
+	Networks      netListImpl            `json:"networks"`
+	Email         string                 `json:"email"`
+	Password      string                 `json:"password"`
+	AuthTokens    []authToken            `json:"authtokens,omitempty"`
+	NewMessages   chan mauircdi.Message  `json:"-"`
+	GlobalScripts []mauircdi.Script      `json:"-"`
+	Settings      interface{}            `json:"settings"`
+	HostConf      mauircdi.Configuration `json:"-"`
 }
 
 type authToken struct {
@@ -124,6 +125,11 @@ func generateAuthToken() string {
 
 func (user *userImpl) GetEmail() string {
 	return user.Email
+}
+
+func (user *userImpl) GetNameFromEmail() string {
+	parts := strings.Split(user.GetEmail(), "@")
+	return parts[0]
 }
 
 func (user *userImpl) GetMessageChan() chan mauircdi.Message {
