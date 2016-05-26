@@ -28,6 +28,7 @@ import (
 	"maunium.net/go/mauircd/util/split"
 	"maunium.net/go/mauircd/util/userlist"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -136,6 +137,26 @@ func (net *netImpl) Open() {
 	if err := net.Connect(); err != nil {
 		fmt.Printf("Failed to connect to %s:%d: %s", net.IP, net.Port, err)
 	}
+	net.AddIdent()
+}
+
+func (net *netImpl) AddIdent() error {
+	addr := strings.Split(net.IRC.LocalAddr().String(), ":")
+	if len(addr) < 0 {
+		return fmt.Errorf("Invalid local address (%s)", net.IRC.LocalAddr().String())
+	}
+
+	port, err := strconv.Atoi(addr[1])
+	if err != nil {
+		return fmt.Errorf("Invalid port (%s): %s", addr[1], err)
+	}
+
+	err = net.Owner.HostConf.AddIdent(net.Owner.GetNameFromEmail(), addr[0], port)
+	if err != nil {
+		return fmt.Errorf("Failed to add ident: %s", err)
+	}
+
+	return nil
 }
 
 func (net *netImpl) Connect() error {
