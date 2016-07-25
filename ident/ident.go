@@ -66,7 +66,7 @@ func handleConn(socket net.Conn) {
 		return
 	}
 
-	reqParts := strings.Split(msg, ", ")
+	reqParts := strings.Split(strings.TrimSpace(msg), ", ")
 	if len(reqParts) != 2 {
 		return
 	}
@@ -83,8 +83,8 @@ func handleConn(socket net.Conn) {
 
 	name, ok := Ports[localPort]
 	if !ok {
-		fmt.Fprintf(socket, "%d, %d : ERROR : NO-USER", localPort, remotePort)
+		fmt.Fprintf(socket, "%d, %d : ERROR : NO-USER\r\n", localPort, remotePort)
 	} else {
-		fmt.Fprintf(socket, "%d, %d : USERID : UNIX : %s", localPort, remotePort, name)
+		fmt.Fprintf(socket, "%d, %d : USERID : UNIX : %s\r\n", localPort, remotePort, name)
 	}
 }
