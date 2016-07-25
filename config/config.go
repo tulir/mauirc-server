@@ -149,6 +149,10 @@ func (config *configImpl) GetSQLString() string {
 	)
 }
 
+func (config *configImpl) GetIDENTConfig() mauircdi.IdentConf {
+	return config.Ident
+}
+
 func (config *configImpl) GetPath() string {
 	return config.Path
 }

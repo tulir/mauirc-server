@@ -23,6 +23,8 @@ type Configuration interface {
 	Connect()
 	Save() error
 
+	GetIDENTConfig() IdentConf
+
 	GetSQLString() string
 	GetPath() string
 
