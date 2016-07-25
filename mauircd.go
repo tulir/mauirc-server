@@ -22,6 +22,7 @@ import (
 	"maunium.net/go/libmauirc"
 	cfg "maunium.net/go/mauircd/config"
 	"maunium.net/go/mauircd/database"
+	"maunium.net/go/mauircd/ident"
 	"maunium.net/go/mauircd/interfaces"
 	"maunium.net/go/mauircd/web"
 	"os"
@@ -44,6 +45,14 @@ func main() {
 	err := config.Load()
 	if err != nil {
 		panic(err)
+	}
+
+	if config.GetIDENTConfig().Enabled {
+		err = ident.Load(config.GetIDENTConfig())
+		if err != nil {
+			panic(err)
+		}
+		go ident.Listen()
 	}
 
 	err = database.Load(config.GetSQLString())
