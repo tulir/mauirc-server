@@ -21,6 +21,7 @@ import (
 	"bufio"
 	"fmt"
 	mauircdi "maunium.net/go/mauircd/interfaces"
+	"maunium.net/go/maulogger"
 	"net"
 	"strconv"
 	"strings"
@@ -29,6 +30,7 @@ import (
 // Ports is the port->name mapping
 var Ports = make(map[int]string)
 var ln net.Listener
+var log = maulogger.CreateSublogger("IDENT", maulogger.LevelInfo)
 
 // Load the IDENTd
 func Load(config mauircdi.IdentConf) error {
@@ -46,10 +48,10 @@ func Listen() {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			fmt.Println("[IDENT] Failed connection from", conn.RemoteAddr().String())
+			log.Infoln("Failed connection from", conn.RemoteAddr().String())
 			continue
 		}
-		//fmt.Println("[IDENT] IDENT connection from", conn.RemoteAddr().String())
+		log.Debugln("IDENT connection from", conn.RemoteAddr().String())
 		go handleConn(conn)
 	}
 }
@@ -60,7 +62,7 @@ func handleConn(socket net.Conn) {
 	br := bufio.NewReaderSize(socket, 512)
 	msg, err := br.ReadString('\n')
 	if err != nil {
-		fmt.Printf("[IDENT] Failed to read from %s: %s\n", socket.RemoteAddr().String(), err)
+		log.Errorln("Failed to read from %s: %s\n", socket.RemoteAddr().String(), err)
 		return
 	} else if len(msg) > 20 {
 		return

@@ -18,7 +18,6 @@
 package config
 
 import (
-	"fmt"
 	msg "github.com/sorcix/irc"
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/interfaces"
@@ -72,7 +71,7 @@ func (user *userImpl) cmdDeleteMessage(data map[string]string) {
 
 	err = database.DeleteMessage(user.Email, id)
 	if err != nil {
-		fmt.Printf("<%s> Failed to delete message #%d: %s", user.Email, id, err)
+		log.Warnf("<%s> Failed to delete message #%d: %s\n", user.Email, id, err)
 		return
 	}
 
@@ -86,7 +85,7 @@ func (user *userImpl) cmdClearHistory(data map[string]string) {
 
 	err := database.ClearChannel(user.GetEmail(), data["network"], data["channel"])
 	if err != nil {
-		fmt.Printf("<%s> Failed to clear history of %s@%s: %s", user.GetEmail(), data["network"], data["channel"], err)
+		log.Warnf("<%s> Failed to clear history of %s@%s: %s", user.GetEmail(), data["network"], data["channel"], err)
 		return
 	}
 

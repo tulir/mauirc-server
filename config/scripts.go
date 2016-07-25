@@ -18,7 +18,6 @@
 package config
 
 import (
-	"fmt"
 	"io/ioutil"
 	"maunium.net/go/mauircd/interfaces"
 	"maunium.net/go/mauircd/plugin"
@@ -47,7 +46,7 @@ func (net *netImpl) LoadScripts(path string) error {
 	for _, f := range files {
 		data, err := ioutil.ReadFile(filepath.Join(path, f.Name()))
 		if err != nil {
-			fmt.Printf("Failed to read script \"%s\" for network %s owned by %s\n", f.Name(), net.Name, net.Owner.Email)
+			log.Errorf("Failed to read script \"%s\" for network %s owned by %s\n", f.Name(), net.Name, net.Owner.Email)
 		}
 		net.Scripts = append(net.Scripts, plugin.Script{TheScript: string(data), Name: strings.Split(f.Name(), ".")[0]})
 	}
@@ -69,7 +68,7 @@ func (net *netImpl) SaveScripts(path string) error {
 	for _, script := range net.Scripts {
 		err := ioutil.WriteFile(filepath.Join(path, script.GetName()+".ank"), []byte(script.GetScript()), 0644)
 		if err != nil {
-			fmt.Printf("Failed to save script \"%s\" for network %s owned by %s\n", script.GetName()+".ank", net.Name, net.Owner.Email)
+			log.Errorf("Failed to save script \"%s\" for network %s owned by %s\n", script.GetName()+".ank", net.Name, net.Owner.Email)
 		}
 	}
 	return nil

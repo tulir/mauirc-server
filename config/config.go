@@ -24,9 +24,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"maunium.net/go/mauircd/interfaces"
+	"maunium.net/go/maulogger"
 	"path/filepath"
 	"strings"
 )
+
+var log = maulogger.CreateSublogger("Net", maulogger.LevelInfo)
 
 // NewConfig creates a new Configuration instance
 func NewConfig(path string) mauircdi.Configuration {

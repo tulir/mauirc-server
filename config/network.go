@@ -21,20 +21,17 @@ import (
 	"fmt"
 	msg "github.com/sorcix/irc"
 	irc "maunium.net/go/libmauirc"
-	flag "maunium.net/go/mauflag"
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/ident"
 	"maunium.net/go/mauircd/interfaces"
 	"maunium.net/go/mauircd/util/preview"
 	"maunium.net/go/mauircd/util/split"
 	"maunium.net/go/mauircd/util/userlist"
-	"os"
+	"maunium.net/go/maulogger"
 	"strconv"
 	"strings"
 	"time"
 )
-
-var debug = flag.Make().LongKey("debug").ShortKey("d").Default("false").Usage("Use to enable debug prints").Bool()
 
 type netImpl struct {
 	Name     string   `json:"name"`
@@ -83,11 +80,12 @@ func (net *netImpl) Open() {
 	i.SetQuitMessage("mauIRCd shutting down...")
 	i.SetUseTLS(net.SSL)
 
-	if *debug {
-		i.SetDebugWriter(os.Stdout)
+	if maulogger.DefaultLogger.PrintLevel == 0 {
+		sublog := maulogger.CreateSublogger(net.Owner.GetNameFromEmail()+"/"+net.Name, maulogger.LevelDebug)
+		i.SetDebugWriter(sublog)
 		go func() {
 			for err := range i.Errors() {
-				os.Stderr.WriteString("Error: " + err.Error())
+				sublog.Error(err.Error())
 			}
 		}()
 	}
@@ -136,7 +134,7 @@ func (net *netImpl) Open() {
 	i.AddHandler("*", net.rawHandler)
 
 	if err := net.Connect(); err != nil {
-		fmt.Printf("Failed to connect to %s:%d: %s", net.IP, net.Port, err)
+		log.Errorf("Failed to connect to %s:%d: %s\n", net.IP, net.Port, err)
 	}
 	net.AddIdent()
 }
@@ -157,7 +155,7 @@ func (net *netImpl) AddIdent() error {
 		return fmt.Errorf("Failed to add ident: %s", err)
 	}
 
-	fmt.Printf("Added ident %d -> %s (%s)", port, net.Owner.GetNameFromEmail(), net.IRC.LocalAddr().String())
+	log.Debugf("Added ident %d -> %s (%s)\n", port, net.Owner.GetNameFromEmail(), net.IRC.LocalAddr().String())
 
 	return nil
 }

@@ -243,7 +243,7 @@ func (net *netImpl) connected(evt *msg.Message) {
 }
 
 func (net *netImpl) disconnected(evt *msg.Message) {
-	fmt.Printf("Disconnected from %s:%d\n", net.IP, net.Port)
+	log.Warnf("Disconnected from %s:%d\n", net.IP, net.Port)
 	net.GetOwner().GetMessageChan() <- mauircdi.Message{Type: "netdata", Object: mauircdi.NetData{Name: net.GetName(), Connected: false}}
 }
 

@@ -19,7 +19,6 @@ package web
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/websocket"
 	"maunium.net/go/mauircd/interfaces"
 	"net/http"
@@ -51,7 +50,7 @@ func (c *connection) readPump() {
 		_, message, err := c.ws.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
-				fmt.Println("Unexpected close:", err)
+				log.Warnln("Unexpected close:", err)
 			}
 			break
 		}
@@ -93,7 +92,7 @@ func (c *connection) writePump() {
 
 			err := c.writeJSON(new)
 			if err != nil {
-				fmt.Println("Disconnected:", err)
+				log.Infoln("Disconnected:", err)
 				c.user.GetMessageChan() <- new
 				return
 			}
@@ -110,13 +109,13 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 	success, user := checkAuth(w, r)
 	if !success {
 		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Println("Auth fail")
+		log.Debugln("Auth fail")
 		return
 	}
 
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		fmt.Println("Failed to connect:", err)
+		log.Warnln("Failed to connect:", err)
 		return
 	}
 	c := &connection{ws: ws, user: user}

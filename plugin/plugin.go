@@ -18,11 +18,13 @@
 package plugin
 
 import (
-	"fmt"
 	builtins "github.com/mattn/anko/builtins"
 	"github.com/mattn/anko/vm"
 	"maunium.net/go/mauircd/interfaces"
+	"maunium.net/go/maulogger"
 )
+
+var log = maulogger.DefaultLogger.CreateSublogger("PluginSys", maulogger.LevelDebug)
 
 // Script wraps a Lua script.
 type Script struct {
@@ -55,6 +57,6 @@ func (s Script) Run(evt *mauircdi.Event) {
 
 	val, err := env.Execute(s.GetScript())
 	if err != nil {
-		fmt.Println(val, err)
+		log.Warnln("Error executing script:", val, err)
 	}
 }
