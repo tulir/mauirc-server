@@ -15,7 +15,7 @@
           "user": "<IRC username>",
           "realname": "<IRC realname>",
           "password": "<IRC server password>",
-          "ip": "<IRC server address>,
+          "ip": "<IRC server address>",
           "port": <IRC server port>,
           "ssl": <enable SSL when connecting to server>,
           "channels": []
