@@ -66,21 +66,20 @@ func handleConn(socket net.Conn) {
 		return
 	}
 
-	reqParts := strings.Split(strings.TrimSpace(msg), ", ")
+	reqParts := strings.Split(strings.TrimSpace(msg), ",")
 	if len(reqParts) != 2 {
 		return
 	}
 
-	localPort, err := strconv.Atoi(reqParts[0])
+	localPort, err := strconv.Atoi(strings.TrimSpace(reqParts[0]))
 	if err != nil {
 		return
 	}
 
-	remotePort, err := strconv.Atoi(reqParts[1])
+	remotePort, err := strconv.Atoi(strings.TrimSpace(reqParts[1]))
 	if err != nil {
 		return
 	}
-
 	name, ok := Ports[localPort]
 	if !ok {
 		fmt.Fprintf(socket, "%d, %d : ERROR : NO-USER\r\n", localPort, remotePort)
