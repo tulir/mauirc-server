@@ -6,6 +6,11 @@
     "password": "<password>",
     "database": "<database>"
   },
+  "ident": {
+      "enabled": <Enable an IDENT server?>,
+      "ip": "<IDENT ip>",
+      "port": "<IDENT port>"
+  }
   "users": [
     {
       "networks": [
