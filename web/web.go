@@ -30,6 +30,7 @@ var log = maulogger.CreateSublogger("Web", maulogger.LevelInfo)
 
 // Load the web server
 func Load(c mauircdi.Configuration) {
+	log.Debugln("Loading HTTP server")
 	config = c
 	initStore(config.GetExternalAddr())
 

@@ -108,6 +108,5 @@ func main() {
 		os.Exit(0)
 	}()
 
-	log.Debugln("Loading HTTP server")
 	web.Load(config)
 }
