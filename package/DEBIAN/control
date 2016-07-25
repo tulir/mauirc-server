@@ -1,0 +1,7 @@
+Package: mauircd
+Version: 1.0.0
+Section: base
+Priority: optional
+Architecture: amd64
+Maintainer: Tulir293 <tulir293@maunium.net>
+Description: The backend for mauIRC
