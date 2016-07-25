@@ -2,7 +2,7 @@
   "sql": {
     "ip": "<IP>",
     "port": <port>,
-    "username": "<username>"",
+    "username": "<username>",
     "password": "<password>",
     "database": "<database>"
   },
@@ -13,9 +13,9 @@
           "name": "<Custom name for network>",
           "nick": "<IRC nick>",
           "user": "<IRC username>",
-          "realname": "<IRC realname>"",
-          "password": "<IRC server password>"",
-          "ip": "<IRC server address>"",
+          "realname": "<IRC realname>",
+          "password": "<IRC server password>",
+          "ip": "<IRC server address>,
           "port": <IRC server port>,
           "ssl": <enable SSL when connecting to server>,
           "channels": []
