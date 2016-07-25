@@ -62,6 +62,7 @@ func main() {
 	err := config.Load()
 	if err != nil {
 		log.Fatalln("Failed to load config:", err)
+		log.Close()
 		os.Exit(1)
 	}
 
@@ -70,6 +71,7 @@ func main() {
 		err = ident.Load(config.GetIDENTConfig())
 		if err != nil {
 			log.Fatalln("Failed to enable IDENTd:", err)
+			log.Close()
 			os.Exit(2)
 		}
 		go ident.Listen()
@@ -79,6 +81,7 @@ func main() {
 	err = database.Load(config.GetSQLString())
 	if err != nil {
 		log.Fatalln("Failed to load database:", err)
+		log.Close()
 		os.Exit(3)
 	}
 
@@ -105,6 +108,8 @@ func main() {
 		database.Close()
 		log.Debugln("Saving config")
 		config.Save()
+		log.Debugln("Closing log")
+		log.Close()
 		os.Exit(0)
 	}()
 

@@ -43,6 +43,7 @@ func Load(c mauircdi.Configuration) {
 	err := http.ListenAndServe(config.GetAddr(), context.ClearHandler(http.DefaultServeMux))
 	if err != nil {
 		log.Fatalf("Failed to listen to %s: %s", config.GetAddr(), err)
+		log.Parent.Close()
 		os.Exit(4)
 	}
 }
