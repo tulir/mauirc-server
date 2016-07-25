@@ -38,10 +38,10 @@ type Configuration interface {
 	ClearIdent() error
 }
 
-// IdentConf contains info about the ident client
+// IdentConf tells the IDENT server what ip and port to bind to
 type IdentConf struct {
-	File   string `json:"file"`
-	Format string `json:"format"`
+	IP   string `json:"ip"`
+	Port int    `json:"port"`
 }
 
 // UserList is a list of users that can be looped through
