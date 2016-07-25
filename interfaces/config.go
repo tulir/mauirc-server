@@ -40,8 +40,9 @@ type Configuration interface {
 
 // IdentConf tells the IDENT server what ip and port to bind to
 type IdentConf struct {
-	IP   string `json:"ip"`
-	Port int    `json:"port"`
+	Enabled bool   `json:"enabled"`
+	IP      string `json:"ip"`
+	Port    int    `json:"port"`
 }
 
 // UserList is a list of users that can be looped through
