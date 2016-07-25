@@ -22,6 +22,7 @@ import (
 	"maunium.net/go/mauircd/interfaces"
 	"maunium.net/go/maulogger"
 	"net/http"
+	"os"
 )
 
 var config mauircdi.Configuration
@@ -40,6 +41,7 @@ func Load(c mauircdi.Configuration) {
 	http.HandleFunc("/socket", serveWs)
 	err := http.ListenAndServe(config.GetAddr(), context.ClearHandler(http.DefaultServeMux))
 	if err != nil {
-		panic(err)
+		log.Fatalf("Failed to listen to %s: %s", config.GetAddr(), err)
+		os.Exit(4)
 	}
 }
