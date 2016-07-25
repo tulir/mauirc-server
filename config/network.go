@@ -19,9 +19,9 @@ package config
 
 import (
 	"fmt"
-	flag "github.com/ogier/pflag"
 	msg "github.com/sorcix/irc"
 	irc "maunium.net/go/libmauirc"
+	flag "maunium.net/go/mauflag"
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/ident"
 	"maunium.net/go/mauircd/interfaces"
@@ -34,7 +34,7 @@ import (
 	"time"
 )
 
-var debug = flag.BoolP("debug", "d", false, "Use to enable debug prints")
+var debug = flag.Make().LongKey("debug").ShortKey("d").Default("false").Usage("Use to enable debug prints").Bool()
 
 type netImpl struct {
 	Name     string   `json:"name"`

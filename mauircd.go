@@ -18,8 +18,8 @@ package main
 import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	flag "github.com/ogier/pflag"
 	"maunium.net/go/libmauirc"
+	flag "maunium.net/go/mauflag"
 	cfg "maunium.net/go/mauircd/config"
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/ident"
@@ -31,7 +31,7 @@ import (
 	"time"
 )
 
-var nws = flag.StringP("config", "c", "/etc/mauircd/", "The path to mauIRCd configurations")
+var confPath = flag.Make().LongKey("config").ShortKey("c").Default("/etc/mauircd/").Usage("The path to mauIRCd configurations").String()
 var config mauircdi.Configuration
 
 func init() {
@@ -41,7 +41,7 @@ func init() {
 func main() {
 	flag.Parse()
 
-	config = cfg.NewConfig(*nws)
+	config = cfg.NewConfig(*confPath)
 	err := config.Load()
 	if err != nil {
 		panic(err)
