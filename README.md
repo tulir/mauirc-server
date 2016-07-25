@@ -4,6 +4,8 @@
 The name possibly may or may not be slightly misleading. This the backend for mauIRC that handles things between the mauIRC frontend and IRC servers.
 
 ## Setup
-There are no prepackaged versions (yet). The easiest way to set up mauIRCd is to create `config.json` in `/etc/mauircd`.
+You can get Debian packages from the [Release section](https://github.com/tulir293/mauircd/releases).
 
-TODO: Add configuration instructions (see `example-config.json` for now)
+For other distributions and OSes [install the Go toolkit](https://golang.org/doc/install) and use `go get maunium.net/go/mauircd`.
+
+TODO: Add configuration instructions
