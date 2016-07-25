@@ -157,6 +157,8 @@ func (net *netImpl) AddIdent() error {
 		return fmt.Errorf("Failed to add ident: %s", err)
 	}
 
+	fmt.Printf("Added ident %d -> %s (%s)", port, net.Owner.GetNameFromEmail(), net.IRC.LocalAddr().String())
+
 	return nil
 }
 
