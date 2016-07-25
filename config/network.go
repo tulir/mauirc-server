@@ -23,6 +23,7 @@ import (
 	msg "github.com/sorcix/irc"
 	irc "maunium.net/go/libmauirc"
 	"maunium.net/go/mauircd/database"
+	"maunium.net/go/mauircd/ident"
 	"maunium.net/go/mauircd/interfaces"
 	"maunium.net/go/mauircd/util/preview"
 	"maunium.net/go/mauircd/util/split"
@@ -151,7 +152,7 @@ func (net *netImpl) AddIdent() error {
 		return fmt.Errorf("Invalid port (%s): %s", addr[1], err)
 	}
 
-	err = net.Owner.HostConf.AddIdent(net.Owner.GetNameFromEmail(), addr[0], port)
+	ident.Ports[port] = net.Owner.GetNameFromEmail()
 	if err != nil {
 		return fmt.Errorf("Failed to add ident: %s", err)
 	}
