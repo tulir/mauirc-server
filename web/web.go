@@ -25,14 +25,12 @@ import (
 )
 
 var config mauircdi.Configuration
-var log *maulogger.Sublogger
+var log = maulogger.CreateSublogger("Web", maulogger.LevelInfo)
 
 // Load the web server
 func Load(c mauircdi.Configuration) {
 	config = c
 	initStore(config.GetExternalAddr())
-
-	log = maulogger.DefaultLogger.CreateSublogger("Web", maulogger.LevelInfo)
 
 	http.HandleFunc("/history/", history)
 	http.HandleFunc("/script/", script)
