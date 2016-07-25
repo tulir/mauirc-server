@@ -93,6 +93,12 @@ func main() {
 	go func() {
 		log.Debugln("Now listening to interruptions and SIGTERMs")
 		<-c
+		go func() {
+			time.Sleep(time.Second * 15)
+			log.Fatalln("mauIRCd not closed within 15 seconds. Terminating.")
+			log.Close()
+			os.Exit(5)
+		}()
 		log.Infoln("Closing mauIRCd", version)
 		config.GetUsers().ForEach(func(user mauircdi.User) {
 			log.Debugln("Closing connections and saving scripts of", user.GetNameFromEmail())
