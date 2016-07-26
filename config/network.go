@@ -243,6 +243,8 @@ func (net *netImpl) sendToIRC(msg database.Message) bool {
 			net.IRC.SetNick(msg.Message)
 		case "whois":
 			net.IRC.Whois(msg.Channel)
+		case "invite":
+			net.IRC.Invite(msg.Message, msg.Channel)
 		}
 	}
 	return false
