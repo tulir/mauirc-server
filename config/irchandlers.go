@@ -214,10 +214,14 @@ func (net *netImpl) kick(evt *msg.Message) {
 }
 
 func (net *netImpl) privmsg(evt *msg.Message) {
-	if evt.IsServer() {
-		return
-	} else if evt.Params[0][0] == '@' {
+	if evt.Params[0][0] == '@' {
 		evt.Params[0] = evt.Params[0][1:]
+	}
+	if evt.IsServer() {
+		if evt.Params[0][0] != '#' {
+			return
+		}
+		evt.Name = fmt.Sprintf("SERVER [%s]", evt.Name)
 	}
 	net.ReceiveMessage(evt.Params[0], evt.Name, "privmsg", evt.Trailing)
 }
