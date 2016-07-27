@@ -85,7 +85,7 @@ func main() {
 		os.Exit(3)
 	}
 
-	log.Debugln("Connecting to IRC networks")
+	log.Infoln("mauIRCd initialized. Connecting to IRC networks")
 	config.Connect()
 
 	c := make(chan os.Signal, 1)
