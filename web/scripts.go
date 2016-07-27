@@ -46,9 +46,70 @@ func script(w http.ResponseWriter, r *http.Request) {
 		deleteScript(w, r, args, user)
 	case http.MethodPut:
 		putScript(w, r, args, user)
+	case http.MethodPost:
+		postScript(w, r, args, user)
 	default:
-		w.Header().Add("Allow", http.MethodGet+","+http.MethodDelete+","+http.MethodPut)
+		w.Header().Add("Allow", http.MethodGet+","+http.MethodDelete+","+http.MethodPut+","+http.MethodPost)
 		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
+}
+
+func postScript(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	newPath := string(data)
+	parts := strings.Split(newPath, ",")
+	if len(parts) != 2 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var scripts []mauircdi.Script
+	var success bool
+	if args[0] == global {
+		scripts = user.GetGlobalScripts()
+		success = user.RemoveGlobalScript(args[1])
+	} else {
+		net := user.GetNetwork(args[0])
+		if net == nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		scripts = net.GetScripts()
+		success = net.RemoveScript(args[1])
+	}
+
+	if !success {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	success = false
+
+	var script mauircdi.Script
+	for _, s := range scripts {
+		if s.GetName() == args[1] {
+			script = plugin.Script{Name: parts[1], TheScript: s.GetScript()}
+			success = true
+			break
+		}
+	}
+	if !success {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if parts[0] == global {
+		user.AddGlobalScript(script)
+	} else {
+		net := user.GetNetwork(parts[0])
+		if net == nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		net.AddScript(script)
 	}
 }
 
