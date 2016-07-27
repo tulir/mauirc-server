@@ -37,7 +37,7 @@ var confPath = flag.Make().LongKey("config").ShortKey("c").Default("/etc/mauircd
 var logPath = flag.Make().LongKey("logs").ShortKey("l").Default("/var/log/mauircd/").Usage("The path to mauIRCd logs").String()
 var debug = flag.Make().LongKey("debug").ShortKey("d").Default("false").Usage("Use to enable debug prints").Bool()
 var config mauircdi.Configuration
-var version = "1.0.1"
+var version = "1.1.0"
 
 func init() {
 	libmauirc.Version = "mauIRCd " + version
