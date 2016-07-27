@@ -92,7 +92,7 @@ func (c *connection) writePump() {
 
 			err := c.writeJSON(new)
 			if err != nil {
-				log.Infoln("Disconnected:", err)
+				log.Debugln("Disconnected:", err)
 				c.user.GetMessageChan() <- new
 				return
 			}
