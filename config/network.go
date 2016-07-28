@@ -50,6 +50,7 @@ type netImpl struct {
 	ChannelInfo cdlImpl               `json:"-"`
 	ChannelList []string              `json:"-"`
 	WhoisData   map[string]*whoisData `json:"-"`
+	IdentPort   int                   `json:"-"`
 }
 
 type whoisData struct {
@@ -136,7 +137,6 @@ func (net *netImpl) Open() {
 	if err := net.Connect(); err != nil {
 		log.Errorf("Failed to connect to %s:%d: %s\n", net.IP, net.Port, err)
 	}
-	net.AddIdent()
 }
 
 func (net *netImpl) AddIdent() error {
@@ -154,14 +154,29 @@ func (net *netImpl) AddIdent() error {
 	if err != nil {
 		return fmt.Errorf("Failed to add ident: %s", err)
 	}
-
+	net.IdentPort = port
 	log.Debugf("Added ident %d -> %s (%s)\n", port, net.Owner.GetNameFromEmail(), net.IRC.LocalAddr().String())
 
 	return nil
 }
 
+func (net *netImpl) RemoveIdent() bool {
+	if net.IdentPort == 0 {
+		return false
+	}
+
+	delete(ident.Ports, net.IdentPort)
+	net.IdentPort = 0
+	log.Debugf("Deleted ident %d -> %s\n", net.IdentPort, net.Owner.GetNameFromEmail())
+	return true
+}
+
 func (net *netImpl) Connect() error {
-	return net.IRC.Connect()
+	err := net.IRC.Connect()
+	if err != nil {
+		return err
+	}
+	return net.AddIdent()
 }
 
 func (net *netImpl) Disconnect() {
@@ -170,6 +185,7 @@ func (net *netImpl) Disconnect() {
 		time.Sleep(1 * time.Second)
 	}
 	net.IRC.Disconnect()
+	net.RemoveIdent()
 }
 
 func (net *netImpl) IsConnected() bool {
@@ -282,6 +298,7 @@ func (net *netImpl) InsertAndSend(msg database.Message) {
 func (net *netImpl) Close() {
 	if net.IRC.Connected() {
 		net.IRC.Quit()
+		net.RemoveIdent()
 	}
 }
 
