@@ -17,6 +17,25 @@
 // Package mauircdi contains interfaces
 package mauircdi
 
+// Message types
+const (
+	MsgRaw         = "raw"
+	MsgInvite      = "invite"
+	MsgNickChange  = "nickchange"
+	MsgNetData     = "netdata"
+	MsgChanData    = "chandata"
+	MsgWhois       = "whois"
+	MsgClear       = "clear"
+	MsgDelete      = "delete"
+	MsgChanList    = "chanlist"
+	MsgCmdResponse = "cmdresponse"
+	MsgMessage     = "message"
+	MsgKick        = "kick"
+	MsgMode        = "mode"
+	MsgClose       = "close"
+	MsgOpen        = "open"
+)
+
 // Message is a basic wrapper for a type string and the actual message object
 type Message struct {
 	Type   string      `json:"type"`

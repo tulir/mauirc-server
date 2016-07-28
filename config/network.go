@@ -295,7 +295,7 @@ func (net *netImpl) InsertAndSend(msg database.Message) {
 	}
 	msg.Preview, _ = preview.GetPreview(msg.Message)
 	msg.ID = database.Insert(net.Owner.Email, msg)
-	net.Owner.NewMessages <- mauircdi.Message{Type: "message", Object: msg}
+	net.Owner.NewMessages <- mauircdi.Message{Type: mauircdi.MsgMessage, Object: msg}
 }
 
 func (net *netImpl) GetOwner() mauircdi.User {

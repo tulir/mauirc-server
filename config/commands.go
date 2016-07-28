@@ -27,21 +27,21 @@ import (
 // HandleCommand handles mauIRC commands from clients
 func (user *userImpl) HandleCommand(data map[string]string) {
 	switch data["type"] {
-	case "raw":
+	case mauircdi.MsgRaw:
 		user.rawMessage(data)
-	case "message":
+	case mauircdi.MsgMessage:
 		user.cmdMessage(data)
-	case "kick":
+	case mauircdi.MsgKick:
 		user.cmdKick(data)
-	case "mode":
+	case mauircdi.MsgMode:
 		user.cmdMode(data)
-	case "clear":
+	case mauircdi.MsgClear:
 		user.cmdClearHistory(data)
-	case "close":
+	case mauircdi.MsgClose:
 		user.cmdCloseChannel(data)
-	case "open":
+	case mauircdi.MsgOpen:
 		user.cmdOpenChannel(data)
-	case "delete":
+	case mauircdi.MsgDelete:
 		user.cmdDeleteMessage(data)
 	}
 }
@@ -75,7 +75,7 @@ func (user *userImpl) cmdDeleteMessage(data map[string]string) {
 		return
 	}
 
-	user.NewMessages <- mauircdi.Message{Type: "delete", Object: id}
+	user.NewMessages <- mauircdi.Message{Type: mauircdi.MsgDelete, Object: id}
 }
 
 func (user *userImpl) cmdClearHistory(data map[string]string) {
@@ -89,7 +89,7 @@ func (user *userImpl) cmdClearHistory(data map[string]string) {
 		return
 	}
 
-	user.NewMessages <- mauircdi.Message{Type: "clear", Object: mauircdi.ClearHistory{Channel: data["channel"], Network: data["network"]}}
+	user.NewMessages <- mauircdi.Message{Type: mauircdi.MsgClear, Object: mauircdi.ClearHistory{Channel: data["channel"], Network: data["network"]}}
 }
 
 func (user *userImpl) cmdCloseChannel(data map[string]string) {

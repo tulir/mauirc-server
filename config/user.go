@@ -86,12 +86,12 @@ func (user *userImpl) InitNetworks() {
 }
 
 func (user *userImpl) SendNetworkData(net mauircdi.Network) {
-	user.NewMessages <- mauircdi.Message{Type: "netdata", Object: mauircdi.NetData{Name: net.GetName(), Connected: net.IsConnected()}}
+	user.NewMessages <- mauircdi.Message{Type: mauircdi.MsgNetData, Object: mauircdi.NetData{Name: net.GetName(), Connected: net.IsConnected()}}
 	net.GetActiveChannels().ForEach(func(chd mauircdi.ChannelData) {
-		user.NewMessages <- mauircdi.Message{Type: "chandata", Object: chd}
+		user.NewMessages <- mauircdi.Message{Type: mauircdi.MsgChanData, Object: chd}
 	})
-	user.NewMessages <- mauircdi.Message{Type: "chanlist", Object: mauircdi.ChanList{Network: net.GetName(), List: net.GetAllChannels()}}
-	user.NewMessages <- mauircdi.Message{Type: "nickchange", Object: mauircdi.NickChange{Network: net.GetName(), Nick: net.GetNick()}}
+	user.NewMessages <- mauircdi.Message{Type: mauircdi.MsgChanList, Object: mauircdi.ChanList{Network: net.GetName(), List: net.GetAllChannels()}}
+	user.NewMessages <- mauircdi.Message{Type: mauircdi.MsgNickChange, Object: mauircdi.NickChange{Network: net.GetName(), Nick: net.GetNick()}}
 }
 
 // GetNetwork gets the network with the given name
