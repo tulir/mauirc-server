@@ -165,6 +165,10 @@ func (net *netImpl) Connect() error {
 }
 
 func (net *netImpl) Disconnect() {
+	if net.IRC.Connected() {
+		net.IRC.Quit()
+		time.Sleep(1 * time.Second)
+	}
 	net.IRC.Disconnect()
 }
 
