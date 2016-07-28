@@ -123,12 +123,13 @@ func (user *userImpl) AddNetwork(net mauircdi.Network) bool {
 	return false
 }
 
-func (user *userImpl) CreateNetwork(data []byte) (mauircdi.Network, bool) {
+func (user *userImpl) CreateNetwork(name string, data []byte) (mauircdi.Network, bool) {
 	var net = &netImpl{}
 	err := json.Unmarshal(data, net)
 	if err != nil {
 		return nil, false
 	}
+	net.Name = strings.ToLower(name)
 	return net, true
 }
 

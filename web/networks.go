@@ -64,7 +64,7 @@ func addNetwork(w http.ResponseWriter, r *http.Request, args []string, user maui
 		return
 	}
 
-	net, ok := user.CreateNetwork(data)
+	net, ok := user.CreateNetwork(args[0], data)
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		return
