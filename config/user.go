@@ -111,14 +111,13 @@ func (user *userImpl) AddNetwork(net mauircdi.Network) bool {
 	return false
 }
 
-func (user *userImpl) CreateNetwork(data []byte) bool {
+func (user *userImpl) CreateNetwork(data []byte) (mauircdi.Network, bool) {
 	var net = &netImpl{}
 	err := json.Unmarshal(data, net)
 	if err != nil {
-		return false
+		return nil, false
 	}
-
-	return user.AddNetwork(net)
+	return net, true
 }
 
 func (user *userImpl) GetNetworks() mauircdi.NetworkList {
