@@ -87,6 +87,10 @@ func addNetwork(w http.ResponseWriter, r *http.Request, args []string, user maui
 
 func postNetwork(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
 	net := user.GetNetwork(args[0])
+	if net == nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 
 	args[1] = strings.ToLower(args[1])
 	if args[1] == "connect" {
