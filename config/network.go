@@ -73,11 +73,6 @@ func (net *netImpl) Save() {
 	}
 }
 
-// CreateNet creates a new netImpl object
-func CreateNet() *netImpl {
-	return &netImpl{}
-}
-
 // Open an IRC connection
 func (net *netImpl) Open() {
 	i := irc.Create(net.Nick, net.User, irc.IPv4Address{IP: net.IP, Port: net.Port})
