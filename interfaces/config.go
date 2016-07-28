@@ -55,6 +55,8 @@ type User interface {
 
 	GetNetworks() NetworkList
 	GetNetwork(name string) Network
+	DeleteNetwork(name string) bool
+	AddNetwork(nw Network) bool
 
 	NewAuthToken() string
 	GetEmail() string

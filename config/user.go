@@ -83,6 +83,33 @@ func (user *userImpl) GetNetwork(name string) mauircdi.Network {
 	return nil
 }
 
+func (user *userImpl) DeleteNetwork(name string) bool {
+	name = strings.ToLower(name)
+	for i, network := range user.Networks {
+		if network.Name == name {
+			if i == 0 {
+				user.Networks = user.Networks[1:]
+			} else if i == len(user.Networks)-1 {
+				user.Networks = user.Networks[:len(user.Networks)-1]
+			} else {
+				user.Networks = append(user.Networks[:i], user.Networks[i+1:]...)
+			}
+			return true
+		}
+	}
+	return false
+}
+
+func (user *userImpl) AddNetwork(net mauircdi.Network) bool {
+	network, ok := net.(*netImpl)
+	if ok {
+		network.Name = strings.ToLower(network.Name)
+		user.Networks = append(user.Networks, network)
+		return true
+	}
+	return false
+}
+
 func (user *userImpl) GetNetworks() mauircdi.NetworkList {
 	return user.Networks
 }
