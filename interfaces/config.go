@@ -59,6 +59,7 @@ type User interface {
 	DeleteNetwork(name string) bool
 	AddNetwork(nw Network) bool
 	CreateNetwork(name string, data []byte) (Network, bool)
+	SendNetworkData(net Network)
 
 	NewAuthToken() string
 	GetEmail() string

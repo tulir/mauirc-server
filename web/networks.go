@@ -82,6 +82,7 @@ func addNetwork(w http.ResponseWriter, r *http.Request, args []string, user maui
 	}
 
 	user.InitNetworks()
+	user.SendNetworkData(net)
 }
 
 func postNetwork(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
