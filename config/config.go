@@ -105,12 +105,7 @@ func (config *configImpl) Load() error {
 func (config *configImpl) Connect() {
 	for _, user := range config.Users {
 		user.NewMessages = make(chan mauircdi.Message, 64)
-		for _, network := range user.Networks {
-			network.ChannelInfo = make(map[string]*chanDataImpl)
-			network.Owner = user
-			network.Open()
-			network.LoadScripts(config.Path)
-		}
+		user.InitNetworks()
 	}
 }
 
