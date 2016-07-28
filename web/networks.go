@@ -72,7 +72,7 @@ func addNetwork(w http.ResponseWriter, r *http.Request, args []string, user maui
 
 	oldNet := user.GetNetwork(args[0])
 	if oldNet != nil {
-		go oldNet.Disconnect()
+		oldNet.Close()
 		user.DeleteNetwork(args[0])
 	}
 
@@ -100,7 +100,7 @@ func postNetwork(w http.ResponseWriter, r *http.Request, args []string, user mau
 		if !net.IsConnected() {
 			w.WriteHeader(http.StatusForbidden)
 		} else {
-			go net.Disconnect()
+			net.Close()
 			w.WriteHeader(http.StatusOK)
 		}
 	}
