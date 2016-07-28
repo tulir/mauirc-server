@@ -73,6 +73,11 @@ func (net *netImpl) Save() {
 	}
 }
 
+// CreateNet creates a new netImpl object
+func CreateNet() *netImpl {
+	return &netImpl{}
+}
+
 // Open an IRC connection
 func (net *netImpl) Open() {
 	i := irc.Create(net.Nick, net.User, irc.IPv4Address{IP: net.IP, Port: net.Port})
@@ -304,10 +309,6 @@ func (net *netImpl) GetActiveChannels() mauircdi.ChannelDataList {
 func (net *netImpl) GetAllChannels() []string {
 	return net.ChannelList
 }
-
-/*func (net *netImpl) ParseAndSend(f string, args ...interface{}) {
-	net.IRC.Send(msg.ParseMessage(fmt.Sprintf(f, args...)))
-}*/
 
 func (net *netImpl) Tunnel() irc.Tunnel {
 	return net.IRC
