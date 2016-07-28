@@ -20,6 +20,7 @@ package config
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"golang.org/x/crypto/bcrypt"
 	"maunium.net/go/mauircd/interfaces"
 	"strings"
@@ -108,6 +109,16 @@ func (user *userImpl) AddNetwork(net mauircdi.Network) bool {
 		return true
 	}
 	return false
+}
+
+func (user *userImpl) CreateNetwork(data []byte) bool {
+	var net = &netImpl{}
+	err := json.Unmarshal(data, net)
+	if err != nil {
+		return false
+	}
+
+	return user.AddNetwork(net)
 }
 
 func (user *userImpl) GetNetworks() mauircdi.NetworkList {
