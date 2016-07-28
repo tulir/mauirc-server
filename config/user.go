@@ -28,14 +28,14 @@ import (
 )
 
 type userImpl struct {
-	Networks      netListImpl            `json:"networks"`
-	Email         string                 `json:"email"`
-	Password      string                 `json:"password"`
-	AuthTokens    []authToken            `json:"authtokens,omitempty"`
-	NewMessages   chan mauircdi.Message  `json:"-"`
-	GlobalScripts []mauircdi.Script      `json:"-"`
-	Settings      interface{}            `json:"settings"`
-	HostConf      mauircdi.Configuration `json:"-"`
+	Networks      netListImpl           `json:"networks"`
+	Email         string                `json:"email"`
+	Password      string                `json:"password"`
+	AuthTokens    []authToken           `json:"authtokens,omitempty"`
+	NewMessages   chan mauircdi.Message `json:"-"`
+	GlobalScripts []mauircdi.Script     `json:"-"`
+	Settings      interface{}           `json:"settings"`
+	HostConf      *configImpl           `json:"-"`
 }
 
 type authToken struct {
@@ -71,6 +71,18 @@ func (user *userImpl) SetPassword(newPassword string) error {
 	}
 	user.Password = string(password)
 	return nil
+}
+
+func (user *userImpl) InitNetworks() {
+	for _, network := range user.Networks {
+		if network.Owner != nil {
+			continue
+		}
+		network.ChannelInfo = make(map[string]*chanDataImpl)
+		network.Owner = user
+		network.Open()
+		network.LoadScripts(user.HostConf.Path)
+	}
 }
 
 // GetNetwork gets the network with the given name

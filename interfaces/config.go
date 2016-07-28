@@ -53,6 +53,7 @@ type UserList interface {
 type User interface {
 	Save()
 
+	InitNetworks()
 	GetNetworks() NetworkList
 	GetNetwork(name string) Network
 	DeleteNetwork(name string) bool
