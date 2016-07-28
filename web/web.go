@@ -36,6 +36,7 @@ func Load(c mauircdi.Configuration) {
 
 	http.HandleFunc("/history/", history)
 	http.HandleFunc("/script/", script)
+	http.HandleFunc("/network/", network)
 	http.HandleFunc("/settings/", settings)
 	http.HandleFunc("/auth/login", auth)
 	http.HandleFunc("/auth/check", httpAuthCheck)
