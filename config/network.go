@@ -179,11 +179,15 @@ func (net *netImpl) Connect() error {
 	return net.AddIdent()
 }
 
+// Close the IRC connection.
 func (net *netImpl) Disconnect() {
 	if net.IRC.Connected() {
 		net.IRC.Quit()
-		time.Sleep(1 * time.Second)
+		net.RemoveIdent()
 	}
+}
+
+func (net *netImpl) ForceDisconnect() {
 	net.IRC.Disconnect()
 	net.RemoveIdent()
 }
@@ -292,14 +296,6 @@ func (net *netImpl) InsertAndSend(msg database.Message) {
 	msg.Preview, _ = preview.GetPreview(msg.Message)
 	msg.ID = database.Insert(net.Owner.Email, msg)
 	net.Owner.NewMessages <- mauircdi.Message{Type: "message", Object: msg}
-}
-
-// Close the IRC connection.
-func (net *netImpl) Close() {
-	if net.IRC.Connected() {
-		net.IRC.Quit()
-		net.RemoveIdent()
-	}
 }
 
 func (net *netImpl) GetOwner() mauircdi.User {

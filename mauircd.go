@@ -103,7 +103,7 @@ func main() {
 		config.GetUsers().ForEach(func(user mauircdi.User) {
 			log.Debugln("Closing connections and saving scripts of", user.GetNameFromEmail())
 			user.GetNetworks().ForEach(func(net mauircdi.Network) {
-				net.Close()
+				net.Disconnect()
 				net.SaveScripts(config.GetPath())
 				net.Save()
 			})

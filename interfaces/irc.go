@@ -32,10 +32,10 @@ type Network interface {
 	SwitchMessageNetwork(msg database.Message, receiving bool) bool
 	InsertAndSend(msg database.Message)
 	Tunnel() libmauirc.Tunnel
-	Close()
 
 	Connect() error
 	Disconnect()
+	ForceDisconnect()
 	IsConnected() bool
 
 	GetOwner() User
