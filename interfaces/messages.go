@@ -57,6 +57,12 @@ type NickChange struct {
 // NetData contains basic network data
 type NetData struct {
 	Name      string `json:"name"`
+	User      string `json:"user"`
+	Realname  string `json:"realname"`
+	Nick      string `json:"nick"`
+	IP        string `json:"ip"`
+	Port      uint16 `json:"port"`
+	SSL       bool   `json:"ssl"`
 	Connected bool   `json:"connected"`
 }
 

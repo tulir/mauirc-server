@@ -310,6 +310,19 @@ func (net *netImpl) GetNick() string {
 	return net.IRC.GetNick()
 }
 
+func (net *netImpl) GetNetData() mauircdi.NetData {
+	return mauircdi.NetData{
+		Name:      net.Name,
+		IP:        net.IP,
+		Port:      net.Port,
+		SSL:       net.SSL,
+		User:      net.User,
+		Realname:  net.Realname,
+		Nick:      net.Nick,
+		Connected: net.IsConnected(),
+	}
+}
+
 func (net *netImpl) GetActiveChannels() mauircdi.ChannelDataList {
 	return net.ChannelInfo
 }

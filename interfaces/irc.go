@@ -41,6 +41,7 @@ type Network interface {
 	GetOwner() User
 	GetName() string
 	GetNick() string
+	GetNetData() NetData
 
 	SaveScripts(path string) error
 	LoadScripts(path string) error
