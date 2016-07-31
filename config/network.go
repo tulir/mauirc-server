@@ -51,6 +51,7 @@ type netImpl struct {
 	ChannelList []string              `json:"-"`
 	WhoisData   map[string]*whoisData `json:"-"`
 	IdentPort   int                   `json:"-"`
+	Sublogger   *maulogger.Sublogger  `json:"-"`
 }
 
 type whoisData struct {
@@ -81,14 +82,14 @@ func (net *netImpl) Open() {
 	i.SetQuitMessage("mauIRCd shutting down...")
 	i.SetUseTLS(net.SSL)
 
+	net.Sublogger = maulogger.CreateSublogger(net.Owner.GetNameFromEmail()+"/"+net.Name, maulogger.LevelDebug)
+	go func() {
+		for err := range i.Errors() {
+			net.Sublogger.Error(err.Error())
+		}
+	}()
 	if maulogger.DefaultLogger.PrintLevel == 0 {
-		sublog := maulogger.CreateSublogger(net.Owner.GetNameFromEmail()+"/"+net.Name, maulogger.LevelDebug)
-		i.SetDebugWriter(sublog)
-		go func() {
-			for err := range i.Errors() {
-				sublog.Error(err.Error())
-			}
-		}()
+		i.SetDebugWriter(net.Sublogger)
 	}
 
 	if len(net.Password) > 0 {
@@ -310,6 +311,11 @@ func (net *netImpl) GetNick() string {
 	return net.IRC.GetNick()
 }
 
+func (net *netImpl) SetName(name string) {
+	net.Name = name
+	net.Sublogger.SetModule(net.Owner.GetNameFromEmail() + "/" + name)
+}
+
 func (net *netImpl) SetNick(nick string) {
 	net.SendMessage("", "nick", nick)
 }
@@ -333,6 +339,7 @@ func (net *netImpl) SetPort(port uint16) {
 
 func (net *netImpl) SetSSL(ssl bool) {
 	net.SSL = ssl
+	net.IRC.SetUseTLS(ssl)
 }
 
 func (net *netImpl) GetNetData() mauircdi.NetData {

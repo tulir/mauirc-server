@@ -43,6 +43,7 @@ type Network interface {
 	GetNick() string
 	GetNetData() NetData
 
+	SetName(name string)
 	SetNick(nick string)
 	SetRealname(realname string)
 	SetUser(user string)
