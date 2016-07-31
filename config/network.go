@@ -317,7 +317,10 @@ func (net *netImpl) SetName(name string) {
 }
 
 func (net *netImpl) SetNick(nick string) {
-	net.SendMessage("", "nick", nick)
+	if net.IsConnected() {
+		net.SendMessage("", "nick", nick)
+	}
+	net.Nick = nick
 }
 
 func (net *netImpl) SetRealname(realname string) {
