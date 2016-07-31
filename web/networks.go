@@ -149,6 +149,10 @@ func connectedUpdate(net mauircdi.Network, data editRequest, oldData mauircdi.Ne
 }
 
 func nameUpdates(net mauircdi.Network, data editRequest, oldData mauircdi.NetData) {
+	if len(data.Name) > 0 && data.Name != oldData.Name {
+		net.SetName(data.Name)
+	}
+
 	if len(data.Nick) > 0 && data.Nick != oldData.Nick {
 		net.SetNick(data.Nick)
 	}
