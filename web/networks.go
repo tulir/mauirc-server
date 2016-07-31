@@ -18,6 +18,7 @@
 package web
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"maunium.net/go/mauircd/interfaces"
 	//	"maunium.net/go/mauircd/plugin"
@@ -39,7 +40,7 @@ func network(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPut:
 		addNetwork(w, r, args, user)
 	case http.MethodPost:
-		postNetwork(w, r, args, user)
+		editNetwork(w, r, args, user)
 	default:
 		w.Header().Add("Allow", http.MethodDelete+","+http.MethodPut+","+http.MethodPost)
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -85,31 +86,74 @@ func addNetwork(w http.ResponseWriter, r *http.Request, args []string, user maui
 	user.SendNetworkData(net)
 }
 
-func postNetwork(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
+type editResponse struct {
+	New mauircdi.NetData `json:"new"`
+	Old mauircdi.NetData `json:"old"`
+}
+
+func editNetwork(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
 	net := user.GetNetwork(args[0])
 	if net == nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	args[1] = strings.ToLower(args[1])
-	if args[1] == "connect" {
-		if net.IsConnected() {
-			w.WriteHeader(http.StatusForbidden)
-		} else if net.Connect() == nil {
-			w.WriteHeader(http.StatusOK)
-		} else {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
-	} else if args[1] == "disconnect" {
-		if !net.IsConnected() {
-			w.WriteHeader(http.StatusForbidden)
+	defer r.Body.Close()
+	var data mauircdi.NetData
+	dec := json.NewDecoder(r.Body)
+	err := dec.Decode(&data)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var oldData = net.GetNetData()
+	connectedUpdate(net, data, oldData)
+	nameUpdates(net, data, oldData)
+	addrUpdates(net, data, oldData)
+
+	enc := json.NewEncoder(w)
+	err = enc.Encode(editResponse{New: net.GetNetData(), Old: oldData})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func connectedUpdate(net mauircdi.Network, data mauircdi.NetData, oldData mauircdi.NetData) {
+	if data.Connected != oldData.Connected {
+		if data.Connected {
+			net.Connect()
 		} else {
 			net.Disconnect()
-			w.WriteHeader(http.StatusOK)
 		}
-	} else if args[1] == "forcedisconnect" {
-		net.ForceDisconnect()
-		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func nameUpdates(net mauircdi.Network, data mauircdi.NetData, oldData mauircdi.NetData) {
+	if data.Nick != oldData.Nick {
+		net.SetNick(data.Nick)
+	}
+
+	if data.Realname != oldData.Realname {
+		net.SetRealname(data.Realname)
+	}
+
+	if data.User != oldData.User {
+		net.SetUser(data.User)
+	}
+}
+
+func addrUpdates(net mauircdi.Network, data mauircdi.NetData, oldData mauircdi.NetData) {
+	if data.IP != oldData.IP {
+		net.SetIP(data.IP)
+	}
+
+	if data.Port != oldData.Port {
+		net.SetPort(data.Port)
+	}
+
+	if data.SSL != oldData.SSL {
+		net.SetSSL(data.SSL)
 	}
 }
