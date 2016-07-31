@@ -86,6 +86,18 @@ func addNetwork(w http.ResponseWriter, r *http.Request, args []string, user maui
 	user.SendNetworkData(net)
 }
 
+type editRequest struct {
+	Name            string `json:"name"`
+	User            string `json:"user"`
+	Realname        string `json:"realname"`
+	Nick            string `json:"nick"`
+	Connected       string `json:"connected"`
+	SSL             string `json:"ssl"`
+	IP              string `json:"ip"`
+	Port            uint16 `json:"port"`
+	ForceDisconnect bool   `json:"forcedisconnect"`
+}
+
 type editResponse struct {
 	New mauircdi.NetData `json:"new"`
 	Old mauircdi.NetData `json:"old"`
@@ -99,7 +111,7 @@ func editNetwork(w http.ResponseWriter, r *http.Request, args []string, user mau
 	}
 
 	defer r.Body.Close()
-	var data mauircdi.NetData
+	var data editRequest
 	dec := json.NewDecoder(r.Body)
 	err := dec.Decode(&data)
 	if err != nil {
@@ -120,40 +132,49 @@ func editNetwork(w http.ResponseWriter, r *http.Request, args []string, user mau
 	}
 }
 
-func connectedUpdate(net mauircdi.Network, data mauircdi.NetData, oldData mauircdi.NetData) {
-	if data.Connected != oldData.Connected {
-		if data.Connected {
+func connectedUpdate(net mauircdi.Network, data editRequest, oldData mauircdi.NetData) {
+	if len(data.Connected) == 0 {
+		return
+	}
+	connected := strings.ToLower(data.Connected) == "true"
+	if connected != oldData.Connected {
+		if connected {
 			net.Connect()
 		} else {
 			net.Disconnect()
 		}
+	} else if data.ForceDisconnect {
+		net.ForceDisconnect()
 	}
 }
 
-func nameUpdates(net mauircdi.Network, data mauircdi.NetData, oldData mauircdi.NetData) {
-	if data.Nick != oldData.Nick {
+func nameUpdates(net mauircdi.Network, data editRequest, oldData mauircdi.NetData) {
+	if len(data.Nick) > 0 && data.Nick != oldData.Nick {
 		net.SetNick(data.Nick)
 	}
 
-	if data.Realname != oldData.Realname {
+	if len(data.Realname) > 0 && data.Realname != oldData.Realname {
 		net.SetRealname(data.Realname)
 	}
 
-	if data.User != oldData.User {
+	if len(data.User) > 0 && data.User != oldData.User {
 		net.SetUser(data.User)
 	}
 }
 
-func addrUpdates(net mauircdi.Network, data mauircdi.NetData, oldData mauircdi.NetData) {
-	if data.IP != oldData.IP {
+func addrUpdates(net mauircdi.Network, data editRequest, oldData mauircdi.NetData) {
+	if len(data.IP) > 0 && data.IP != oldData.IP {
 		net.SetIP(data.IP)
 	}
 
-	if data.Port != oldData.Port {
+	if data.Port > 0 && data.Port != oldData.Port {
 		net.SetPort(data.Port)
 	}
 
-	if data.SSL != oldData.SSL {
-		net.SetSSL(data.SSL)
+	if len(data.SSL) > 0 {
+		ssl := strings.ToLower(data.SSL) == "true"
+		if ssl != oldData.SSL {
+			net.SetSSL(ssl)
+		}
 	}
 }
