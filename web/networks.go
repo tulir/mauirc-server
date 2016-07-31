@@ -50,7 +50,9 @@ func network(w http.ResponseWriter, r *http.Request) {
 func deleteNetwork(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
 	net := user.GetNetwork(args[0])
 	if net != nil {
-		net.Disconnect()
+		if net.IsConnected() {
+			net.ForceDisconnect()
+		}
 		user.DeleteNetwork(args[0])
 		w.WriteHeader(http.StatusOK)
 	} else {
