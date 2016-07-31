@@ -310,6 +310,31 @@ func (net *netImpl) GetNick() string {
 	return net.IRC.GetNick()
 }
 
+func (net *netImpl) SetNick(nick string) {
+	net.SendMessage("", "nick", nick)
+}
+
+func (net *netImpl) SetRealname(realname string) {
+	net.IRC.SetRealName(realname)
+	net.Realname = realname
+}
+
+func (net *netImpl) SetUser(user string) {
+	net.User = user
+}
+
+func (net *netImpl) SetIP(ip string) {
+	net.IP = ip
+}
+
+func (net *netImpl) SetPort(port uint16) {
+	net.Port = port
+}
+
+func (net *netImpl) SetSSL(ssl bool) {
+	net.SSL = ssl
+}
+
 func (net *netImpl) GetNetData() mauircdi.NetData {
 	return mauircdi.NetData{
 		Name:      net.Name,

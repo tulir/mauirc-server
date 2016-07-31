@@ -43,6 +43,13 @@ type Network interface {
 	GetNick() string
 	GetNetData() NetData
 
+	SetNick(nick string)
+	SetRealname(realname string)
+	SetUser(user string)
+	SetIP(ip string)
+	SetPort(port uint16)
+	SetSSL(ssl bool)
+
 	SaveScripts(path string) error
 	LoadScripts(path string) error
 
