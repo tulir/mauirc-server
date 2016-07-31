@@ -167,8 +167,8 @@ func (net *netImpl) RemoveIdent() bool {
 	}
 
 	delete(ident.Ports, net.IdentPort)
-	net.IdentPort = 0
 	log.Debugf("Deleted ident %d -> %s\n", net.IdentPort, net.Owner.GetNameFromEmail())
+	net.IdentPort = 0
 	return true
 }
 
