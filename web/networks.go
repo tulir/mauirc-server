@@ -120,9 +120,9 @@ func editNetwork(w http.ResponseWriter, r *http.Request, args []string, user mau
 	}
 
 	var oldData = net.GetNetData()
-	connectedUpdate(net, data, oldData)
 	nameUpdates(net, data, oldData)
 	addrUpdates(net, data, oldData)
+	connectedUpdate(net, data, oldData)
 
 	enc := json.NewEncoder(w)
 	err = enc.Encode(editResponse{New: net.GetNetData(), Old: oldData})
