@@ -29,13 +29,13 @@ import (
 func history(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		w.Header().Add("Allow", "GET")
-		w.WriteHeader(http.StatusMethodNotAllowed)
+		WriteError(w, ErrInvalidMethod)
 		return
 	}
 
 	authd, user := checkAuth(w, r)
 	if !authd {
-		w.WriteHeader(http.StatusUnauthorized)
+		WriteError(w, ErrNotAuthenticated)
 		return
 	}
 
@@ -61,15 +61,14 @@ func history(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		WriteError(w, ErrInternal)
 		return
 	}
 
 	json, err := json.Marshal(results)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		WriteError(w, ErrInternal)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Write(json)
 }
