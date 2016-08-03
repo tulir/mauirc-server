@@ -42,9 +42,11 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	user := config.CreateUser(af.Email, af.Password)
 	if user == nil {
+		log.Debugln("%s tried to register existing user %s", getIP(r), af.Email)
 		errors.Write(w, errors.EmailUsed)
 		return
 	}
+	log.Debugln("%s registered %s", getIP(r), af.Email)
 
 	w.WriteHeader(http.StatusOK)
 }
