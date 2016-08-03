@@ -28,9 +28,35 @@ func PasswordReset(w http.ResponseWriter, r *http.Request) {
 
 }
 
+type passwordForgotForm struct {
+	Email string `json:"email"`
+}
+
 // PasswordForgot HTTP handler
 func PasswordForgot(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Add("Allow", http.MethodPost)
+		errors.Write(w, errors.InvalidMethod)
+		return
+	}
 
+	dec := json.NewDecoder(r.Body)
+	var pff passwordForgotForm
+	err := dec.Decode(&pff)
+
+	if err != nil || len(pff.Email) == 0 {
+		errors.Write(w, errors.MissingFields)
+		return
+	}
+
+	user := config.GetUser(pff.Email)
+	if user == nil {
+		// TODO user not found error
+		return
+	}
+
+	user.ResetPasswordToken()
+	// TODO email token to user
 }
 
 type passwordChangeForm struct {
