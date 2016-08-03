@@ -21,6 +21,8 @@ import (
 	"github.com/gorilla/context"
 	"maunium.net/go/mauircd/interfaces"
 	"maunium.net/go/mauircd/web/auth"
+	"maunium.net/go/mauircd/web/misc"
+	"maunium.net/go/mauircd/web/socket"
 	"maunium.net/go/maulogger"
 	"net/http"
 	"os"
@@ -35,16 +37,16 @@ func Load(c mauircdi.Configuration) {
 	config = c
 	auth.InitStore(config)
 
-	http.HandleFunc("/history/", history)
-	http.HandleFunc("/script/", script)
-	http.HandleFunc("/network/", network)
-	http.HandleFunc("/settings/", settings)
+	http.HandleFunc("/history/", misc.History)
+	http.HandleFunc("/script/", misc.Script)
+	http.HandleFunc("/network/", misc.Network)
+	http.HandleFunc("/settings/", misc.Settings)
 	http.HandleFunc("/auth/login", auth.Login)
 	http.HandleFunc("/auth/confirm", auth.EmailConfirm)
 	http.HandleFunc("/auth/password/", auth.Password)
 	http.HandleFunc("/auth/register", auth.Register)
 	http.HandleFunc("/auth/check", auth.HTTPCheck)
-	http.HandleFunc("/socket", serveWs)
+	http.HandleFunc("/socket", socket.Serve)
 	err := http.ListenAndServe(config.GetAddr(), context.ClearHandler(http.DefaultServeMux))
 	if err != nil {
 		log.Fatalf("Failed to listen to %s: %s", config.GetAddr(), err)

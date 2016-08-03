@@ -14,16 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-// Package web contains the HTTP server
-package web
+// Package socket contains the WebSocket handlers
+package socket
 
 import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"maunium.net/go/mauircd/interfaces"
+	"maunium.net/go/mauircd/web/auth"
+	"maunium.net/go/maulogger"
 	"net/http"
 	"time"
 )
+
+var log = maulogger.CreateSublogger("Web/Socket", maulogger.LevelInfo)
 
 const (
 	writeWait      = 10 * time.Second
@@ -105,8 +109,9 @@ func (c *connection) writePump() {
 	}
 }
 
-func serveWs(w http.ResponseWriter, r *http.Request) {
-	success, user := checkAuth(w, r)
+// Serve the WebSocket upgrader
+func Serve(w http.ResponseWriter, r *http.Request) {
+	success, user := auth.Check(w, r)
 	if !success {
 		w.WriteHeader(http.StatusUnauthorized)
 		log.Debugln("Auth fail")

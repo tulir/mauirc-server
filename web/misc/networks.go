@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-// Package web contains the HTTP server
-package web
+// Package misc contains HTTP-only misc handlers
+package misc
 
 import (
 	"encoding/json"
@@ -27,7 +27,8 @@ import (
 	"strings"
 )
 
-func network(w http.ResponseWriter, r *http.Request) {
+// Network HTTP handler
+func Network(w http.ResponseWriter, r *http.Request) {
 	authd, user := auth.Check(w, r)
 	if !authd {
 		errors.Write(w, errors.NotAuthenticated)

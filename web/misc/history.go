@@ -14,53 +14,64 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-// Package web contains the HTTP server
-package web
+// Package misc contains HTTP-only misc handlers
+package misc
 
 import (
 	"encoding/json"
-	"io/ioutil"
-	"maunium.net/go/mauircd/interfaces"
+	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/web/auth"
 	"maunium.net/go/mauircd/web/errors"
 	"net/http"
+	"net/url"
+	"strconv"
 	"strings"
 )
 
-func settings(w http.ResponseWriter, r *http.Request) {
+// History HTTP handler
+func History(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		w.Header().Add("Allow", "GET")
+		errors.Write(w, errors.InvalidMethod)
+		return
+	}
+
 	authd, user := auth.Check(w, r)
 	if !authd {
 		errors.Write(w, errors.NotAuthenticated)
 		return
 	}
 
-	if r.Method == http.MethodGet {
-		getSettings(w, r, user)
-	} else if r.Method == http.MethodPut {
-		putSettings(w, r, user)
+	n, err := strconv.Atoi(r.URL.Query().Get("n"))
+	if err != nil || n <= 0 {
+		n = 256
+	}
+
+	var results []database.Message
+
+	args := strings.Split(r.RequestURI, "/")[2:]
+	if len(args) > 0 && len(args[len(args)-1]) == 0 {
+		args = args[:len(args)-1]
+	}
+
+	if len(args) == 0 {
+		results, err = database.GetHistory(user.GetEmail(), n)
+	} else if len(args) == 1 {
+		results, err = database.GetNetworkHistory(user.GetEmail(), args[0], n)
 	} else {
-		w.Header().Add("Allow", strings.Join([]string{http.MethodGet, http.MethodPut}, ","))
-		errors.Write(w, errors.InvalidMethod)
+		channel, _ := url.QueryUnescape(args[1])
+		results, err = database.GetChannelHistory(user.GetEmail(), args[0], channel, n)
 	}
-}
 
-func putSettings(w http.ResponseWriter, r *http.Request, user mauircdi.User) {
-	data, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		errors.Write(w, errors.BodyNotFound)
-		return
-	}
-	var settings = new(interface{})
-	json.Unmarshal(data, &settings)
-	user.SetSettings(settings)
-}
-
-func getSettings(w http.ResponseWriter, r *http.Request, user mauircdi.User) {
-	data, err := json.Marshal(user.GetSettings())
 	if err != nil {
 		errors.Write(w, errors.Internal)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	w.Write(data)
+
+	json, err := json.Marshal(results)
+	if err != nil {
+		errors.Write(w, errors.Internal)
+		return
+	}
+	w.Write(json)
 }
