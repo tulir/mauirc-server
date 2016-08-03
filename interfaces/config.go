@@ -67,6 +67,7 @@ type User interface {
 	GetNameFromEmail() string
 	CheckAuthToken(token string) bool
 	CheckPassword(password string) bool
+	SetPassword(newPassword string) error
 
 	HandleCommand(data map[string]string)
 
