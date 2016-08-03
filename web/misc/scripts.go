@@ -66,7 +66,7 @@ func postScript(w http.ResponseWriter, r *http.Request, args []string, user maui
 	newPath := string(data)
 	parts := strings.Split(newPath, ",")
 	if len(parts) != 2 {
-		w.WriteHeader(http.StatusBadRequest)
+		errors.Write(w, errors.InvalidBodyFormat)
 		return
 	}
 
@@ -78,7 +78,7 @@ func postScript(w http.ResponseWriter, r *http.Request, args []string, user maui
 	} else {
 		net := user.GetNetwork(args[0])
 		if net == nil {
-			w.WriteHeader(http.StatusNotFound)
+			errors.Write(w, errors.NetworkNotFound)
 			return
 		}
 		scripts = net.GetScripts()
@@ -86,7 +86,7 @@ func postScript(w http.ResponseWriter, r *http.Request, args []string, user maui
 	}
 
 	if !success {
-		w.WriteHeader(http.StatusNotFound)
+		errors.Write(w, errors.ScriptNotFound)
 		return
 	}
 
@@ -103,7 +103,7 @@ func postScript(w http.ResponseWriter, r *http.Request, args []string, user maui
 	} else {
 		net := user.GetNetwork(parts[0])
 		if net == nil {
-			w.WriteHeader(http.StatusNotFound)
+			errors.Write(w, errors.NetworkNotFound)
 			return
 		}
 		net.AddScript(script)
@@ -123,7 +123,7 @@ func putScript(w http.ResponseWriter, r *http.Request, args []string, user mauir
 	} else {
 		net := user.GetNetwork(args[0])
 		if net == nil {
-			w.WriteHeader(http.StatusNotFound)
+			errors.Write(w, errors.NetworkNotFound)
 			return
 		}
 		net.AddScript(script)
@@ -142,7 +142,7 @@ func getScripts(w http.ResponseWriter, r *http.Request, args []string, user maui
 	} else {
 		net := user.GetNetwork(args[0])
 		if net == nil {
-			w.WriteHeader(http.StatusNotFound)
+			errors.Write(w, errors.NetworkNotFound)
 			return
 		}
 		scripts = net.GetScripts()
@@ -161,18 +161,18 @@ func getScripts(w http.ResponseWriter, r *http.Request, args []string, user maui
 func deleteScript(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
 	if args[0] == "global" {
 		if !user.RemoveGlobalScript(args[1]) {
-			w.WriteHeader(http.StatusNotFound)
+			errors.Write(w, errors.ScriptNotFound)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
 	} else {
 		net := user.GetNetwork(args[0])
 		if net == nil {
-			w.WriteHeader(http.StatusNotFound)
+			errors.Write(w, errors.NetworkNotFound)
 			return
 		}
 		if !net.RemoveScript(args[1]) {
-			w.WriteHeader(http.StatusNotFound)
+			errors.Write(w, errors.ScriptNotFound)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
