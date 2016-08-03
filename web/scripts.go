@@ -22,6 +22,8 @@ import (
 	"io/ioutil"
 	"maunium.net/go/mauircd/interfaces"
 	"maunium.net/go/mauircd/plugin"
+	"maunium.net/go/mauircd/web/auth"
+	"maunium.net/go/mauircd/web/errors"
 	"net/http"
 	"strings"
 )
@@ -32,9 +34,9 @@ const (
 )
 
 func script(w http.ResponseWriter, r *http.Request) {
-	authd, user := checkAuth(w, r)
+	authd, user := auth.Check(w, r)
 	if !authd {
-		WriteError(w, ErrNotAuthenticated)
+		errors.Write(w, errors.NotAuthenticated)
 		return
 	}
 
@@ -50,14 +52,14 @@ func script(w http.ResponseWriter, r *http.Request) {
 		postScript(w, r, args, user)
 	default:
 		w.Header().Add("Allow", strings.Join([]string{http.MethodGet, http.MethodDelete, http.MethodPut, http.MethodPost}, ","))
-		WriteError(w, ErrInvalidMethod)
+		errors.Write(w, errors.InvalidMethod)
 	}
 }
 
 func postScript(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		WriteError(w, ErrBodyNotFound)
+		errors.Write(w, errors.BodyNotFound)
 		return
 	}
 	newPath := string(data)
@@ -110,7 +112,7 @@ func postScript(w http.ResponseWriter, r *http.Request, args []string, user maui
 func putScript(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		WriteError(w, ErrBodyNotFound)
+		errors.Write(w, errors.BodyNotFound)
 		return
 	}
 	script := plugin.Script{Name: args[1], TheScript: string(data)}
@@ -147,7 +149,7 @@ func getScripts(w http.ResponseWriter, r *http.Request, args []string, user maui
 
 	data, err := json.Marshal(scripts)
 	if err != nil {
-		WriteError(w, ErrInternal)
+		errors.Write(w, errors.Internal)
 		return
 	}
 

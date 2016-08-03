@@ -20,6 +20,8 @@ package web
 import (
 	"encoding/json"
 	"maunium.net/go/mauircd/database"
+	"maunium.net/go/mauircd/web/auth"
+	"maunium.net/go/mauircd/web/errors"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -29,13 +31,13 @@ import (
 func history(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		w.Header().Add("Allow", "GET")
-		WriteError(w, ErrInvalidMethod)
+		errors.Write(w, errors.InvalidMethod)
 		return
 	}
 
-	authd, user := checkAuth(w, r)
+	authd, user := auth.Check(w, r)
 	if !authd {
-		WriteError(w, ErrNotAuthenticated)
+		errors.Write(w, errors.NotAuthenticated)
 		return
 	}
 
@@ -61,13 +63,13 @@ func history(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		WriteError(w, ErrInternal)
+		errors.Write(w, errors.Internal)
 		return
 	}
 
 	json, err := json.Marshal(results)
 	if err != nil {
-		WriteError(w, ErrInternal)
+		errors.Write(w, errors.Internal)
 		return
 	}
 	w.Write(json)

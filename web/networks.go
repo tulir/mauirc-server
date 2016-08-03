@@ -21,14 +21,16 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"maunium.net/go/mauircd/interfaces"
+	"maunium.net/go/mauircd/web/auth"
+	"maunium.net/go/mauircd/web/errors"
 	"net/http"
 	"strings"
 )
 
 func network(w http.ResponseWriter, r *http.Request) {
-	authd, user := checkAuth(w, r)
+	authd, user := auth.Check(w, r)
 	if !authd {
-		WriteError(w, ErrNotAuthenticated)
+		errors.Write(w, errors.NotAuthenticated)
 		return
 	}
 
@@ -42,7 +44,7 @@ func network(w http.ResponseWriter, r *http.Request) {
 		editNetwork(w, r, args, user)
 	default:
 		w.Header().Add("Allow", http.MethodDelete+","+http.MethodPut+","+http.MethodPost)
-		WriteError(w, ErrInvalidMethod)
+		errors.Write(w, errors.InvalidMethod)
 	}
 }
 
@@ -116,7 +118,7 @@ func editNetwork(w http.ResponseWriter, r *http.Request, args []string, user mau
 	dec := json.NewDecoder(r.Body)
 	err := dec.Decode(&data)
 	if err != nil {
-		WriteError(w, ErrRequestNotJSON)
+		errors.Write(w, errors.RequestNotJSON)
 		return
 	}
 
@@ -128,7 +130,7 @@ func editNetwork(w http.ResponseWriter, r *http.Request, args []string, user mau
 	enc := json.NewEncoder(w)
 	err = enc.Encode(editResponse{New: net.GetNetData(), Old: oldData})
 	if err != nil {
-		WriteError(w, ErrInternal)
+		errors.Write(w, errors.Internal)
 		return
 	}
 }

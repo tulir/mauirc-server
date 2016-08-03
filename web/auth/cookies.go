@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-// Package web contains the HTTP server
-package web
+// Package auth contains the authentication system
+package auth
 
 import (
-	"encoding/json"
 	"github.com/gorilla/sessions"
 	"maunium.net/go/mauircd/interfaces"
+	"maunium.net/go/mauircd/web/errors"
 	"net/http"
 )
 
@@ -30,11 +30,14 @@ type authform struct {
 }
 
 var store *sessions.CookieStore
+var config mauircdi.Configuration
 
-func initStore(address string) {
+// InitStore initializes the cookie store
+func InitStore(cfg mauircdi.Configuration) {
+	config = cfg
 	store = sessions.NewCookieStore(config.GetCookieSecret())
 	store.Options = &sessions.Options{
-		Domain:   address,
+		Domain:   config.GetExternalAddr(),
 		Path:     "/",
 		MaxAge:   86400 * 30,
 		Secure:   true,
@@ -42,7 +45,8 @@ func initStore(address string) {
 	}
 }
 
-func checkAuth(w http.ResponseWriter, r *http.Request) (bool, mauircdi.User) {
+// Check authentication
+func Check(w http.ResponseWriter, r *http.Request) (bool, mauircdi.User) {
 	session, err := store.Get(r, "mauIRC")
 	if err != nil {
 		return false, nil
@@ -67,91 +71,19 @@ func checkAuth(w http.ResponseWriter, r *http.Request) (bool, mauircdi.User) {
 	return true, user
 }
 
-func httpAuthCheck(w http.ResponseWriter, r *http.Request) {
+// HTTPCheck handler
+func HTTPCheck(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.Header().Add("Allow", http.MethodGet)
-		WriteError(w, ErrInvalidMethod)
+		errors.Write(w, errors.InvalidMethod)
 		return
 	}
 
-	success, _ := checkAuth(w, r)
+	success, _ := Check(w, r)
 	w.WriteHeader(http.StatusOK)
 	if !success {
 		w.Write([]byte("{\"authenticated\": \"false\"}"))
 	} else {
 		w.Write([]byte("{\"authenticated\": \"true\"}"))
 	}
-}
-
-func register(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.Header().Add("Allow", http.MethodPost)
-		WriteError(w, ErrInvalidMethod)
-		return
-	}
-
-	dec := json.NewDecoder(r.Body)
-	var af authform
-	err := dec.Decode(&af)
-
-	if err != nil || len(af.Email) == 0 || len(af.Password) == 0 {
-		WriteError(w, ErrMissingFields)
-		return
-	}
-
-	user := config.CreateUser(af.Email, af.Password)
-	if user == nil {
-		WriteError(w, ErrEmailUsed)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-}
-
-func login(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.Header().Add("Allow", http.MethodPost)
-		WriteError(w, ErrInvalidMethod)
-		return
-	}
-
-	dec := json.NewDecoder(r.Body)
-	var af authform
-	err := dec.Decode(&af)
-
-	if err != nil || len(af.Email) == 0 || len(af.Password) == 0 {
-		WriteError(w, ErrMissingFields)
-		return
-	}
-
-	user := config.GetUser(af.Email)
-	if user == nil {
-		WriteError(w, ErrInvalidCredentials)
-		return
-	} else if !user.CheckPassword(af.Password) {
-		WriteError(w, ErrInvalidCredentials)
-		return
-	}
-
-	session, err := store.Get(r, "mauIRC")
-	if err != nil {
-		session, err = store.New(r, "mauIRC")
-		if err != nil {
-			WriteError(w, ErrCookieFail)
-			return
-		}
-	}
-
-	session.Values["token"] = user.NewAuthToken()
-	session.Values["email"] = user.GetEmail()
-
-	session.Save(r, w)
-}
-
-func password(w http.ResponseWriter, r *http.Request) {
-
-}
-
-func emailConfirm(w http.ResponseWriter, r *http.Request) {
-
 }
