@@ -40,8 +40,10 @@ var (
 	ErrNotAuthenticated   = webError{HTTP: http.StatusUnauthorized, Simple: "notauthenticated", Human: "You have not logged in", ExtraInfo: "Try logging in using /auth/login"}
 	ErrEmailUsed          = webError{HTTP: http.StatusForbidden, Simple: "emailused", Human: "The given email is already in use"}
 	ErrCookieFail         = webError{HTTP: http.StatusInternalServerError, Simple: "cookiefail", Human: "Failed to find or create the cookie store", ExtraInfo: "Try removing all cookies for this site"}
-	ErrMissingFields      = webError{HTTP: http.StatusBadRequest, Simple: "badrequest", Human: "Your request is missing one or more required fields"}
-	ErrFieldFormatting    = webError{HTTP: http.StatusBadRequest, Simple: "badrequest", Human: "Your request has one or more fields with an invalid format"}
+	ErrBodyNotFound       = webError{HTTP: http.StatusBadRequest, Simple: "bodynotfound", Human: "The request does not contain a valid body"}
+	ErrRequestNotJSON     = webError{HTTP: http.StatusBadRequest, Simple: "requestnotjson", Human: "The request was not valid JSON"}
+	ErrMissingFields      = webError{HTTP: http.StatusBadRequest, Simple: "missingfields", Human: "The request is missing one or more required fields"}
+	ErrFieldFormatting    = webError{HTTP: http.StatusBadRequest, Simple: "fieldformat", Human: "The request has one or more fields with an invalid format"}
 	ErrInternal           = webError{HTTP: http.StatusInternalServerError, Simple: "internalerror", Human: "An unexpected error occured on the server"}
 )
 
