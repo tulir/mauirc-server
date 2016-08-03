@@ -23,9 +23,40 @@ import (
 	"net/http"
 )
 
+type passwordResetForm struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Token    string `json:"token"`
+}
+
 // PasswordReset HTTP handler
 func PasswordReset(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Add("Allow", http.MethodPost)
+		errors.Write(w, errors.InvalidMethod)
+		return
+	}
 
+	dec := json.NewDecoder(r.Body)
+	var prf passwordResetForm
+	err := dec.Decode(&prf)
+
+	if err != nil || len(prf.Email) == 0 || len(prf.Password) == 0 || len(prf.Token) == 0 {
+		errors.Write(w, errors.MissingFields)
+		return
+	}
+
+	user := config.GetUser(prf.Email)
+	if user == nil {
+		// TODO user not found error
+		return
+	} else if !user.CheckResetToken(prf.Token) {
+		// TODO invalid token error
+		return
+	}
+
+	user.SetPassword(prf.Password)
+	w.WriteHeader(http.StatusOK)
 }
 
 type passwordForgotForm struct {
@@ -55,7 +86,7 @@ func PasswordForgot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user.ResetPasswordToken()
+	user.NewResetToken()
 	// TODO email token to user
 }
 
