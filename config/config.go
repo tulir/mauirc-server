@@ -41,6 +41,7 @@ type configImpl struct {
 	Path          string             `json:"-"`
 	SQL           mysqlImpl          `json:"sql"`
 	Users         userListImpl       `json:"users"`
+	Mail          mailConfig         `json:"mail"`
 	IP            string             `json:"ip"`
 	Port          int                `json:"port"`
 	TrustHeadersF bool               `json:"trust-headers"`
