@@ -21,7 +21,17 @@ import (
 	"net/http"
 )
 
-// Password reset/forgot/change HTTP handler
-func Password(w http.ResponseWriter, r *http.Request) {
+// PasswordReset HTTP handler
+func PasswordReset(w http.ResponseWriter, r *http.Request) {
+
+}
+
+// PasswordForgot HTTP handler
+func PasswordForgot(w http.ResponseWriter, r *http.Request) {
+
+}
+
+// PasswordChange HTTP handler
+func PasswordChange(w http.ResponseWriter, r *http.Request) {
 
 }
