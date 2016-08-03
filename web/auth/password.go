@@ -18,6 +18,8 @@
 package auth
 
 import (
+	"encoding/json"
+	"maunium.net/go/mauircd/web/errors"
 	"net/http"
 )
 
@@ -31,7 +33,47 @@ func PasswordForgot(w http.ResponseWriter, r *http.Request) {
 
 }
 
+type passwordChangeForm struct {
+	Old string `json:"old"`
+	New string `json:"new"`
+}
+
 // PasswordChange HTTP handler
 func PasswordChange(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Add("Allow", http.MethodPost)
+		errors.Write(w, errors.InvalidMethod)
+		return
+	}
 
+	authd, user := Check(w, r)
+	if !authd {
+		errors.Write(w, errors.NotAuthenticated)
+		return
+	}
+
+	dec := json.NewDecoder(r.Body)
+	var pcf passwordChangeForm
+	err := dec.Decode(&pcf)
+
+	if err != nil || len(pcf.Old) == 0 || len(pcf.New) == 0 {
+		errors.Write(w, errors.MissingFields)
+		return
+	}
+
+	if !user.CheckPassword(pcf.Old) {
+		log.Debugf("%s tried to change password of %s with the wrong password\n", getIP(r), user.GetEmail())
+		errors.Write(w, errors.InvalidCredentials)
+		return
+	}
+
+	err = user.SetPassword(pcf.New)
+	if err != nil {
+		log.Errorf("%s failed to change password of %s: %s", getIP(r), user.GetEmail(), err)
+		errors.Write(w, errors.Internal)
+		return
+	}
+
+	log.Debugf("%s changed the password of %s\n", getIP(r), user.GetEmail())
+	w.WriteHeader(http.StatusOK)
 }
