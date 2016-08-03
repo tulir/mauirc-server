@@ -34,7 +34,7 @@ type userImpl struct {
 	AuthTokens    []authToken           `json:"authtokens,omitempty"`
 	NewMessages   chan mauircdi.Message `json:"-"`
 	GlobalScripts []mauircdi.Script     `json:"-"`
-	Settings      interface{}           `json:"settings"`
+	Settings      interface{}           `json:"settings,omitempty"`
 	HostConf      *configImpl           `json:"-"`
 }
 
