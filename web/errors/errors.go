@@ -33,6 +33,9 @@ type webError struct {
 var (
 	InvalidMethod      = webError{HTTP: http.StatusMethodNotAllowed, Simple: "methodnotallowed", Human: "The request method is not allowed", ExtraInfo: "See the Allow header for a list of allowed headers"}
 	InvalidCredentials = webError{HTTP: http.StatusUnauthorized, Simple: "invalidcredentials", Human: "Invalid username or password"}
+	InvalidResetToken  = webError{HTTP: http.StatusUnauthorized, Simple: "invalidresettoken", Human: "Invalid or expired password reset token"}
+	UserNotFound       = webError{HTTP: http.StatusNotFound, Simple: "usernotfound", Human: "The given email is not in use"}
+	NetworkNotFound    = webError{HTTP: http.StatusNotFound, Simple: "networknotfound", Human: "You don't have a network with the given name"}
 	NotAuthenticated   = webError{HTTP: http.StatusUnauthorized, Simple: "notauthenticated", Human: "You have not logged in", ExtraInfo: "Try logging in using /auth/login"}
 	EmailUsed          = webError{HTTP: http.StatusForbidden, Simple: "emailused", Human: "The given email is already in use"}
 	CookieFail         = webError{HTTP: http.StatusInternalServerError, Simple: "cookiefail", Human: "Failed to find or create the cookie store", ExtraInfo: "Try removing all cookies for this site"}
