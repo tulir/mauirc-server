@@ -47,24 +47,12 @@ func History(w http.ResponseWriter, r *http.Request) {
 		n = 256
 	}
 
-	var results []database.Message
-
 	args := strings.Split(r.RequestURI, "/")[2:]
 	if len(args) > 0 && len(args[len(args)-1]) == 0 {
 		args = args[:len(args)-1]
 	}
 
-	if len(args) == 0 {
-		log.Debugf("%s requested %d messages of history for %s\n", getIP(r), n, user.GetEmail())
-		results, err = database.GetHistory(user.GetEmail(), n)
-	} else if len(args) == 1 {
-		log.Debugf("%s requested %d messages of the history of %s for %s\n", getIP(r), n, args[0], user.GetEmail())
-		results, err = database.GetNetworkHistory(user.GetEmail(), args[0], n)
-	} else {
-		channel, _ := url.QueryUnescape(args[1])
-		log.Debugf("%s requested %d messages of the history of %s @ %s for %s\n", getIP(r), n, channel, args[0], user.GetEmail())
-		results, err = database.GetChannelHistory(user.GetEmail(), args[0], channel, n)
-	}
+	results, err := getHistory(user.GetEmail(), getIP(r), n, args)
 
 	if err != nil {
 		errors.Write(w, errors.Internal)
@@ -78,4 +66,18 @@ func History(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write(json)
+}
+
+func getHistory(email, ip string, n int, args []string) ([]database.Message, error) {
+	if len(args) == 0 {
+		log.Debugf("%s requested %d messages of history for %s\n", ip, n, email)
+		return database.GetHistory(email, n)
+	} else if len(args) == 1 {
+		log.Debugf("%s requested %d messages of the history of %s for %s\n", ip, n, args[0], email)
+		return database.GetNetworkHistory(email, args[0], n)
+	} else {
+		channel, _ := url.QueryUnescape(args[1])
+		log.Debugf("%s requested %d messages of the history of %s @ %s for %s\n", ip, n, channel, args[0], email)
+		return database.GetChannelHistory(email, args[0], channel, n)
+	}
 }
