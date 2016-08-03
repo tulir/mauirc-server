@@ -21,7 +21,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"maunium.net/go/mauircd/interfaces"
-	//	"maunium.net/go/mauircd/plugin"
 	"net/http"
 	"strings"
 )
