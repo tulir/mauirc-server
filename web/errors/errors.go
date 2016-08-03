@@ -33,20 +33,20 @@ type WebError struct {
 
 // Web errors
 var (
-	InvalidMethod      = WebError{HTTP: http.StatusMethodNotAllowed, Simple: "methodnotallowed", Human: "The request method is not allowed", ExtraInfo: "See the Allow header for a list of allowed headers"}
-	InvalidCredentials = WebError{HTTP: http.StatusUnauthorized, Simple: "invalidcredentials", Human: "Invalid username or password"}
-	InvalidResetToken  = WebError{HTTP: http.StatusUnauthorized, Simple: "invalidresettoken", Human: "Invalid or expired password reset token"}
-	UserNotFound       = WebError{HTTP: http.StatusNotFound, Simple: "usernotfound", Human: "The given email is not in use"}
-	NetworkNotFound    = WebError{HTTP: http.StatusNotFound, Simple: "networknotfound", Human: "You don't have a network with the given name"}
-	ScriptNotFound     = WebError{HTTP: http.StatusNotFound, Simple: "scriptnotfound", Human: "You don't have a script with the given name"}
-	NotAuthenticated   = WebError{HTTP: http.StatusUnauthorized, Simple: "notauthenticated", Human: "You have not logged in", ExtraInfo: "Try logging in using /auth/login"}
-	EmailUsed          = WebError{HTTP: http.StatusForbidden, Simple: "emailused", Human: "The given email is already in use"}
-	CookieFail         = WebError{HTTP: http.StatusInternalServerError, Simple: "cookiefail", Human: "Failed to find or create the cookie store", ExtraInfo: "Try removing all cookies for this site"}
-	BodyNotFound       = WebError{HTTP: http.StatusBadRequest, Simple: "bodynotfound", Human: "The request does not contain a valid body"}
-	RequestNotJSON     = WebError{HTTP: http.StatusBadRequest, Simple: "requestnotjson", Human: "The request was not valid JSON"}
-	MissingFields      = WebError{HTTP: http.StatusBadRequest, Simple: "missingfields", Human: "The request is missing one or more required fields"}
-	FieldFormatting    = WebError{HTTP: http.StatusBadRequest, Simple: "fieldformat", Human: "The request has one or more fields with an invalid format"}
-	Internal           = WebError{HTTP: http.StatusInternalServerError, Simple: "internalerror", Human: "An unexpected error occured on the server"}
+	InvalidMethod      = Create(http.StatusMethodNotAllowed, "methodnotallowed", "The request method is not allowed", "See the Allow header for a list of allowed headers")
+	InvalidCredentials = Create(http.StatusUnauthorized, "invalidcredentials", "Invalid username or password", "")
+	InvalidResetToken  = Create(http.StatusUnauthorized, "invalidresettoken", "Invalid or expired password reset token", "")
+	UserNotFound       = Create(http.StatusNotFound, "usernotfound", "The given email is not in use", "")
+	NetworkNotFound    = Create(http.StatusNotFound, "networknotfound", "You don't have a network with the given name", "")
+	ScriptNotFound     = Create(http.StatusNotFound, "scriptnotfound", "You don't have a script with the given name", "")
+	NotAuthenticated   = Create(http.StatusUnauthorized, "notauthenticated", "You have not logged in", "Try logging in using /auth/login")
+	EmailUsed          = Create(http.StatusForbidden, "emailused", "The given email is already in use", "")
+	CookieFail         = Create(http.StatusInternalServerError, "cookiefail", "Failed to find or create the cookie store", "Try removing all cookies for this site")
+	BodyNotFound       = Create(http.StatusBadRequest, "bodynotfound", "The request does not contain a valid body", "")
+	RequestNotJSON     = Create(http.StatusBadRequest, "requestnotjson", "The request was not valid JSON", "")
+	MissingFields      = Create(http.StatusBadRequest, "missingfields", "The request is missing one or more required fields", "")
+	FieldFormatting    = Create(http.StatusBadRequest, "fieldformat", "The request has one or more fields with an invalid format", "")
+	Internal           = Create(http.StatusInternalServerError, "internalerror", "An unexpected error occured on the server", "")
 )
 
 // Create a custom error
