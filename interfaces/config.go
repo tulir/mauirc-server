@@ -62,9 +62,11 @@ type User interface {
 	CreateNetwork(name string, data []byte) (Network, bool)
 	SendNetworkData(net Network)
 
-	NewAuthToken() string
 	GetEmail() string
 	GetNameFromEmail() string
+	NewResetToken() string
+	CheckResetToken(token string) bool
+	NewAuthToken() string
 	CheckAuthToken(token string) bool
 	CheckPassword(password string) bool
 	SetPassword(newPassword string) error

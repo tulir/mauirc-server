@@ -169,6 +169,19 @@ func (user *userImpl) NewAuthToken() string {
 	return at
 }
 
+func (user *userImpl) NewResetToken() string {
+	rpt := generateAuthToken()
+	user.PasswordReset = authToken{Token: rpt, Time: time.Now().Add(30 * time.Minute).Unix()}
+	return rpt
+}
+
+func (user *userImpl) CheckResetToken(token string) bool {
+	if user.PasswordReset.Time < time.Now().Unix() || user.PasswordReset.Token != token {
+		return false
+	}
+	return true
+}
+
 func generateAuthToken() string {
 	var authToken string
 	b := make([]byte, 32)
