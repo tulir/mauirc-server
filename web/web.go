@@ -23,6 +23,7 @@ import (
 	"maunium.net/go/mauircd/web/auth"
 	"maunium.net/go/mauircd/web/misc"
 	"maunium.net/go/mauircd/web/socket"
+	"maunium.net/go/mauircd/web/util"
 	"maunium.net/go/maulogger"
 	"net/http"
 	"os"
@@ -36,6 +37,7 @@ func Load(c mauircdi.Configuration) {
 	log.Debugln("Loading HTTP server")
 	config = c
 	auth.InitStore(config)
+	util.Init(config)
 
 	http.HandleFunc("/history/", misc.History)
 	http.HandleFunc("/script/", misc.Script)

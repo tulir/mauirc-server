@@ -22,6 +22,7 @@ import (
 	"maunium.net/go/mauircd/database"
 	"maunium.net/go/mauircd/web/auth"
 	"maunium.net/go/mauircd/web/errors"
+	"maunium.net/go/mauircd/web/util"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -61,7 +62,7 @@ func History(w http.ResponseWriter, r *http.Request) {
 
 	json, err := json.Marshal(results)
 	if err != nil {
-		log.Errorln("Error while processing /history request by %s: %s", getIP(r), err)
+		log.Errorln("Error while processing /history request by %s: %s", util.GetIP(r), err)
 		errors.Write(w, errors.Internal)
 		return
 	}

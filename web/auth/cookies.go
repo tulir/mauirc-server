@@ -21,6 +21,7 @@ import (
 	"github.com/gorilla/sessions"
 	"maunium.net/go/mauircd/interfaces"
 	"maunium.net/go/mauircd/web/errors"
+	"maunium.net/go/mauircd/web/util"
 	"maunium.net/go/maulogger"
 	"net/http"
 	"strings"
@@ -34,13 +35,6 @@ type authform struct {
 var store *sessions.CookieStore
 var config mauircdi.Configuration
 var log = maulogger.CreateSublogger("Web/Auth", maulogger.LevelInfo)
-
-func getIP(r *http.Request) string {
-	//if config.TrustHeaders() {
-	//	return r.Header.Get("X-Forwarded-For")
-	//}
-	return strings.Split(r.RemoteAddr, ":")[0]
-}
 
 // InitStore initializes the cookie store
 func InitStore(cfg mauircdi.Configuration) {
@@ -90,7 +84,7 @@ func HTTPCheck(w http.ResponseWriter, r *http.Request) {
 	}
 
 	success, _ := Check(w, r)
-	log.Debugf("%s checked authentication (Authenticated: %s)\n", getIP(r), success)
+	log.Debugf("%s checked authentication (Authenticated: %s)\n", util.GetIP(r), success)
 	w.WriteHeader(http.StatusOK)
 	if !success {
 		w.Write([]byte("{\"authenticated\": \"false\"}"))

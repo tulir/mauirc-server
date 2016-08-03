@@ -20,6 +20,7 @@ package auth
 import (
 	"encoding/json"
 	"maunium.net/go/mauircd/web/errors"
+	"maunium.net/go/mauircd/web/util"
 	"net/http"
 )
 
@@ -119,18 +120,18 @@ func PasswordChange(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !user.CheckPassword(pcf.Old) {
-		log.Debugf("%s tried to change password of %s with the wrong password\n", getIP(r), user.GetEmail())
+		log.Debugf("%s tried to change password of %s with the wrong password\n", util.GetIP(r), user.GetEmail())
 		errors.Write(w, errors.InvalidCredentials)
 		return
 	}
 
 	err = user.SetPassword(pcf.New)
 	if err != nil {
-		log.Errorf("%s failed to change password of %s: %s", getIP(r), user.GetEmail(), err)
+		log.Errorf("%s failed to change password of %s: %s", util.GetIP(r), user.GetEmail(), err)
 		errors.Write(w, errors.Internal)
 		return
 	}
 
-	log.Debugf("%s changed the password of %s\n", getIP(r), user.GetEmail())
+	log.Debugf("%s changed the password of %s\n", util.GetIP(r), user.GetEmail())
 	w.WriteHeader(http.StatusOK)
 }

@@ -23,20 +23,13 @@ import (
 	"maunium.net/go/mauircd/interfaces"
 	"maunium.net/go/mauircd/web/auth"
 	"maunium.net/go/mauircd/web/errors"
+	"maunium.net/go/mauircd/web/util"
 	"maunium.net/go/maulogger"
 	"net/http"
-	"strings"
 	"time"
 )
 
 var log = maulogger.CreateSublogger("Web/Socket", maulogger.LevelInfo)
-
-func getIP(r *http.Request) string {
-	//if config.TrustHeaders() {
-	//	return r.Header.Get("X-Forwarded-For")
-	//}
-	return strings.Split(r.RemoteAddr, ":")[0]
-}
 
 const (
 	writeWait      = 10 * time.Second
@@ -123,7 +116,7 @@ func Serve(w http.ResponseWriter, r *http.Request) {
 	success, user := auth.Check(w, r)
 	if !success {
 		errors.Write(w, errors.NotAuthenticated)
-		log.Debugln(getIP(r), "tried to connect to socket without authentication")
+		log.Debugln(util.GetIP(r), "tried to connect to socket without authentication")
 		return
 	}
 

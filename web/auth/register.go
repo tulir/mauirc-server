@@ -20,6 +20,7 @@ package auth
 import (
 	"encoding/json"
 	"maunium.net/go/mauircd/web/errors"
+	"maunium.net/go/mauircd/web/util"
 	"net/http"
 )
 
@@ -42,11 +43,11 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	user := config.CreateUser(af.Email, af.Password)
 	if user == nil {
-		log.Debugf("%s tried to register existing user %s\n", getIP(r), af.Email)
+		log.Debugf("%s tried to register existing user %s\n", util.GetIP(r), af.Email)
 		errors.Write(w, errors.EmailUsed)
 		return
 	}
-	log.Debugf("%s registered %s\n", getIP(r), af.Email)
+	log.Debugf("%s registered %s\n", util.GetIP(r), af.Email)
 
 	w.WriteHeader(http.StatusOK)
 }

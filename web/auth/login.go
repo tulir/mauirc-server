@@ -20,6 +20,7 @@ package auth
 import (
 	"encoding/json"
 	"maunium.net/go/mauircd/web/errors"
+	"maunium.net/go/mauircd/web/util"
 	"net/http"
 )
 
@@ -42,15 +43,15 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	user := config.GetUser(af.Email)
 	if user == nil {
-		log.Debugf("%s tried to log in as non-existent user %s\n", getIP(r), af.Email)
+		log.Debugf("%s tried to log in as non-existent user %s\n", util.GetIP(r), af.Email)
 		errors.Write(w, errors.InvalidCredentials)
 		return
 	} else if !user.CheckPassword(af.Password) {
-		log.Debugf("%s tried to log in as %s with invalid password\n", getIP(r), af.Email)
+		log.Debugf("%s tried to log in as %s with invalid password\n", util.GetIP(r), af.Email)
 		errors.Write(w, errors.InvalidCredentials)
 		return
 	}
-	log.Debugf("%s logged in as %s\n", getIP(r), af.Email)
+	log.Debugf("%s logged in as %s\n", util.GetIP(r), af.Email)
 
 	session, err := store.Get(r, "mauIRC")
 	if err != nil {
