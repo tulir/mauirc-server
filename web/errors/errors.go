@@ -19,10 +19,12 @@ package errors
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
-type webError struct {
+// WebError is a wrapper for errors intended to be sent to HTTP clients
+type WebError struct {
 	HTTP      int    `json:"http"`
 	Simple    string `json:"error"`
 	Human     string `json:"error-humanreadable"`
@@ -31,23 +33,36 @@ type webError struct {
 
 // Web errors
 var (
-	InvalidMethod      = webError{HTTP: http.StatusMethodNotAllowed, Simple: "methodnotallowed", Human: "The request method is not allowed", ExtraInfo: "See the Allow header for a list of allowed headers"}
-	InvalidCredentials = webError{HTTP: http.StatusUnauthorized, Simple: "invalidcredentials", Human: "Invalid username or password"}
-	InvalidResetToken  = webError{HTTP: http.StatusUnauthorized, Simple: "invalidresettoken", Human: "Invalid or expired password reset token"}
-	UserNotFound       = webError{HTTP: http.StatusNotFound, Simple: "usernotfound", Human: "The given email is not in use"}
-	NetworkNotFound    = webError{HTTP: http.StatusNotFound, Simple: "networknotfound", Human: "You don't have a network with the given name"}
-	NotAuthenticated   = webError{HTTP: http.StatusUnauthorized, Simple: "notauthenticated", Human: "You have not logged in", ExtraInfo: "Try logging in using /auth/login"}
-	EmailUsed          = webError{HTTP: http.StatusForbidden, Simple: "emailused", Human: "The given email is already in use"}
-	CookieFail         = webError{HTTP: http.StatusInternalServerError, Simple: "cookiefail", Human: "Failed to find or create the cookie store", ExtraInfo: "Try removing all cookies for this site"}
-	BodyNotFound       = webError{HTTP: http.StatusBadRequest, Simple: "bodynotfound", Human: "The request does not contain a valid body"}
-	RequestNotJSON     = webError{HTTP: http.StatusBadRequest, Simple: "requestnotjson", Human: "The request was not valid JSON"}
-	MissingFields      = webError{HTTP: http.StatusBadRequest, Simple: "missingfields", Human: "The request is missing one or more required fields"}
-	FieldFormatting    = webError{HTTP: http.StatusBadRequest, Simple: "fieldformat", Human: "The request has one or more fields with an invalid format"}
-	Internal           = webError{HTTP: http.StatusInternalServerError, Simple: "internalerror", Human: "An unexpected error occured on the server"}
+	InvalidMethod      = WebError{HTTP: http.StatusMethodNotAllowed, Simple: "methodnotallowed", Human: "The request method is not allowed", ExtraInfo: "See the Allow header for a list of allowed headers"}
+	InvalidCredentials = WebError{HTTP: http.StatusUnauthorized, Simple: "invalidcredentials", Human: "Invalid username or password"}
+	InvalidResetToken  = WebError{HTTP: http.StatusUnauthorized, Simple: "invalidresettoken", Human: "Invalid or expired password reset token"}
+	UserNotFound       = WebError{HTTP: http.StatusNotFound, Simple: "usernotfound", Human: "The given email is not in use"}
+	NetworkNotFound    = WebError{HTTP: http.StatusNotFound, Simple: "networknotfound", Human: "You don't have a network with the given name"}
+	ScriptNotFound     = WebError{HTTP: http.StatusNotFound, Simple: "scriptnotfound", Human: "You don't have a script with the given name"}
+	NotAuthenticated   = WebError{HTTP: http.StatusUnauthorized, Simple: "notauthenticated", Human: "You have not logged in", ExtraInfo: "Try logging in using /auth/login"}
+	EmailUsed          = WebError{HTTP: http.StatusForbidden, Simple: "emailused", Human: "The given email is already in use"}
+	CookieFail         = WebError{HTTP: http.StatusInternalServerError, Simple: "cookiefail", Human: "Failed to find or create the cookie store", ExtraInfo: "Try removing all cookies for this site"}
+	BodyNotFound       = WebError{HTTP: http.StatusBadRequest, Simple: "bodynotfound", Human: "The request does not contain a valid body"}
+	RequestNotJSON     = WebError{HTTP: http.StatusBadRequest, Simple: "requestnotjson", Human: "The request was not valid JSON"}
+	MissingFields      = WebError{HTTP: http.StatusBadRequest, Simple: "missingfields", Human: "The request is missing one or more required fields"}
+	FieldFormatting    = WebError{HTTP: http.StatusBadRequest, Simple: "fieldformat", Human: "The request has one or more fields with an invalid format"}
+	Internal           = WebError{HTTP: http.StatusInternalServerError, Simple: "internalerror", Human: "An unexpected error occured on the server"}
 )
 
-// Write a webError to a http.ResponseWriter
-func Write(w http.ResponseWriter, err webError) error {
+// Create a custom error
+func Create(status int, simple, human, extra string) WebError {
+	return WebError{HTTP: status, Simple: simple, Human: human, ExtraInfo: extra}
+}
+
+func (err WebError) Error() string {
+	if len(err.ExtraInfo) > 0 {
+		return fmt.Sprintf("%s: %s. %s (HTTP %d)", err.Simple, err.Human, err.ExtraInfo, err.HTTP)
+	}
+	return fmt.Sprintf("%s: %s (HTTP %d)", err.Simple, err.Human, err.HTTP)
+}
+
+// Write a WebError to a http.ResponseWriter
+func Write(w http.ResponseWriter, err WebError) error {
 	enc := json.NewEncoder(w)
 	w.WriteHeader(err.HTTP)
 	return enc.Encode(err)
