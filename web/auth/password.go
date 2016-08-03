@@ -48,10 +48,10 @@ func PasswordReset(w http.ResponseWriter, r *http.Request) {
 
 	user := config.GetUser(prf.Email)
 	if user == nil {
-		// TODO user not found error
+		errors.Write(w, errors.UserNotFound)
 		return
 	} else if !user.CheckResetToken(prf.Token) {
-		// TODO invalid token error
+		errors.Write(w, errors.InvalidResetToken)
 		return
 	}
 
@@ -82,7 +82,7 @@ func PasswordForgot(w http.ResponseWriter, r *http.Request) {
 
 	user := config.GetUser(pff.Email)
 	if user == nil {
-		// TODO user not found error
+		errors.Write(w, errors.UserNotFound)
 		return
 	}
 

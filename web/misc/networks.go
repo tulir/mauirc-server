@@ -63,20 +63,20 @@ func deleteNetwork(w http.ResponseWriter, r *http.Request, args []string, user m
 			errors.Write(w, errors.Internal)
 		}
 	} else {
-		w.WriteHeader(http.StatusNotFound)
+		errors.Write(w, errors.NetworkNotFound)
 	}
 }
 
 func addNetwork(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		errors.Write(w, errors.BodyNotFound)
 		return
 	}
 
 	net, ok := user.CreateNetwork(args[0], data)
 	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
+		errors.Write(w, errors.RequestNotJSON)
 		return
 	}
 
@@ -117,7 +117,7 @@ type editResponse struct {
 func editNetwork(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
 	net := user.GetNetwork(args[0])
 	if net == nil {
-		w.WriteHeader(http.StatusNotFound)
+		errors.Write(w, errors.NetworkNotFound)
 		return
 	}
 
