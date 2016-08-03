@@ -22,12 +22,13 @@ import (
 	"io/ioutil"
 	"maunium.net/go/mauircd/interfaces"
 	"net/http"
+	"strings"
 )
 
 func settings(w http.ResponseWriter, r *http.Request) {
 	authd, user := checkAuth(w, r)
 	if !authd {
-		w.WriteHeader(http.StatusUnauthorized)
+		WriteError(w, ErrNotAuthenticated)
 		return
 	}
 
@@ -36,15 +37,15 @@ func settings(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == http.MethodPut {
 		putSettings(w, r, user)
 	} else {
-		w.Header().Add("Allow", http.MethodGet+","+http.MethodPut)
-		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Header().Add("Allow", strings.Join([]string{http.MethodGet, http.MethodPut}, ","))
+		WriteError(w, ErrInvalidMethod)
 	}
 }
 
 func putSettings(w http.ResponseWriter, r *http.Request, user mauircdi.User) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		WriteError(w, ErrBodyNotFound)
 		return
 	}
 	var settings = new(interface{})
@@ -55,7 +56,7 @@ func putSettings(w http.ResponseWriter, r *http.Request, user mauircdi.User) {
 func getSettings(w http.ResponseWriter, r *http.Request, user mauircdi.User) {
 	data, err := json.Marshal(user.GetSettings())
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		WriteError(w, ErrInternal)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

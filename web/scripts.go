@@ -34,7 +34,7 @@ const (
 func script(w http.ResponseWriter, r *http.Request) {
 	authd, user := checkAuth(w, r)
 	if !authd {
-		w.WriteHeader(http.StatusUnauthorized)
+		WriteError(w, ErrNotAuthenticated)
 		return
 	}
 
@@ -49,15 +49,15 @@ func script(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		postScript(w, r, args, user)
 	default:
-		w.Header().Add("Allow", http.MethodGet+","+http.MethodDelete+","+http.MethodPut+","+http.MethodPost)
-		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Header().Add("Allow", strings.Join([]string{http.MethodGet, http.MethodDelete, http.MethodPut, http.MethodPost}, ","))
+		WriteError(w, ErrInvalidMethod)
 	}
 }
 
 func postScript(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		WriteError(w, ErrBodyNotFound)
 		return
 	}
 	newPath := string(data)
@@ -86,19 +86,13 @@ func postScript(w http.ResponseWriter, r *http.Request, args []string, user maui
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-	success = false
 
 	var script mauircdi.Script
 	for _, s := range scripts {
 		if s.GetName() == args[1] {
 			script = plugin.Script{Name: parts[1], TheScript: s.GetScript()}
-			success = true
 			break
 		}
-	}
-	if !success {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
 	}
 
 	if parts[0] == global {
@@ -116,7 +110,7 @@ func postScript(w http.ResponseWriter, r *http.Request, args []string, user maui
 func putScript(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		WriteError(w, ErrBodyNotFound)
 		return
 	}
 	script := plugin.Script{Name: args[1], TheScript: string(data)}
@@ -153,7 +147,7 @@ func getScripts(w http.ResponseWriter, r *http.Request, args []string, user maui
 
 	data, err := json.Marshal(scripts)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		WriteError(w, ErrInternal)
 		return
 	}
 

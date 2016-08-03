@@ -29,7 +29,7 @@ import (
 func network(w http.ResponseWriter, r *http.Request) {
 	authd, user := checkAuth(w, r)
 	if !authd {
-		w.WriteHeader(http.StatusUnauthorized)
+		WriteError(w, ErrNotAuthenticated)
 		return
 	}
 
@@ -43,7 +43,7 @@ func network(w http.ResponseWriter, r *http.Request) {
 		editNetwork(w, r, args, user)
 	default:
 		w.Header().Add("Allow", http.MethodDelete+","+http.MethodPut+","+http.MethodPost)
-		w.WriteHeader(http.StatusMethodNotAllowed)
+		WriteError(w, ErrInvalidMethod)
 	}
 }
 
@@ -117,7 +117,7 @@ func editNetwork(w http.ResponseWriter, r *http.Request, args []string, user mau
 	dec := json.NewDecoder(r.Body)
 	err := dec.Decode(&data)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		WriteError(w, ErrRequestNotJSON)
 		return
 	}
 
@@ -129,7 +129,7 @@ func editNetwork(w http.ResponseWriter, r *http.Request, args []string, user mau
 	enc := json.NewEncoder(w)
 	err = enc.Encode(editResponse{New: net.GetNetData(), Old: oldData})
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		WriteError(w, ErrInternal)
 		return
 	}
 }
