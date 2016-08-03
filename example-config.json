@@ -4,13 +4,13 @@
     "port": 3306,
     "username": "root",
     "password": "password",
-    "database": "mauircd",
+    "database": "mauircd"
   },
   "ident": {
       "enabled": true,
       "ip": "127.0.0.1",
       "port": "113"
-  }
+  },
   "users": [
     {
       "networks": [
