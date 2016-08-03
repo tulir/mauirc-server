@@ -35,11 +35,11 @@ type webError struct {
 
 // Web errors
 var (
-	ErrInvalidMethod      = webError{HTTP: http.StatusMethodNotAllowed, Simple: "methodnotallowed", Human: "The request method is not allowed.", ExtraInfo: "See the Allow header for a list of allowed headers."}
+	ErrInvalidMethod      = webError{HTTP: http.StatusMethodNotAllowed, Simple: "methodnotallowed", Human: "The request method is not allowed", ExtraInfo: "See the Allow header for a list of allowed headers"}
 	ErrInvalidCredentials = webError{HTTP: http.StatusUnauthorized, Simple: "invalidcredentials", Human: "Invalid username or password"}
 	ErrNotAuthenticated   = webError{HTTP: http.StatusUnauthorized, Simple: "notauthenticated", Human: "You have not logged in", ExtraInfo: "Try logging in using /auth/login"}
 	ErrEmailUsed          = webError{HTTP: http.StatusForbidden, Simple: "emailused", Human: "The given email is already in use"}
-	ErrCookieFail         = webError{HTTP: http.StatusInternalServerError, Simple: "cookiefail", Human: "Failed to find or create the cookie store", ExtraInfo: "Try removing all cookies for this site."}
+	ErrCookieFail         = webError{HTTP: http.StatusInternalServerError, Simple: "cookiefail", Human: "Failed to find or create the cookie store", ExtraInfo: "Try removing all cookies for this site"}
 	ErrMissingFields      = webError{HTTP: http.StatusBadRequest, Simple: "badrequest", Human: "Your request is missing one or more required fields"}
 	ErrFieldFormatting    = webError{HTTP: http.StatusBadRequest, Simple: "badrequest", Human: "Your request has one or more fields with an invalid format"}
 	ErrInternal           = webError{HTTP: http.StatusInternalServerError, Simple: "internalerror", Human: "An unexpected error occured on the server"}
