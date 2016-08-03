@@ -70,23 +70,23 @@ func checkAuth(w http.ResponseWriter, r *http.Request) (bool, mauircdi.User) {
 func httpAuthCheck(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.Header().Add("Allow", http.MethodGet)
-		w.WriteHeader(http.StatusMethodNotAllowed)
+		WriteError(w, ErrInvalidMethod)
 		return
 	}
 
 	success, _ := checkAuth(w, r)
 	w.WriteHeader(http.StatusOK)
 	if !success {
-		w.Write([]byte("false"))
+		w.Write([]byte("{\"authenticated\": \"false\"}"))
 	} else {
-		w.Write([]byte("true"))
+		w.Write([]byte("{\"authenticated\": \"true\"}"))
 	}
 }
 
 func register(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.Header().Add("Allow", http.MethodPost)
-		w.WriteHeader(http.StatusMethodNotAllowed)
+		WriteError(w, ErrInvalidMethod)
 		return
 	}
 
@@ -95,13 +95,14 @@ func register(w http.ResponseWriter, r *http.Request) {
 	err := dec.Decode(&af)
 
 	if err != nil || len(af.Email) == 0 || len(af.Password) == 0 {
-		w.WriteHeader(http.StatusBadRequest)
+		WriteError(w, ErrMissingFields)
 		return
 	}
 
 	user := config.CreateUser(af.Email, af.Password)
 	if user == nil {
-		w.WriteHeader(http.StatusUnauthorized)
+		WriteError(w, ErrEmailUsed)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -110,7 +111,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 func login(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.Header().Add("Allow", http.MethodPost)
-		w.WriteHeader(http.StatusMethodNotAllowed)
+		WriteError(w, ErrInvalidMethod)
 		return
 	}
 
@@ -119,16 +120,16 @@ func login(w http.ResponseWriter, r *http.Request) {
 	err := dec.Decode(&af)
 
 	if err != nil || len(af.Email) == 0 || len(af.Password) == 0 {
-		w.WriteHeader(http.StatusBadRequest)
+		WriteError(w, ErrMissingFields)
 		return
 	}
 
 	user := config.GetUser(af.Email)
 	if user == nil {
-		w.WriteHeader(http.StatusUnauthorized)
+		WriteError(w, ErrInvalidCredentials)
 		return
 	} else if !user.CheckPassword(af.Password) {
-		w.WriteHeader(http.StatusUnauthorized)
+		WriteError(w, ErrInvalidCredentials)
 		return
 	}
 
@@ -136,7 +137,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		session, err = store.New(r, "mauIRC")
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			WriteError(w, ErrCookieFail)
 			return
 		}
 	}
@@ -145,4 +146,12 @@ func login(w http.ResponseWriter, r *http.Request) {
 	session.Values["email"] = user.GetEmail()
 
 	session.Save(r, w)
+}
+
+func password(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func emailConfirm(w http.ResponseWriter, r *http.Request) {
+
 }
