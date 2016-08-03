@@ -55,8 +55,13 @@ func deleteNetwork(w http.ResponseWriter, r *http.Request, args []string, user m
 		if net.IsConnected() {
 			net.ForceDisconnect()
 		}
-		user.DeleteNetwork(args[0])
-		w.WriteHeader(http.StatusOK)
+		if user.DeleteNetwork(args[0]) {
+			log.Debugf("%s deleted network %s of %s\n", getIP(r), net.GetName(), user.GetEmail())
+			w.WriteHeader(http.StatusOK)
+		} else {
+			log.Debugf("%s tried to delete network %s of %s, but failed for unknown reasons\n", getIP(r), net.GetName(), user.GetEmail())
+			errors.Write(w, errors.Internal)
+		}
 	} else {
 		w.WriteHeader(http.StatusNotFound)
 	}
@@ -82,12 +87,14 @@ func addNetwork(w http.ResponseWriter, r *http.Request, args []string, user maui
 	}
 
 	if !user.AddNetwork(net) {
-		w.WriteHeader(http.StatusInternalServerError)
+		log.Debugf("%s tried to create network %s for %s, but failed for unknown reasons\n", getIP(r), net.GetName(), user.GetEmail())
+		errors.Write(w, errors.Internal)
 		return
 	}
 
 	user.InitNetworks()
 	user.SendNetworkData(net)
+	log.Debugf("%s created network %s for %s\n", getIP(r), net.GetName(), user.GetEmail())
 }
 
 type editRequest struct {
@@ -127,6 +134,8 @@ func editNetwork(w http.ResponseWriter, r *http.Request, args []string, user mau
 	nameUpdates(net, data, oldData)
 	addrUpdates(net, data, oldData)
 	connectedUpdate(net, data, oldData)
+
+	log.Debugf("%s edited network %s of %s\n", getIP(r), net.GetName(), user.GetEmail())
 
 	enc := json.NewEncoder(w)
 	err = enc.Encode(editResponse{New: net.GetNetData(), Old: oldData})

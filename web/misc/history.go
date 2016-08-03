@@ -55,11 +55,14 @@ func History(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(args) == 0 {
+		log.Debugf("%s requested %d messages of history for %s\n", getIP(r), n, user.GetEmail())
 		results, err = database.GetHistory(user.GetEmail(), n)
 	} else if len(args) == 1 {
+		log.Debugf("%s requested %d messages of the history of %s for %s\n", getIP(r), n, args[0], user.GetEmail())
 		results, err = database.GetNetworkHistory(user.GetEmail(), args[0], n)
 	} else {
 		channel, _ := url.QueryUnescape(args[1])
+		log.Debugf("%s requested %d messages of the history of %s @ %s for %s\n", getIP(r), n, channel, args[0], user.GetEmail())
 		results, err = database.GetChannelHistory(user.GetEmail(), args[0], channel, n)
 	}
 
@@ -70,6 +73,7 @@ func History(w http.ResponseWriter, r *http.Request) {
 
 	json, err := json.Marshal(results)
 	if err != nil {
+		log.Errorln("Error while processing /history request by %s: %s", getIP(r), err)
 		errors.Write(w, errors.Internal)
 		return
 	}
