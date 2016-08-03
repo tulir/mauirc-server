@@ -18,7 +18,9 @@
 package config
 
 import (
+	"bytes"
 	"fmt"
+	"net/smtp"
 	"strings"
 )
 
@@ -49,6 +51,28 @@ func (mail *mailConfig) Validate() error {
 	return nil
 }
 
-func (mail *mailConfig) Send() {
+func (mail *mailConfig) Send(to, subject, body string) {
+	switch mail.Mode {
+	case "smtp":
+		host := mail.Config["host"]
+		sender := mail.Config["sender"]
+		user, useAuth := mail.Config["username"]
+		password, _ := mail.Config["password"]
 
+		var auth smtp.Auth
+		if useAuth {
+			auth = smtp.PlainAuth("", user, password, host)
+		}
+
+		var buf bytes.Buffer
+		buf.WriteString("To: ")
+		buf.WriteString(to)
+		buf.WriteString("\r\n")
+		buf.WriteString("Subject: ")
+		buf.WriteString(subject)
+		buf.WriteString("\r\n\r\n")
+		buf.WriteString(strings.Replace(body, "\n", "\r\n", -1))
+
+		smtp.SendMail(host, auth, sender, []string{to}, buf.Bytes())
+	}
 }
