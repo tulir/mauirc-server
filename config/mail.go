@@ -51,6 +51,10 @@ func (mail *mailConfig) Validate() error {
 	return nil
 }
 
+func (mail *mailConfig) IsEnabled() bool {
+	return mail.Enabled
+}
+
 func (mail *mailConfig) Send(to, subject, body string) {
 	switch mail.Mode {
 	case "smtp":

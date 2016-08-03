@@ -48,6 +48,7 @@ type Configuration interface {
 // Mail (er)
 type Mail interface {
 	Validate() error
+	IsEnabled() bool
 	Send(to, subject, body string)
 }
 
