@@ -92,9 +92,6 @@ func (user *userImpl) SendNetworkData(net mauircdi.Network) {
 		user.NewMessages <- mauircdi.Message{Type: mauircdi.MsgChanData, Object: chd}
 	})
 	user.NewMessages <- mauircdi.Message{Type: mauircdi.MsgChanList, Object: mauircdi.ChanList{Network: net.GetName(), List: net.GetAllChannels()}}
-
-	// Backwards compatibility for pre-1.2.0 mauIRC
-	user.NewMessages <- mauircdi.Message{Type: mauircdi.MsgNickChange, Object: mauircdi.NickChange{Network: net.GetName(), Nick: net.GetNick()}}
 }
 
 // GetNetwork gets the network with the given name
