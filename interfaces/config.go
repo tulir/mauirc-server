@@ -34,6 +34,7 @@ type Configuration interface {
 
 	GetAddr() string
 	GetExternalAddr() string
+	TrustHeaders() bool
 
 	GetCookieSecret() []byte
 }

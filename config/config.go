@@ -38,15 +38,16 @@ func NewConfig(path string) mauircdi.Configuration {
 }
 
 type configImpl struct {
-	Path         string             `json:"-"`
-	SQL          mysqlImpl          `json:"sql"`
-	Users        userListImpl       `json:"users"`
-	IP           string             `json:"ip"`
-	Port         int                `json:"port"`
-	Address      string             `json:"external-address"`
-	CSecretB64   string             `json:"cookie-secret"`
-	Ident        mauircdi.IdentConf `json:"ident"`
-	CookieSecret []byte             `json:"-"`
+	Path          string             `json:"-"`
+	SQL           mysqlImpl          `json:"sql"`
+	Users         userListImpl       `json:"users"`
+	IP            string             `json:"ip"`
+	Port          int                `json:"port"`
+	TrustHeadersF bool               `json:"trust-headers"`
+	Address       string             `json:"external-address"`
+	CSecretB64    string             `json:"cookie-secret"`
+	Ident         mauircdi.IdentConf `json:"ident"`
+	CookieSecret  []byte             `json:"-"`
 }
 
 type mysqlImpl struct {
@@ -167,6 +168,10 @@ func (config *configImpl) GetIDENTConfig() mauircdi.IdentConf {
 
 func (config *configImpl) GetPath() string {
 	return config.Path
+}
+
+func (config *configImpl) TrustHeaders() bool {
+	return config.TrustHeadersF
 }
 
 func (config *configImpl) GetAddr() string {
