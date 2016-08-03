@@ -88,7 +88,6 @@ func PasswordForgot(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user.NewResetToken()
-	// TODO email token to user
 }
 
 type passwordChangeForm struct {
