@@ -43,6 +43,7 @@ var (
 	EmailUsed          = Create(http.StatusForbidden, "emailused", "The given email is already in use", "")
 	CookieFail         = Create(http.StatusInternalServerError, "cookiefail", "Failed to find or create the cookie store", "Try removing all cookies for this site")
 	BodyNotFound       = Create(http.StatusBadRequest, "bodynotfound", "The request does not contain a valid body", "")
+	InvalidBodyFormat  = Create(http.StatusBadRequest, "invalidbodyformat", "The request was in an invalid format", "")
 	RequestNotJSON     = Create(http.StatusBadRequest, "requestnotjson", "The request was not valid JSON", "")
 	MissingFields      = Create(http.StatusBadRequest, "missingfields", "The request is missing one or more required fields", "")
 	FieldFormatting    = Create(http.StatusBadRequest, "fieldformat", "The request has one or more fields with an invalid format", "")
