@@ -32,6 +32,7 @@ type userImpl struct {
 	Email         string                `json:"email"`
 	Password      string                `json:"password"`
 	AuthTokens    []authToken           `json:"authtokens,omitempty"`
+	PasswordReset authToken             `json:"passwordreset"`
 	NewMessages   chan mauircdi.Message `json:"-"`
 	GlobalScripts []mauircdi.Script     `json:"-"`
 	Settings      interface{}           `json:"settings,omitempty"`
@@ -177,7 +178,7 @@ func generateAuthToken() string {
 	// Fill the byte array with cryptographically random bytes.
 	n, err := rand.Read(b)
 	if n == len(b) && err == nil {
-		authToken = base64.RawStdEncoding.EncodeToString(b)
+		authToken = base64.RawURLEncoding.EncodeToString(b)
 		return authToken
 	}
 
