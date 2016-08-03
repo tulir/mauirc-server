@@ -42,6 +42,7 @@ var (
 	ErrCookieFail         = webError{HTTP: http.StatusInternalServerError, Simple: "cookiefail", Human: "Failed to find or create the cookie store", ExtraInfo: "Try removing all cookies for this site."}
 	ErrMissingFields      = webError{HTTP: http.StatusBadRequest, Simple: "badrequest", Human: "Your request is missing one or more required fields"}
 	ErrFieldFormatting    = webError{HTTP: http.StatusBadRequest, Simple: "badrequest", Human: "Your request has one or more fields with an invalid format"}
+	ErrInternal           = webError{HTTP: http.StatusInternalServerError, Simple: "internalerror", Human: "An unexpected error occured on the server"}
 )
 
 // WriteError writes a webError to a http.ResponseWriter
