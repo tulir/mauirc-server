@@ -18,12 +18,37 @@
 package web
 
 import (
+	"encoding/json"
 	"github.com/gorilla/context"
 	"maunium.net/go/mauircd/interfaces"
 	"maunium.net/go/maulogger"
 	"net/http"
 	"os"
 )
+
+type webError struct {
+	HTTP      int    `json:"http"`
+	Simple    string `json:"error"`
+	Human     string `json:"error-humanreadable"`
+	ExtraInfo string `json:"error-extrainfo,omitempty"`
+}
+
+// Web errors
+var (
+	ErrInvalidMethod      = webError{HTTP: http.StatusMethodNotAllowed, Simple: "methodnotallowed", Human: "The request method is not allowed.", ExtraInfo: "See the Allow header for a list of allowed headers."}
+	ErrInvalidCredentials = webError{HTTP: http.StatusUnauthorized, Simple: "invalidcredentials", Human: "Invalid username or password"}
+	ErrEmailUsed          = webError{HTTP: http.StatusForbidden, Simple: "emailused", Human: "The given email is already in use"}
+	ErrCookieFail         = webError{HTTP: http.StatusInternalServerError, Simple: "cookiefail", Human: "Failed to find or create cookie store", ExtraInfo: "Try removing all cookies for this site."}
+	ErrMissingFields      = webError{HTTP: http.StatusBadRequest, Simple: "badrequest", Human: "Your request is missing one or more required fields"}
+	ErrFieldFormatting    = webError{HTTP: http.StatusBadRequest, Simple: "badrequest", Human: "Your request has one or more fields with an invalid format"}
+)
+
+// WriteError writes a webError to a http.ResponseWriter
+func WriteError(w http.ResponseWriter, err webError) error {
+	enc := json.NewEncoder(w)
+	w.WriteHeader(err.HTTP)
+	return enc.Encode(err)
+}
 
 var config mauircdi.Configuration
 var log = maulogger.CreateSublogger("Web", maulogger.LevelInfo)
@@ -39,6 +64,8 @@ func Load(c mauircdi.Configuration) {
 	http.HandleFunc("/network/", network)
 	http.HandleFunc("/settings/", settings)
 	http.HandleFunc("/auth/login", login)
+	http.HandleFunc("/auth/confirm", emailConfirm)
+	http.HandleFunc("/auth/password/", password)
 	http.HandleFunc("/auth/register", register)
 	http.HandleFunc("/auth/check", httpAuthCheck)
 	http.HandleFunc("/socket", serveWs)
