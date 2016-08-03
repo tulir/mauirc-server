@@ -17,6 +17,10 @@
 // Package mauircdi contains interfaces
 package mauircdi
 
+import (
+	"time"
+)
+
 // Configuration contains the main config
 type Configuration interface {
 	Load() error
@@ -28,6 +32,8 @@ type Configuration interface {
 	GetSQLString() string
 	GetPath() string
 
+	GetMail() Mail
+
 	GetUsers() UserList
 	GetUser(name string) User
 	CreateUser(email, password string) User
@@ -37,6 +43,12 @@ type Configuration interface {
 	TrustHeaders() bool
 
 	GetCookieSecret() []byte
+}
+
+// Mail (er)
+type Mail interface {
+	Validate() error
+	Send(to, subject, body string)
 }
 
 // IdentConf tells the IDENT server what ip and port to bind to
@@ -65,7 +77,7 @@ type User interface {
 
 	GetEmail() string
 	GetNameFromEmail() string
-	NewResetToken() string
+	NewResetToken() (string, time.Time)
 	CheckResetToken(token string) bool
 	NewAuthToken() string
 	CheckAuthToken(token string) bool

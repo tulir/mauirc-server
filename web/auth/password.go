@@ -19,6 +19,7 @@ package auth
 
 import (
 	"encoding/json"
+	"fmt"
 	"maunium.net/go/mauircd/web/errors"
 	"maunium.net/go/mauircd/web/util"
 	"net/http"
@@ -87,7 +88,18 @@ func PasswordForgot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user.NewResetToken()
+	token, time := user.NewResetToken()
+
+	config.GetMail().Send(user.GetEmail(), "mauIRC password reset", fmt.Sprintf(
+		`Someone from %[1]s has requested a password reset for your mauIRC account.
+
+		If this was you, you may use the following link to reset your password:
+		<a href="%[2]s/resetpassword.html?%[3]s">%[2]s/resetpassword.html?%[3]s</a>
+
+		If you did not request this, it is safe to ignore.
+		The person requesting this was not granted access to any personal information.
+		The link will expire in 30 minutes (%[4]s).`,
+		util.GetIP(r), config.GetExternalAddr(), token, time.Format("15:04:05 02.01.2006 UTC-07")))
 }
 
 type passwordChangeForm struct {
