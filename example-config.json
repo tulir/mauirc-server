@@ -11,27 +11,7 @@
       "ip": "127.0.0.1",
       "port": "113"
   },
-  "users": [
-    {
-      "networks": [
-        {
-          "name": "freenode",
-          "nick": "mauircuser",
-          "user": "mauircuser",
-          "realname": "A mauIRC User",
-          "password": "",
-          "ip": "chat.freenode.net",
-          "port": 6697,
-          "ssl": true,
-          "channels": []
-        }
-      ],
-      "email": "user@example.com",
-      "password": "$2a$10$FhTeHrUeV0sziHz.2qzV0uTRabFR7d7pUHVqKhewhRw9Oh8RceeI.",
-      "authtokens": [],
-      "settings": null
-    }
-  ],
+  "users": [],
   "ip": "127.0.0.1",
   "port": 29304,
   "external-address": "irc.example.com"
