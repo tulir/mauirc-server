@@ -135,6 +135,22 @@ func (config *configImpl) GetUser(email string) mauircdi.User {
 	return nil
 }
 
+func (config *configImpl) CreateUser(email, password string) mauircdi.User {
+	email = strings.ToLower(email)
+	for _, user := range config.Users {
+		if user.Email == email {
+			return nil
+		}
+	}
+	user := &userImpl{
+		HostConf:    config,
+		NewMessages: make(chan mauircdi.Message, 64),
+		Email:       email,
+	}
+	user.SetPassword(password)
+	return user
+}
+
 func (config *configImpl) GetSQLString() string {
 	return fmt.Sprintf("%[1]s:%[2]s@tcp(%[3]s:%[4]d)/%[5]s",
 		config.SQL.Username,

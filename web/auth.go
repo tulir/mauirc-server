@@ -83,9 +83,33 @@ func httpAuthCheck(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func auth(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		w.Header().Add("Allow", "POST")
+func register(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Add("Allow", http.MethodPost)
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	dec := json.NewDecoder(r.Body)
+	var af authform
+	err := dec.Decode(&af)
+
+	if err != nil || len(af.Email) == 0 || len(af.Password) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	user := config.CreateUser(af.Email, af.Password)
+	if user == nil {
+		w.WriteHeader(http.StatusUnauthorized)
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func login(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Add("Allow", http.MethodPost)
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}

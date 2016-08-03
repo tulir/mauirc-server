@@ -30,6 +30,7 @@ type Configuration interface {
 
 	GetUsers() UserList
 	GetUser(name string) User
+	CreateUser(email, password string) User
 
 	GetAddr() string
 	GetExternalAddr() string
