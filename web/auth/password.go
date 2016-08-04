@@ -97,7 +97,7 @@ func PasswordForgot(w http.ResponseWriter, r *http.Request) {
 		`Someone from %[1]s has requested a password reset for your mauIRC account.
 
 		If this was you, you may use the following link to reset your password:
-		<a href="%[2]s/resetpassword.html?%[3]s">%[2]s/resetpassword.html?%[3]s</a>
+		<a href="%[2]s/resetpassword.html#%[3]s">%[2]s/resetpassword.html#%[3]s</a>
 
 		If you did not request this, it is safe to ignore.
 		The person requesting this was not granted access to any personal information.
