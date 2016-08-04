@@ -41,7 +41,7 @@ type configImpl struct {
 	Path          string             `json:"-"`
 	SQL           mysqlImpl          `json:"sql"`
 	Users         userListImpl       `json:"users"`
-	Mail          mailConfig         `json:"mail"`
+	Mail          *mailConfig        `json:"mail"`
 	IP            string             `json:"ip"`
 	Port          int                `json:"port"`
 	TrustHeadersF bool               `json:"trust-headers"`
@@ -161,6 +161,10 @@ func (config *configImpl) GetSQLString() string {
 		config.SQL.Port,
 		config.SQL.Database,
 	)
+}
+
+func (config *configImpl) GetMail() mauircdi.Mail {
+	return config.Mail
 }
 
 func (config *configImpl) GetIDENTConfig() mauircdi.IdentConf {

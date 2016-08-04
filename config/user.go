@@ -169,11 +169,11 @@ func (user *userImpl) NewAuthToken() string {
 	return at
 }
 
-func (user *userImpl) NewResetToken() (token string, time time.Time) {
+func (user *userImpl) NewResetToken() (token string, timed time.Time) {
 	token = generateAuthToken()
-	time = time.Now().Add(30 * time.Minute)
-	user.PasswordReset = authToken{Token: token, Time: time.Unix()}
-	return token, time
+	timed = time.Now().Add(30 * time.Minute)
+	user.PasswordReset = authToken{Token: token, Time: timed.Unix()}
+	return token, timed
 }
 
 func (user *userImpl) CheckResetToken(token string) bool {

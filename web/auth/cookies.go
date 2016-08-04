@@ -24,7 +24,6 @@ import (
 	"maunium.net/go/mauircd/web/util"
 	"maunium.net/go/maulogger"
 	"net/http"
-	"strings"
 )
 
 type authform struct {
