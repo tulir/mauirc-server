@@ -47,6 +47,7 @@ var (
 	RequestNotJSON     = Create(http.StatusBadRequest, "requestnotjson", "The request was not valid JSON", "")
 	MissingFields      = Create(http.StatusBadRequest, "missingfields", "The request is missing one or more required fields", "")
 	FieldFormatting    = Create(http.StatusBadRequest, "fieldformat", "The request has one or more fields with an invalid format", "")
+	MailerDisabled     = Create(http.StatusForbidden, "mailerdisabled", "The mailing system is disabled", "No actions that require sending mails can be completed")
 	Internal           = Create(http.StatusInternalServerError, "internalerror", "An unexpected error occured on the server", "")
 )
 

@@ -72,7 +72,7 @@ func PasswordForgot(w http.ResponseWriter, r *http.Request) {
 		errors.Write(w, errors.InvalidMethod)
 		return
 	} else if !config.GetMail().IsEnabled() {
-		errors.Write(w, errors.Create(http.StatusForbidden, "maildisabled", "The mailing system is disabled, so password reset links can't be sent", ""))
+		errors.Write(w, errors.MailerDisabled)
 		return
 	}
 
