@@ -21,6 +21,7 @@ import (
 	"fmt"
 	anko_encoding_json "github.com/mattn/anko/builtins/encoding/json"
 	"github.com/sorcix/irc"
+	"maunium.net/go/mauirc-common/messages"
 	//anko_io "github.com/mattn/anko/builtins/io"
 	//anko_io_ioutil "github.com/mattn/anko/builtins/io/ioutil"
 	anko_math "github.com/mattn/anko/builtins/math"
@@ -255,7 +256,7 @@ func LoadUser(env *vm.Env, evt *interfaces.Event) {
 		})
 	})
 	env.Define("SendDirectMessage", func(id int64, network, channel string, timestamp int64, sender, command, message string, ownmsg bool) {
-		evt.Network.GetOwner().GetMessageChan() <- interfaces.Message{
+		evt.Network.GetOwner().GetMessageChan() <- messages.Message{
 			Type: "message",
 			Object: database.Message{
 				ID:        id,
@@ -270,7 +271,7 @@ func LoadUser(env *vm.Env, evt *interfaces.Event) {
 		}
 	})
 	env.Define("SendRawMessage", func(typ string, data string) {
-		evt.Network.GetOwner().GetMessageChan() <- interfaces.Message{Type: typ, Object: data}
+		evt.Network.GetOwner().GetMessageChan() <- messages.Message{Type: typ, Object: data}
 	})
 	env.Define("GetNetworks", func() []string {
 		var networks []string

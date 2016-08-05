@@ -21,6 +21,7 @@ import (
 	"fmt"
 	msg "github.com/sorcix/irc"
 	irc "maunium.net/go/libmauirc"
+	"maunium.net/go/mauirc-common/messages"
 	"maunium.net/go/mauirc-server/database"
 	"maunium.net/go/mauirc-server/ident"
 	"maunium.net/go/mauirc-server/interfaces"
@@ -296,7 +297,7 @@ func (net *netImpl) InsertAndSend(msg database.Message) {
 	}
 	msg.Preview, _ = preview.GetPreview(msg.Message)
 	msg.ID = database.Insert(net.Owner.Email, msg)
-	net.Owner.NewMessages <- interfaces.Message{Type: interfaces.MsgMessage, Object: msg}
+	net.Owner.NewMessages <- messages.Message{Type: messages.MsgMessage, Object: msg}
 }
 
 func (net *netImpl) GetOwner() interfaces.User {
@@ -345,8 +346,8 @@ func (net *netImpl) SetSSL(ssl bool) {
 	net.IRC.SetUseTLS(ssl)
 }
 
-func (net *netImpl) GetNetData() interfaces.NetData {
-	return interfaces.NetData{
+func (net *netImpl) GetNetData() messages.NetData {
+	return messages.NetData{
 		Name:      net.Name,
 		IP:        net.IP,
 		Port:      net.Port,

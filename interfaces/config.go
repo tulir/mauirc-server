@@ -18,6 +18,7 @@
 package interfaces
 
 import (
+	"maunium.net/go/mauirc-common/messages"
 	"time"
 )
 
@@ -91,7 +92,7 @@ type User interface {
 	AddGlobalScript(s Script) bool
 	RemoveGlobalScript(name string) bool
 
-	GetMessageChan() chan Message
+	GetMessageChan() chan messages.Message
 
 	GetSettings() interface{}
 	SetSettings(val interface{})

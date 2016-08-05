@@ -20,6 +20,7 @@ package misc
 import (
 	"encoding/json"
 	"io/ioutil"
+	"maunium.net/go/mauirc-common/messages"
 	"maunium.net/go/mauirc-server/interfaces"
 	"maunium.net/go/mauirc-server/web/auth"
 	"maunium.net/go/mauirc-server/web/errors"
@@ -110,8 +111,8 @@ type editRequest struct {
 }
 
 type editResponse struct {
-	New interfaces.NetData `json:"new"`
-	Old interfaces.NetData `json:"old"`
+	New messages.NetData `json:"new"`
+	Old messages.NetData `json:"old"`
 }
 
 func editNetwork(w http.ResponseWriter, r *http.Request, args []string, user interfaces.User) {
@@ -145,7 +146,7 @@ func editNetwork(w http.ResponseWriter, r *http.Request, args []string, user int
 	}
 }
 
-func connectedUpdate(net interfaces.Network, data editRequest, oldData interfaces.NetData) {
+func connectedUpdate(net interfaces.Network, data editRequest, oldData messages.NetData) {
 	if len(data.Connected) == 0 {
 		return
 	}
@@ -161,7 +162,7 @@ func connectedUpdate(net interfaces.Network, data editRequest, oldData interface
 	}
 }
 
-func nameUpdates(net interfaces.Network, data editRequest, oldData interfaces.NetData) {
+func nameUpdates(net interfaces.Network, data editRequest, oldData messages.NetData) {
 	if len(data.Name) > 0 && data.Name != oldData.Name {
 		net.SetName(data.Name)
 	}
@@ -179,7 +180,7 @@ func nameUpdates(net interfaces.Network, data editRequest, oldData interfaces.Ne
 	}
 }
 
-func addrUpdates(net interfaces.Network, data editRequest, oldData interfaces.NetData) {
+func addrUpdates(net interfaces.Network, data editRequest, oldData messages.NetData) {
 	if len(data.IP) > 0 && data.IP != oldData.IP {
 		net.SetIP(data.IP)
 	}

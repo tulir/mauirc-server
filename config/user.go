@@ -22,21 +22,22 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"golang.org/x/crypto/bcrypt"
+	"maunium.net/go/mauirc-common/messages"
 	"maunium.net/go/mauirc-server/interfaces"
 	"strings"
 	"time"
 )
 
 type userImpl struct {
-	Networks      netListImpl             `json:"networks"`
-	Email         string                  `json:"email"`
-	Password      string                  `json:"password"`
-	AuthTokens    []authToken             `json:"authtokens,omitempty"`
-	PasswordReset authToken               `json:"passwordreset"`
-	NewMessages   chan interfaces.Message `json:"-"`
-	GlobalScripts []interfaces.Script     `json:"-"`
-	Settings      interface{}             `json:"settings,omitempty"`
-	HostConf      *configImpl             `json:"-"`
+	Networks      netListImpl           `json:"networks"`
+	Email         string                `json:"email"`
+	Password      string                `json:"password"`
+	AuthTokens    []authToken           `json:"authtokens,omitempty"`
+	PasswordReset authToken             `json:"passwordreset"`
+	NewMessages   chan messages.Message `json:"-"`
+	GlobalScripts []interfaces.Script   `json:"-"`
+	Settings      interface{}           `json:"settings,omitempty"`
+	HostConf      *configImpl           `json:"-"`
 }
 
 type authToken struct {
@@ -87,11 +88,11 @@ func (user *userImpl) InitNetworks() {
 }
 
 func (user *userImpl) SendNetworkData(net interfaces.Network) {
-	user.NewMessages <- interfaces.Message{Type: interfaces.MsgNetData, Object: net.GetNetData()}
+	user.NewMessages <- messages.Message{Type: messages.MsgNetData, Object: net.GetNetData()}
 	net.GetActiveChannels().ForEach(func(chd interfaces.ChannelData) {
-		user.NewMessages <- interfaces.Message{Type: interfaces.MsgChanData, Object: chd}
+		user.NewMessages <- messages.Message{Type: messages.MsgChanData, Object: chd}
 	})
-	user.NewMessages <- interfaces.Message{Type: interfaces.MsgChanList, Object: interfaces.ChanList{Network: net.GetName(), List: net.GetAllChannels()}}
+	user.NewMessages <- messages.Message{Type: messages.MsgChanList, Object: messages.ChanList{Network: net.GetName(), List: net.GetAllChannels()}}
 }
 
 // GetNetwork gets the network with the given name
@@ -205,7 +206,7 @@ func (user *userImpl) GetNameFromEmail() string {
 	return parts[0]
 }
 
-func (user *userImpl) GetMessageChan() chan interfaces.Message {
+func (user *userImpl) GetMessageChan() chan messages.Message {
 	return user.NewMessages
 }
 

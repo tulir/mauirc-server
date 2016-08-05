@@ -20,8 +20,8 @@ package config
 import (
 	"fmt"
 	msg "github.com/sorcix/irc"
+	"maunium.net/go/mauirc-common/messages"
 	"maunium.net/go/mauirc-server/database"
-	"maunium.net/go/mauirc-server/interfaces"
 	"maunium.net/go/mauirc-server/util/userlist"
 	"sort"
 	"strconv"
@@ -71,14 +71,14 @@ func (net *netImpl) mode(evt *msg.Message) {
 			}
 		}
 
-		net.Owner.NewMessages <- interfaces.Message{Type: interfaces.MsgChanData, Object: ci}
+		net.Owner.NewMessages <- messages.Message{Type: messages.MsgChanData, Object: ci}
 	}
 	net.ReceiveMessage(evt.Params[0], evt.Name, "mode", strings.Join(evt.Params[1:], " "))
 }
 
 func (net *netImpl) nick(evt *msg.Message) {
 	if evt.Name == net.IRC.GetNick() {
-		net.Owner.NewMessages <- interfaces.Message{Type: interfaces.MsgNickChange, Object: interfaces.NickChange{Network: net.Name, Nick: evt.Trailing}}
+		net.Owner.NewMessages <- messages.Message{Type: messages.MsgNickChange, Object: messages.NickChange{Network: net.Name, Nick: evt.Trailing}}
 		net.Nick = evt.Trailing
 	}
 	for _, ci := range net.ChannelInfo {
@@ -87,7 +87,7 @@ func (net *netImpl) nick(evt *msg.Message) {
 			sort.Sort(ci.UserList)
 
 			net.ReceiveMessage(ci.Name, evt.Name, "nick", evt.Trailing)
-			net.Owner.NewMessages <- interfaces.Message{Type: interfaces.MsgChanData, Object: ci}
+			net.Owner.NewMessages <- messages.Message{Type: messages.MsgChanData, Object: ci}
 		}
 	}
 }
@@ -121,7 +121,7 @@ func (net *netImpl) userlistend(evt *msg.Message) {
 
 	ci.ReceivingUserList = false
 	sort.Sort(ci.UserList)
-	net.Owner.NewMessages <- interfaces.Message{Type: interfaces.MsgChanData, Object: ci}
+	net.Owner.NewMessages <- messages.Message{Type: messages.MsgChanData, Object: ci}
 }
 
 func (net *netImpl) chanlist(evt *msg.Message) {
@@ -129,7 +129,7 @@ func (net *netImpl) chanlist(evt *msg.Message) {
 }
 
 func (net *netImpl) chanlistend(evt *msg.Message) {
-	net.Owner.NewMessages <- interfaces.Message{Type: interfaces.MsgChanList, Object: interfaces.ChanList{Network: net.Name, List: net.ChannelList}}
+	net.Owner.NewMessages <- messages.Message{Type: messages.MsgChanList, Object: messages.ChanList{Network: net.Name, List: net.ChannelList}}
 }
 
 func (net *netImpl) topic(evt *msg.Message) {
@@ -142,7 +142,7 @@ func (net *netImpl) topic(evt *msg.Message) {
 	ci.TopicSetBy = evt.Name
 	ci.TopicSetAt = time.Now().Unix()
 	net.ReceiveMessage(ci.Name, evt.Name, "topic", evt.Trailing)
-	net.Owner.NewMessages <- interfaces.Message{Type: interfaces.MsgChanData, Object: ci}
+	net.Owner.NewMessages <- messages.Message{Type: messages.MsgChanData, Object: ci}
 }
 
 func (net *netImpl) topicresp(evt *msg.Message) {
@@ -152,12 +152,12 @@ func (net *netImpl) topicresp(evt *msg.Message) {
 		ci = net.ChannelInfo.get(evt.Params[1])
 	}
 	ci.Topic = evt.Trailing
-	net.Owner.NewMessages <- interfaces.Message{Type: interfaces.MsgChanData, Object: ci}
+	net.Owner.NewMessages <- messages.Message{Type: messages.MsgChanData, Object: ci}
 }
 
 func (net *netImpl) noperms(evt *msg.Message) {
-	net.Owner.NewMessages <- interfaces.Message{
-		Type: interfaces.MsgMessage,
+	net.Owner.NewMessages <- messages.Message{
+		Type: messages.MsgMessage,
 		Object: database.Message{
 			ID:        -1,
 			Network:   net.Name,
@@ -182,7 +182,7 @@ func (net *netImpl) topicset(evt *msg.Message) {
 	if err != nil {
 		ci.TopicSetAt = setAt
 	}
-	net.Owner.NewMessages <- interfaces.Message{Type: interfaces.MsgChanData, Object: ci}
+	net.Owner.NewMessages <- messages.Message{Type: messages.MsgChanData, Object: ci}
 }
 
 func (net *netImpl) quit(evt *msg.Message) {
@@ -193,7 +193,7 @@ func (net *netImpl) quit(evt *msg.Message) {
 			sort.Sort(ci.UserList)
 
 			net.ReceiveMessage(ci.Name, evt.Name, "quit", evt.Trailing)
-			net.Owner.NewMessages <- interfaces.Message{Type: interfaces.MsgChanData, Object: ci}
+			net.Owner.NewMessages <- messages.Message{Type: messages.MsgChanData, Object: ci}
 		}
 	}
 }
@@ -231,7 +231,7 @@ func (net *netImpl) action(evt *msg.Message) {
 }
 
 func (net *netImpl) invite(evt *msg.Message) {
-	net.GetOwner().GetMessageChan() <- interfaces.Message{Type: interfaces.MsgInvite, Object: interfaces.Invite{
+	net.GetOwner().GetMessageChan() <- messages.Message{Type: messages.MsgInvite, Object: messages.Invite{
 		Network: net.Name,
 		Channel: evt.Params[1],
 		Sender:  evt.Name,
@@ -245,12 +245,12 @@ func (net *netImpl) connected(evt *msg.Message) {
 			net.IRC.Join(channel, "")
 		}
 	}
-	net.GetOwner().GetMessageChan() <- interfaces.Message{Type: interfaces.MsgNetData, Object: interfaces.NetData{Name: net.GetName(), Connected: true}}
+	net.GetOwner().GetMessageChan() <- messages.Message{Type: messages.MsgNetData, Object: messages.NetData{Name: net.GetName(), Connected: true}}
 }
 
 func (net *netImpl) disconnected(evt *msg.Message) {
 	log.Warnf("Disconnected from %s:%d\n", net.IP, net.Port)
-	net.GetOwner().GetMessageChan() <- interfaces.Message{Type: interfaces.MsgNetData, Object: interfaces.NetData{Name: net.GetName(), Connected: false}}
+	net.GetOwner().GetMessageChan() <- messages.Message{Type: messages.MsgNetData, Object: messages.NetData{Name: net.GetName(), Connected: false}}
 }
 
 func (net *netImpl) joinpart(user, channel string, part bool) {
@@ -271,7 +271,7 @@ func (net *netImpl) joinpart(user, channel string, part bool) {
 		ci.UserList = append(ci.UserList, user)
 	}
 	sort.Sort(ci.UserList)
-	net.Owner.NewMessages <- interfaces.Message{Type: interfaces.MsgChanData, Object: ci}
+	net.Owner.NewMessages <- messages.Message{Type: messages.MsgChanData, Object: ci}
 
 	if user == net.IRC.GetNick() && part {
 		net.ChannelInfo.Remove(channel)
@@ -332,12 +332,12 @@ func (net *netImpl) whoisChannels(evt *msg.Message) {
 
 func (net *netImpl) whoisEnd(evt *msg.Message) {
 	data := net.GetWhoisData(evt.Params[1])
-	net.Owner.NewMessages <- interfaces.Message{Type: interfaces.MsgWhois, Object: data}
+	net.Owner.NewMessages <- messages.Message{Type: messages.MsgWhois, Object: data}
 	net.RemoveWhoisData(evt.Params[1])
 }
 
 func (net *netImpl) rawHandler(evt *msg.Message) {
 	// libmauirc adds the trailing text as a param, remove it.
 	evt.Params = evt.Params[:len(evt.Params)-1]
-	net.Owner.NewMessages <- interfaces.Message{Type: interfaces.MsgRaw, Object: interfaces.RawMessage{Network: net.GetName(), Message: evt.String()}}
+	net.Owner.NewMessages <- messages.Message{Type: messages.MsgRaw, Object: messages.RawMessage{Network: net.GetName(), Message: evt.String()}}
 }

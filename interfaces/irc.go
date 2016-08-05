@@ -19,6 +19,7 @@ package interfaces
 
 import (
 	"maunium.net/go/libmauirc"
+	"maunium.net/go/mauirc-common/messages"
 	"maunium.net/go/mauirc-server/database"
 	"maunium.net/go/mauirc-server/util/userlist"
 )
@@ -41,7 +42,7 @@ type Network interface {
 	GetOwner() User
 	GetName() string
 	GetNick() string
-	GetNetData() NetData
+	GetNetData() messages.NetData
 
 	SetName(name string)
 	SetNick(nick string)

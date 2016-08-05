@@ -23,6 +23,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"maunium.net/go/mauirc-common/messages"
 	"maunium.net/go/mauirc-server/interfaces"
 	"maunium.net/go/maulogger"
 	"path/filepath"
@@ -106,7 +107,7 @@ func (config *configImpl) Load() error {
 
 func (config *configImpl) Connect() {
 	for _, user := range config.Users {
-		user.NewMessages = make(chan interfaces.Message, 64)
+		user.NewMessages = make(chan messages.Message, 64)
 		user.InitNetworks()
 	}
 }
@@ -146,7 +147,7 @@ func (config *configImpl) CreateUser(email, password string) interfaces.User {
 	}
 	user := &userImpl{
 		HostConf:    config,
-		NewMessages: make(chan interfaces.Message, 64),
+		NewMessages: make(chan messages.Message, 64),
 		Email:       email,
 	}
 	user.SetPassword(password)

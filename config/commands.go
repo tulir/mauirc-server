@@ -19,29 +19,29 @@ package config
 
 import (
 	msg "github.com/sorcix/irc"
+	"maunium.net/go/mauirc-common/messages"
 	"maunium.net/go/mauirc-server/database"
-	"maunium.net/go/mauirc-server/interfaces"
 	"strconv"
 )
 
 // HandleCommand handles mauIRC commands from clients
 func (user *userImpl) HandleCommand(data map[string]string) {
 	switch data["type"] {
-	case interfaces.MsgRaw:
+	case messages.MsgRaw:
 		user.rawMessage(data)
-	case interfaces.MsgMessage:
+	case messages.MsgMessage:
 		user.cmdMessage(data)
-	case interfaces.MsgKick:
+	case messages.MsgKick:
 		user.cmdKick(data)
-	case interfaces.MsgMode:
+	case messages.MsgMode:
 		user.cmdMode(data)
-	case interfaces.MsgClear:
+	case messages.MsgClear:
 		user.cmdClearHistory(data)
-	case interfaces.MsgClose:
+	case messages.MsgClose:
 		user.cmdCloseChannel(data)
-	case interfaces.MsgOpen:
+	case messages.MsgOpen:
 		user.cmdOpenChannel(data)
-	case interfaces.MsgDelete:
+	case messages.MsgDelete:
 		user.cmdDeleteMessage(data)
 	}
 }
@@ -75,7 +75,7 @@ func (user *userImpl) cmdDeleteMessage(data map[string]string) {
 		return
 	}
 
-	user.NewMessages <- interfaces.Message{Type: interfaces.MsgDelete, Object: id}
+	user.NewMessages <- messages.Message{Type: messages.MsgDelete, Object: id}
 }
 
 func (user *userImpl) cmdClearHistory(data map[string]string) {
@@ -89,7 +89,7 @@ func (user *userImpl) cmdClearHistory(data map[string]string) {
 		return
 	}
 
-	user.NewMessages <- interfaces.Message{Type: interfaces.MsgClear, Object: interfaces.ClearHistory{Channel: data["channel"], Network: data["network"]}}
+	user.NewMessages <- messages.Message{Type: messages.MsgClear, Object: messages.ClearHistory{Channel: data["channel"], Network: data["network"]}}
 }
 
 func (user *userImpl) cmdCloseChannel(data map[string]string) {
