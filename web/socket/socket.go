@@ -20,9 +20,9 @@ package socket
 import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
+	"maunium.net/go/mauirc-common/errors"
 	"maunium.net/go/mauirc-server/interfaces"
 	"maunium.net/go/mauirc-server/web/auth"
-	"maunium.net/go/mauirc-server/web/errors"
 	"maunium.net/go/mauirc-server/web/util"
 	"maunium.net/go/maulogger"
 	"net/http"

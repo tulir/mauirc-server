@@ -20,9 +20,9 @@ package misc
 import (
 	"encoding/json"
 	"io/ioutil"
+	"maunium.net/go/mauirc-common/errors"
 	"maunium.net/go/mauirc-server/interfaces"
 	"maunium.net/go/mauirc-server/web/auth"
-	"maunium.net/go/mauirc-server/web/errors"
 	"net/http"
 	"strings"
 )

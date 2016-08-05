@@ -20,7 +20,7 @@ package auth
 import (
 	"encoding/json"
 	"fmt"
-	"maunium.net/go/mauirc-server/web/errors"
+	"maunium.net/go/mauirc-common/errors"
 	"maunium.net/go/mauirc-server/web/util"
 	"net/http"
 )

@@ -19,8 +19,8 @@ package auth
 
 import (
 	"github.com/gorilla/sessions"
+	"maunium.net/go/mauirc-common/errors"
 	"maunium.net/go/mauirc-server/interfaces"
-	"maunium.net/go/mauirc-server/web/errors"
 	"maunium.net/go/mauirc-server/web/util"
 	"maunium.net/go/maulogger"
 	"net/http"
