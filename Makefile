@@ -1,3 +1,6 @@
+default:
+	go install
+
 build:
 	go build -o mauircd
 
