@@ -1,4 +1,4 @@
-// mauIRCd - The IRC bouncer/backend system for mauIRC clients.
+// mauIRC-server - The IRC bouncer/backend system for mauIRC clients.
 // Copyright (C) 2016 Tulir Asokan
 
 // This program is free software: you can redistribute it and/or modify
@@ -20,10 +20,10 @@ package misc
 import (
 	"encoding/json"
 	"io/ioutil"
-	"maunium.net/go/mauircd/interfaces"
-	"maunium.net/go/mauircd/plugin"
-	"maunium.net/go/mauircd/web/auth"
-	"maunium.net/go/mauircd/web/errors"
+	"maunium.net/go/mauirc-server/interfaces"
+	"maunium.net/go/mauirc-server/plugin"
+	"maunium.net/go/mauirc-server/web/auth"
+	"maunium.net/go/mauirc-server/web/errors"
 	"net/http"
 	"strings"
 )
@@ -57,7 +57,7 @@ func Script(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func postScript(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
+func postScript(w http.ResponseWriter, r *http.Request, args []string, user interfaces.User) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		errors.Write(w, errors.BodyNotFound)
@@ -70,7 +70,7 @@ func postScript(w http.ResponseWriter, r *http.Request, args []string, user maui
 		return
 	}
 
-	var scripts []mauircdi.Script
+	var scripts []interfaces.Script
 	var success bool
 	if args[0] == global {
 		scripts = user.GetGlobalScripts()
@@ -90,7 +90,7 @@ func postScript(w http.ResponseWriter, r *http.Request, args []string, user maui
 		return
 	}
 
-	var script mauircdi.Script
+	var script interfaces.Script
 	for _, s := range scripts {
 		if s.GetName() == args[1] {
 			script = plugin.Script{Name: parts[1], TheScript: s.GetScript()}
@@ -110,7 +110,7 @@ func postScript(w http.ResponseWriter, r *http.Request, args []string, user maui
 	}
 }
 
-func putScript(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
+func putScript(w http.ResponseWriter, r *http.Request, args []string, user interfaces.User) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		errors.Write(w, errors.BodyNotFound)
@@ -130,11 +130,11 @@ func putScript(w http.ResponseWriter, r *http.Request, args []string, user mauir
 	}
 }
 
-func getScripts(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
-	var scripts []mauircdi.Script
+func getScripts(w http.ResponseWriter, r *http.Request, args []string, user interfaces.User) {
+	var scripts []interfaces.Script
 	if args[0] == all {
 		scripts = user.GetGlobalScripts()
-		user.GetNetworks().ForEach(func(net mauircdi.Network) {
+		user.GetNetworks().ForEach(func(net interfaces.Network) {
 			scripts = append(scripts, net.GetScripts()...)
 		})
 	} else if args[0] == global {
@@ -158,7 +158,7 @@ func getScripts(w http.ResponseWriter, r *http.Request, args []string, user maui
 	w.Write(data)
 }
 
-func deleteScript(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
+func deleteScript(w http.ResponseWriter, r *http.Request, args []string, user interfaces.User) {
 	if args[0] == "global" {
 		if !user.RemoveGlobalScript(args[1]) {
 			errors.Write(w, errors.ScriptNotFound)

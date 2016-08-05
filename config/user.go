@@ -1,4 +1,4 @@
-// mauIRCd - The IRC bouncer/backend system for mauIRC clients.
+// mauIRC-server - The IRC bouncer/backend system for mauIRC clients.
 // Copyright (C) 2016 Tulir Asokan
 
 // This program is free software: you can redistribute it and/or modify
@@ -22,21 +22,21 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"golang.org/x/crypto/bcrypt"
-	"maunium.net/go/mauircd/interfaces"
+	"maunium.net/go/mauirc-server/interfaces"
 	"strings"
 	"time"
 )
 
 type userImpl struct {
-	Networks      netListImpl           `json:"networks"`
-	Email         string                `json:"email"`
-	Password      string                `json:"password"`
-	AuthTokens    []authToken           `json:"authtokens,omitempty"`
-	PasswordReset authToken             `json:"passwordreset"`
-	NewMessages   chan mauircdi.Message `json:"-"`
-	GlobalScripts []mauircdi.Script     `json:"-"`
-	Settings      interface{}           `json:"settings,omitempty"`
-	HostConf      *configImpl           `json:"-"`
+	Networks      netListImpl             `json:"networks"`
+	Email         string                  `json:"email"`
+	Password      string                  `json:"password"`
+	AuthTokens    []authToken             `json:"authtokens,omitempty"`
+	PasswordReset authToken               `json:"passwordreset"`
+	NewMessages   chan interfaces.Message `json:"-"`
+	GlobalScripts []interfaces.Script     `json:"-"`
+	Settings      interface{}             `json:"settings,omitempty"`
+	HostConf      *configImpl             `json:"-"`
 }
 
 type authToken struct {
@@ -46,7 +46,7 @@ type authToken struct {
 
 type netListImpl []*netImpl
 
-func (nl netListImpl) ForEach(do func(net mauircdi.Network)) {
+func (nl netListImpl) ForEach(do func(net interfaces.Network)) {
 	for _, net := range nl {
 		do(net)
 	}
@@ -86,16 +86,16 @@ func (user *userImpl) InitNetworks() {
 	}
 }
 
-func (user *userImpl) SendNetworkData(net mauircdi.Network) {
-	user.NewMessages <- mauircdi.Message{Type: mauircdi.MsgNetData, Object: net.GetNetData()}
-	net.GetActiveChannels().ForEach(func(chd mauircdi.ChannelData) {
-		user.NewMessages <- mauircdi.Message{Type: mauircdi.MsgChanData, Object: chd}
+func (user *userImpl) SendNetworkData(net interfaces.Network) {
+	user.NewMessages <- interfaces.Message{Type: interfaces.MsgNetData, Object: net.GetNetData()}
+	net.GetActiveChannels().ForEach(func(chd interfaces.ChannelData) {
+		user.NewMessages <- interfaces.Message{Type: interfaces.MsgChanData, Object: chd}
 	})
-	user.NewMessages <- mauircdi.Message{Type: mauircdi.MsgChanList, Object: mauircdi.ChanList{Network: net.GetName(), List: net.GetAllChannels()}}
+	user.NewMessages <- interfaces.Message{Type: interfaces.MsgChanList, Object: interfaces.ChanList{Network: net.GetName(), List: net.GetAllChannels()}}
 }
 
 // GetNetwork gets the network with the given name
-func (user *userImpl) GetNetwork(name string) mauircdi.Network {
+func (user *userImpl) GetNetwork(name string) interfaces.Network {
 	name = strings.ToLower(name)
 	for _, network := range user.Networks {
 		if network.Name == name {
@@ -122,7 +122,7 @@ func (user *userImpl) DeleteNetwork(name string) bool {
 	return false
 }
 
-func (user *userImpl) AddNetwork(net mauircdi.Network) bool {
+func (user *userImpl) AddNetwork(net interfaces.Network) bool {
 	network, ok := net.(*netImpl)
 	if ok {
 		network.Name = strings.ToLower(network.Name)
@@ -132,7 +132,7 @@ func (user *userImpl) AddNetwork(net mauircdi.Network) bool {
 	return false
 }
 
-func (user *userImpl) CreateNetwork(name string, data []byte) (mauircdi.Network, bool) {
+func (user *userImpl) CreateNetwork(name string, data []byte) (interfaces.Network, bool) {
 	var net = &netImpl{}
 	err := json.Unmarshal(data, net)
 	if err != nil {
@@ -142,7 +142,7 @@ func (user *userImpl) CreateNetwork(name string, data []byte) (mauircdi.Network,
 	return net, true
 }
 
-func (user *userImpl) GetNetworks() mauircdi.NetworkList {
+func (user *userImpl) GetNetworks() interfaces.NetworkList {
 	return user.Networks
 }
 
@@ -205,15 +205,15 @@ func (user *userImpl) GetNameFromEmail() string {
 	return parts[0]
 }
 
-func (user *userImpl) GetMessageChan() chan mauircdi.Message {
+func (user *userImpl) GetMessageChan() chan interfaces.Message {
 	return user.NewMessages
 }
 
-func (user *userImpl) GetGlobalScripts() []mauircdi.Script {
+func (user *userImpl) GetGlobalScripts() []interfaces.Script {
 	return user.GlobalScripts
 }
 
-func (user *userImpl) AddGlobalScript(s mauircdi.Script) bool {
+func (user *userImpl) AddGlobalScript(s interfaces.Script) bool {
 	for i := 0; i < len(user.GlobalScripts); i++ {
 		if user.GlobalScripts[i].GetName() == s.GetName() {
 			user.GlobalScripts[i] = s

@@ -1,4 +1,4 @@
-// mauIRCd - The IRC bouncer/backend system for mauIRC clients.
+// mauIRC-server - The IRC bouncer/backend system for mauIRC clients.
 // Copyright (C) 2016 Tulir Asokan
 
 // This program is free software: you can redistribute it and/or modify
@@ -19,9 +19,9 @@ package auth
 
 import (
 	"github.com/gorilla/sessions"
-	"maunium.net/go/mauircd/interfaces"
-	"maunium.net/go/mauircd/web/errors"
-	"maunium.net/go/mauircd/web/util"
+	"maunium.net/go/mauirc-server/interfaces"
+	"maunium.net/go/mauirc-server/web/errors"
+	"maunium.net/go/mauirc-server/web/util"
 	"maunium.net/go/maulogger"
 	"net/http"
 )
@@ -32,11 +32,11 @@ type authform struct {
 }
 
 var store *sessions.CookieStore
-var config mauircdi.Configuration
+var config interfaces.Configuration
 var log = maulogger.CreateSublogger("Web/Auth", maulogger.LevelInfo)
 
 // InitStore initializes the cookie store
-func InitStore(cfg mauircdi.Configuration) {
+func InitStore(cfg interfaces.Configuration) {
 	config = cfg
 	store = sessions.NewCookieStore(config.GetCookieSecret())
 	store.Options = &sessions.Options{
@@ -49,7 +49,7 @@ func InitStore(cfg mauircdi.Configuration) {
 }
 
 // Check authentication
-func Check(w http.ResponseWriter, r *http.Request) (bool, mauircdi.User) {
+func Check(w http.ResponseWriter, r *http.Request) (bool, interfaces.User) {
 	session, err := store.Get(r, "mauIRC")
 	if err != nil {
 		return false, nil

@@ -1,4 +1,4 @@
-// mauIRCd - The IRC bouncer/backend system for mauIRC clients.
+// mauIRC-server - The IRC bouncer/backend system for mauIRC clients.
 // Copyright (C) 2016 Tulir Asokan
 
 // This program is free software: you can redistribute it and/or modify
@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-// Package mauircdi contains interfaces
-package mauircdi
+// Package interfaces contains interfaces
+package interfaces
 
 import (
 	"maunium.net/go/libmauirc"
-	"maunium.net/go/mauircd/database"
-	"maunium.net/go/mauircd/util/userlist"
+	"maunium.net/go/mauirc-server/database"
+	"maunium.net/go/mauirc-server/util/userlist"
 )
 
 // Network is a single IRC network

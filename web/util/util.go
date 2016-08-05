@@ -1,4 +1,4 @@
-// mauIRCd - The IRC bouncer/backend system for mauIRC clients.
+// mauIRC-server - The IRC bouncer/backend system for mauIRC clients.
 // Copyright (C) 2016 Tulir Asokan
 
 // This program is free software: you can redistribute it and/or modify
@@ -18,15 +18,15 @@
 package util
 
 import (
-	mauircdi "maunium.net/go/mauircd/interfaces"
+	"maunium.net/go/mauirc-server/interfaces"
 	"net/http"
 	"strings"
 )
 
-var config mauircdi.Configuration
+var config interfaces.Configuration
 
 // Init initializes the utils
-func Init(cfg mauircdi.Configuration) {
+func Init(cfg interfaces.Configuration) {
 	config = cfg
 }
 

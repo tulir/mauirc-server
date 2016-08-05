@@ -1,4 +1,4 @@
-// mauIRCd - The IRC bouncer/backend system for mauIRC clients.
+// mauIRC-server - The IRC bouncer/backend system for mauIRC clients.
 // Copyright (C) 2016 Tulir Asokan
 
 // This program is free software: you can redistribute it and/or modify
@@ -20,11 +20,11 @@ package plugin
 import (
 	builtins "github.com/mattn/anko/builtins"
 	"github.com/mattn/anko/vm"
-	"maunium.net/go/mauircd/interfaces"
+	"maunium.net/go/mauirc-server/interfaces"
 	"maunium.net/go/maulogger"
 )
 
-var log = maulogger.DefaultLogger.CreateSublogger("PluginSys", maulogger.LevelDebug)
+var log = maulogger.CreateSublogger("PluginSys", maulogger.LevelDebug)
 
 // Script wraps a Lua script.
 type Script struct {
@@ -43,7 +43,7 @@ func (s Script) GetScript() string {
 }
 
 // Run the script with the given values.
-func (s Script) Run(evt *mauircdi.Event) {
+func (s Script) Run(evt *interfaces.Event) {
 	var env = vm.NewEnv()
 
 	builtins.Import(env)

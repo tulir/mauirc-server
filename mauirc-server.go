@@ -1,4 +1,4 @@
-// mauIRCd - The IRC bouncer/backend system for mauIRC clients.
+// mauIRC-server - The IRC bouncer/backend system for mauIRC clients.
 // Copyright (C) 2016 Tulir Asokan
 
 // This program is free software: you can redistribute it and/or modify
@@ -20,11 +20,11 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"maunium.net/go/libmauirc"
 	flag "maunium.net/go/mauflag"
-	cfg "maunium.net/go/mauircd/config"
-	"maunium.net/go/mauircd/database"
-	"maunium.net/go/mauircd/ident"
-	"maunium.net/go/mauircd/interfaces"
-	"maunium.net/go/mauircd/web"
+	cfg "maunium.net/go/mauirc-server/config"
+	"maunium.net/go/mauirc-server/database"
+	"maunium.net/go/mauirc-server/ident"
+	"maunium.net/go/mauirc-server/interfaces"
+	"maunium.net/go/mauirc-server/web"
 	log "maunium.net/go/maulogger"
 	"os"
 	"os/signal"
@@ -33,14 +33,14 @@ import (
 	"time"
 )
 
-var confPath = flag.Make().LongKey("config").ShortKey("c").Default("/etc/mauircd/").Usage("The path to mauIRCd configurations").String()
-var logPath = flag.Make().LongKey("logs").ShortKey("l").Default("/var/log/mauircd/").Usage("The path to mauIRCd logs").String()
+var confPath = flag.Make().LongKey("config").ShortKey("c").Default("/etc/mauirc/").Usage("The path to mauIRC server configurations").String()
+var logPath = flag.Make().LongKey("logs").ShortKey("l").Default("/var/log/mauirc/").Usage("The path to mauIRC server logs").String()
 var debug = flag.Make().LongKey("debug").ShortKey("d").Default("false").Usage("Use to enable debug prints").Bool()
-var config mauircdi.Configuration
+var config interfaces.Configuration
 var version = "1.1.0"
 
 func init() {
-	libmauirc.Version = "mauIRCd " + version
+	libmauirc.Version = "mauIRC Server " + version
 }
 
 func main() {
@@ -55,7 +55,7 @@ func main() {
 		log.DefaultLogger.PrintLevel = 0
 	}
 
-	log.Infoln("Initializing mauIRCd", version)
+	log.Infoln("Initializing mauIRC Server", version)
 
 	log.Debugln("Loading config from", *confPath)
 	config = cfg.NewConfig(*confPath)
@@ -85,7 +85,7 @@ func main() {
 		os.Exit(3)
 	}
 
-	log.Infoln("mauIRCd initialized. Connecting to IRC networks")
+	log.Infoln("mauIRC server initialized. Connecting to IRC networks")
 	config.Connect()
 
 	c := make(chan os.Signal, 1)
@@ -95,14 +95,14 @@ func main() {
 		<-c
 		go func() {
 			time.Sleep(time.Second * 15)
-			log.Fatalln("mauIRCd not closed within 15 seconds. Terminating.")
+			log.Fatalln("mauIRC server not closed within 15 seconds. Terminating.")
 			log.Close()
 			os.Exit(5)
 		}()
-		log.Infoln("Closing mauIRCd", version)
-		config.GetUsers().ForEach(func(user mauircdi.User) {
+		log.Infoln("Closing mauIRC server", version)
+		config.GetUsers().ForEach(func(user interfaces.User) {
 			log.Debugln("Closing connections and saving scripts of", user.GetNameFromEmail())
-			user.GetNetworks().ForEach(func(net mauircdi.Network) {
+			user.GetNetworks().ForEach(func(net interfaces.Network) {
 				net.Disconnect()
 				net.SaveScripts(config.GetPath())
 				net.Save()

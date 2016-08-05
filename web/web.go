@@ -1,4 +1,4 @@
-// mauIRCd - The IRC bouncer/backend system for mauIRC clients.
+// mauIRC-server - The IRC bouncer/backend system for mauIRC clients.
 // Copyright (C) 2016 Tulir Asokan
 
 // This program is free software: you can redistribute it and/or modify
@@ -19,21 +19,21 @@ package web
 
 import (
 	"github.com/gorilla/context"
-	"maunium.net/go/mauircd/interfaces"
-	"maunium.net/go/mauircd/web/auth"
-	"maunium.net/go/mauircd/web/misc"
-	"maunium.net/go/mauircd/web/socket"
-	"maunium.net/go/mauircd/web/util"
+	"maunium.net/go/mauirc-server/interfaces"
+	"maunium.net/go/mauirc-server/web/auth"
+	"maunium.net/go/mauirc-server/web/misc"
+	"maunium.net/go/mauirc-server/web/socket"
+	"maunium.net/go/mauirc-server/web/util"
 	"maunium.net/go/maulogger"
 	"net/http"
 	"os"
 )
 
-var config mauircdi.Configuration
+var config interfaces.Configuration
 var log = maulogger.CreateSublogger("Web", maulogger.LevelInfo)
 
 // Load the web server
-func Load(c mauircdi.Configuration) {
+func Load(c interfaces.Configuration) {
 	log.Debugln("Loading HTTP server")
 	config = c
 	auth.InitStore(config)

@@ -1,4 +1,4 @@
-// mauIRCd - The IRC bouncer/backend system for mauIRC clients.
+// mauIRC-server - The IRC bouncer/backend system for mauIRC clients.
 // Copyright (C) 2016 Tulir Asokan
 
 // This program is free software: you can redistribute it and/or modify
@@ -21,12 +21,12 @@ import (
 	"fmt"
 	msg "github.com/sorcix/irc"
 	irc "maunium.net/go/libmauirc"
-	"maunium.net/go/mauircd/database"
-	"maunium.net/go/mauircd/ident"
-	"maunium.net/go/mauircd/interfaces"
-	"maunium.net/go/mauircd/util/preview"
-	"maunium.net/go/mauircd/util/split"
-	"maunium.net/go/mauircd/util/userlist"
+	"maunium.net/go/mauirc-server/database"
+	"maunium.net/go/mauirc-server/ident"
+	"maunium.net/go/mauirc-server/interfaces"
+	"maunium.net/go/mauirc-server/util/preview"
+	"maunium.net/go/mauirc-server/util/split"
+	"maunium.net/go/mauirc-server/util/userlist"
 	"maunium.net/go/maulogger"
 	"strconv"
 	"strings"
@@ -46,7 +46,7 @@ type netImpl struct {
 
 	Owner       *userImpl             `json:"-"`
 	IRC         irc.Connection        `json:"-"`
-	Scripts     []mauircdi.Script     `json:"-"`
+	Scripts     []interfaces.Script   `json:"-"`
 	ChannelInfo cdlImpl               `json:"-"`
 	ChannelList []string              `json:"-"`
 	WhoisData   map[string]*whoisData `json:"-"`
@@ -79,7 +79,7 @@ func (net *netImpl) Save() {
 func (net *netImpl) Open() {
 	i := irc.Create(net.Nick, net.User, irc.IPv4Address{IP: net.IP, Port: net.Port})
 	i.SetRealName(net.Realname)
-	i.SetQuitMessage("mauIRCd shutting down...")
+	i.SetQuitMessage("mauIRC-server shutting down...")
 	i.SetUseTLS(net.SSL)
 
 	net.Sublogger = maulogger.CreateSublogger(net.Owner.GetNameFromEmail()+"/"+net.Name, maulogger.LevelDebug)
@@ -216,7 +216,7 @@ func (net *netImpl) ReceiveMessage(channel, sender, command, message string) {
 		msg.Channel = msg.Sender
 	}
 
-	var evt = &mauircdi.Event{Message: msg, Network: net, Cancelled: false}
+	var evt = &interfaces.Event{Message: msg, Network: net, Cancelled: false}
 	net.RunScripts(evt, true)
 	if evt.Cancelled {
 		return
@@ -230,7 +230,7 @@ func (net *netImpl) ReceiveMessage(channel, sender, command, message string) {
 func (net *netImpl) SendMessage(channel, command, message string) {
 	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: net.IRC.GetNick(), Command: command, Message: message, OwnMsg: true}
 
-	var evt = &mauircdi.Event{Message: msg, Network: net, Cancelled: false}
+	var evt = &interfaces.Event{Message: msg, Network: net, Cancelled: false}
 	net.RunScripts(evt, true)
 	if evt.Cancelled {
 		return
@@ -296,10 +296,10 @@ func (net *netImpl) InsertAndSend(msg database.Message) {
 	}
 	msg.Preview, _ = preview.GetPreview(msg.Message)
 	msg.ID = database.Insert(net.Owner.Email, msg)
-	net.Owner.NewMessages <- mauircdi.Message{Type: mauircdi.MsgMessage, Object: msg}
+	net.Owner.NewMessages <- interfaces.Message{Type: interfaces.MsgMessage, Object: msg}
 }
 
-func (net *netImpl) GetOwner() mauircdi.User {
+func (net *netImpl) GetOwner() interfaces.User {
 	return net.Owner
 }
 
@@ -345,8 +345,8 @@ func (net *netImpl) SetSSL(ssl bool) {
 	net.IRC.SetUseTLS(ssl)
 }
 
-func (net *netImpl) GetNetData() mauircdi.NetData {
-	return mauircdi.NetData{
+func (net *netImpl) GetNetData() interfaces.NetData {
+	return interfaces.NetData{
 		Name:      net.Name,
 		IP:        net.IP,
 		Port:      net.Port,
@@ -358,7 +358,7 @@ func (net *netImpl) GetNetData() mauircdi.NetData {
 	}
 }
 
-func (net *netImpl) GetActiveChannels() mauircdi.ChannelDataList {
+func (net *netImpl) GetActiveChannels() interfaces.ChannelDataList {
 	return net.ChannelInfo
 }
 
@@ -370,11 +370,11 @@ func (net *netImpl) Tunnel() irc.Tunnel {
 	return net.IRC
 }
 
-func (net *netImpl) GetScripts() []mauircdi.Script {
+func (net *netImpl) GetScripts() []interfaces.Script {
 	return net.Scripts
 }
 
-func (net *netImpl) AddScript(s mauircdi.Script) bool {
+func (net *netImpl) AddScript(s interfaces.Script) bool {
 	for i := 0; i < len(net.Scripts); i++ {
 		if net.Scripts[i].GetName() == s.GetName() {
 			net.Scripts[i] = s
@@ -424,14 +424,14 @@ func (net *netImpl) RemoveWhoisData(name string) {
 }
 
 type chanDataImpl struct {
-	Network           string            `json:"network"`
-	Name              string            `json:"name"`
-	UserList          userlist.List     `json:"userlist"`
-	Topic             string            `json:"topic"`
-	TopicSetBy        string            `json:"topicsetby"`
-	TopicSetAt        int64             `json:"topicsetat"`
-	ModeList          mauircdi.ModeList `json:"modes"`
-	ReceivingUserList bool              `json:"-"`
+	Network           string              `json:"network"`
+	Name              string              `json:"name"`
+	UserList          userlist.List       `json:"userlist"`
+	Topic             string              `json:"topic"`
+	TopicSetBy        string              `json:"topicsetby"`
+	TopicSetAt        int64               `json:"topicsetat"`
+	ModeList          interfaces.ModeList `json:"modes"`
+	ReceivingUserList bool                `json:"-"`
 }
 
 func (cd *chanDataImpl) GetUsers() []string {
@@ -450,13 +450,13 @@ func (cd *chanDataImpl) GetNetwork() string {
 	return cd.Network
 }
 
-func (cd *chanDataImpl) Modes() mauircdi.ModeList {
+func (cd *chanDataImpl) Modes() interfaces.ModeList {
 	return cd.ModeList
 }
 
 type cdlImpl map[string]*chanDataImpl
 
-func (cdl cdlImpl) Get(channel string) (mauircdi.ChannelData, bool) {
+func (cdl cdlImpl) Get(channel string) (interfaces.ChannelData, bool) {
 	val, ok := cdl[strings.ToLower(channel)]
 	return val, ok
 }
@@ -465,7 +465,7 @@ func (cdl cdlImpl) get(channel string) *chanDataImpl {
 	return cdl[strings.ToLower(channel)]
 }
 
-func (cdl cdlImpl) Put(data mauircdi.ChannelData) {
+func (cdl cdlImpl) Put(data interfaces.ChannelData) {
 	dat, ok := data.(*chanDataImpl)
 	if ok {
 		cdl[strings.ToLower(data.GetName())] = dat
@@ -481,7 +481,7 @@ func (cdl cdlImpl) Has(channel string) bool {
 	return ok
 }
 
-func (cdl cdlImpl) ForEach(do func(mauircdi.ChannelData)) {
+func (cdl cdlImpl) ForEach(do func(interfaces.ChannelData)) {
 	for _, val := range cdl {
 		do(val)
 	}

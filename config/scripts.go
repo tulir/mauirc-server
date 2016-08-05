@@ -1,4 +1,4 @@
-// mauIRCd - The IRC bouncer/backend system for mauIRC clients.
+// mauIRC-server - The IRC bouncer/backend system for mauIRC clients.
 // Copyright (C) 2016 Tulir Asokan
 
 // This program is free software: you can redistribute it and/or modify
@@ -19,8 +19,8 @@ package config
 
 import (
 	"io/ioutil"
-	"maunium.net/go/mauircd/interfaces"
-	"maunium.net/go/mauircd/plugin"
+	"maunium.net/go/mauirc-server/interfaces"
+	"maunium.net/go/mauirc-server/plugin"
 	"os"
 	"path/filepath"
 	"strings"
@@ -75,7 +75,7 @@ func (net *netImpl) SaveScripts(path string) error {
 }
 
 // RunScripts runs all the scripts of this network and all global scripts on the given message
-func (net *netImpl) RunScripts(evt *mauircdi.Event, receiving bool) {
+func (net *netImpl) RunScripts(evt *interfaces.Event, receiving bool) {
 	netChanged := false
 	for _, s := range net.Scripts {
 		netChanged = net.RunScript(s, evt, receiving)
@@ -93,7 +93,7 @@ func (net *netImpl) RunScripts(evt *mauircdi.Event, receiving bool) {
 }
 
 // RunScript runs a single script and sends it to another network if needed.
-func (net *netImpl) RunScript(s mauircdi.Script, evt *mauircdi.Event, receiving bool) bool {
+func (net *netImpl) RunScript(s interfaces.Script, evt *interfaces.Event, receiving bool) bool {
 	s.Run(evt)
 	if evt.Message.Network != net.Name {
 		if net.SwitchMessageNetwork(evt.Message, receiving) {

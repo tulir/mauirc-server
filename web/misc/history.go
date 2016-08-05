@@ -1,4 +1,4 @@
-// mauIRCd - The IRC bouncer/backend system for mauIRC clients.
+// mauIRC-server - The IRC bouncer/backend system for mauIRC clients.
 // Copyright (C) 2016 Tulir Asokan
 
 // This program is free software: you can redistribute it and/or modify
@@ -19,10 +19,10 @@ package misc
 
 import (
 	"encoding/json"
-	"maunium.net/go/mauircd/database"
-	"maunium.net/go/mauircd/web/auth"
-	"maunium.net/go/mauircd/web/errors"
-	"maunium.net/go/mauircd/web/util"
+	"maunium.net/go/mauirc-server/database"
+	"maunium.net/go/mauirc-server/web/auth"
+	"maunium.net/go/mauirc-server/web/errors"
+	"maunium.net/go/mauirc-server/web/util"
 	"net/http"
 	"net/url"
 	"strconv"

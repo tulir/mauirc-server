@@ -1,4 +1,4 @@
-// mauIRCd - The IRC bouncer/backend system for mauIRC clients.
+// mauIRC-server - The IRC bouncer/backend system for mauIRC clients.
 // Copyright (C) 2016 Tulir Asokan
 
 // This program is free software: you can redistribute it and/or modify
@@ -20,10 +20,10 @@ package socket
 import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
-	"maunium.net/go/mauircd/interfaces"
-	"maunium.net/go/mauircd/web/auth"
-	"maunium.net/go/mauircd/web/errors"
-	"maunium.net/go/mauircd/web/util"
+	"maunium.net/go/mauirc-server/interfaces"
+	"maunium.net/go/mauirc-server/web/auth"
+	"maunium.net/go/mauirc-server/web/errors"
+	"maunium.net/go/mauirc-server/web/util"
 	"maunium.net/go/maulogger"
 	"net/http"
 	"time"
@@ -45,7 +45,7 @@ var upgrader = websocket.Upgrader{
 
 type connection struct {
 	ws   *websocket.Conn
-	user mauircdi.User
+	user interfaces.User
 }
 
 func (c *connection) readPump() {
@@ -133,7 +133,7 @@ func Serve(w http.ResponseWriter, r *http.Request) {
 
 	go c.writePump()
 
-	c.user.GetNetworks().ForEach(func(net mauircdi.Network) {
+	c.user.GetNetworks().ForEach(func(net interfaces.Network) {
 		c.user.SendNetworkData(net)
 	})
 

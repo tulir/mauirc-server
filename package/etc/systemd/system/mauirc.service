@@ -2,7 +2,7 @@
 Description=mauIRC backend
 
 [Service]
-ExecStart=/usr/bin/mauircd
+ExecStart=/usr/bin/mauirc-server
 
 [Install]
 WantedBy=network.target

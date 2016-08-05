@@ -1,4 +1,4 @@
-// mauIRCd - The IRC bouncer/backend system for mauIRC clients.
+// mauIRC-server - The IRC bouncer/backend system for mauIRC clients.
 // Copyright (C) 2016 Tulir Asokan
 
 // This program is free software: you can redistribute it and/or modify
@@ -20,7 +20,7 @@ package ident
 import (
 	"bufio"
 	"fmt"
-	mauircdi "maunium.net/go/mauircd/interfaces"
+	interfaces "maunium.net/go/mauirc-server/interfaces"
 	"maunium.net/go/maulogger"
 	"net"
 	"strconv"
@@ -33,7 +33,7 @@ var ln net.Listener
 var log = maulogger.CreateSublogger("IDENT", maulogger.LevelInfo)
 
 // Load the IDENTd
-func Load(config mauircdi.IdentConf) error {
+func Load(config interfaces.IdentConf) error {
 	var ipport = fmt.Sprintf("%s:%d", config.IP, config.Port)
 	var err error
 	ln, err = net.Listen("tcp", ipport)

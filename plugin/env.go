@@ -1,4 +1,4 @@
-// mauIRCd - The IRC bouncer/backend system for mauIRC clients.
+// mauIRC-server - The IRC bouncer/backend system for mauIRC clients.
 // Copyright (C) 2016 Tulir Asokan
 
 // This program is free software: you can redistribute it and/or modify
@@ -35,9 +35,9 @@ import (
 	anko_sort "github.com/mattn/anko/builtins/sort"
 	anko_strings "github.com/mattn/anko/builtins/strings"
 	"github.com/mattn/anko/vm"
-	"maunium.net/go/mauircd/database"
-	"maunium.net/go/mauircd/interfaces"
-	"maunium.net/go/mauircd/util/preview"
+	"maunium.net/go/mauirc-server/database"
+	"maunium.net/go/mauirc-server/interfaces"
+	"maunium.net/go/mauirc-server/util/preview"
 )
 
 // LoadImport loads the import() function into the given environment to allow importing some Go packages
@@ -68,14 +68,14 @@ func LoadImport(env *vm.Env) {
 }
 
 // LoadAll load all the bindings into the given Anko VM environment
-func LoadAll(env *vm.Env, evt *mauircdi.Event) {
+func LoadAll(env *vm.Env, evt *interfaces.Event) {
 	LoadEvent(env.NewModule("event"), evt)
 	LoadNetwork(env.NewModule("network"), evt)
 	LoadUser(env.NewModule("user"), evt)
 }
 
 // LoadEvent loads event things into the given Anko VM environment
-func LoadEvent(env *vm.Env, evt *mauircdi.Event) {
+func LoadEvent(env *vm.Env, evt *interfaces.Event) {
 	env.Define("GetID", func() int64 {
 		return evt.Message.ID
 	})
@@ -134,7 +134,7 @@ func LoadEvent(env *vm.Env, evt *mauircdi.Event) {
 }
 
 // LoadPreview loads preview things into the given Anko VM environment
-func LoadPreview(env *vm.Env, evt *mauircdi.Event) {
+func LoadPreview(env *vm.Env, evt *interfaces.Event) {
 	env.Define("HasPreview", func() bool {
 		return evt.Message.Preview != nil
 	})
@@ -186,7 +186,7 @@ func LoadPreview(env *vm.Env, evt *mauircdi.Event) {
 }
 
 // LoadNetwork loads network things into the given Anko VM environment
-func LoadNetwork(env *vm.Env, evt *mauircdi.Event) {
+func LoadNetwork(env *vm.Env, evt *interfaces.Event) {
 	env.Define("GetNick", evt.Network.GetNick)
 	env.Define("GetTopic", func(channel string) string {
 		ch, ok := evt.Network.GetActiveChannels().Get(channel)
@@ -197,7 +197,7 @@ func LoadNetwork(env *vm.Env, evt *mauircdi.Event) {
 	})
 	env.Define("GetChannels", func() []string {
 		var channels []string
-		evt.Network.GetActiveChannels().ForEach(func(ch mauircdi.ChannelData) {
+		evt.Network.GetActiveChannels().ForEach(func(ch interfaces.ChannelData) {
 			channels = append(channels, ch.GetName())
 		})
 		return channels
@@ -210,7 +210,7 @@ func LoadNetwork(env *vm.Env, evt *mauircdi.Event) {
 }
 
 // LoadIRC loads irc command bindings into the given Anko VM environment
-func LoadIRC(env *vm.Env, evt *mauircdi.Event) {
+func LoadIRC(env *vm.Env, evt *interfaces.Event) {
 	env.Define("Nick", func(nick string) {
 		evt.Network.Tunnel().SetNick(nick)
 	})
@@ -241,7 +241,7 @@ func LoadIRC(env *vm.Env, evt *mauircdi.Event) {
 }
 
 // LoadUser loads user things into the given Anko VM environment
-func LoadUser(env *vm.Env, evt *mauircdi.Event) {
+func LoadUser(env *vm.Env, evt *interfaces.Event) {
 	env.Define("GetEmail", evt.Network.GetOwner().GetEmail)
 	env.Define("SendMessage", func(network, channel string, timestamp int64, sender, command, message string, ownmsg bool) {
 		evt.Network.InsertAndSend(database.Message{
@@ -255,7 +255,7 @@ func LoadUser(env *vm.Env, evt *mauircdi.Event) {
 		})
 	})
 	env.Define("SendDirectMessage", func(id int64, network, channel string, timestamp int64, sender, command, message string, ownmsg bool) {
-		evt.Network.GetOwner().GetMessageChan() <- mauircdi.Message{
+		evt.Network.GetOwner().GetMessageChan() <- interfaces.Message{
 			Type: "message",
 			Object: database.Message{
 				ID:        id,
@@ -270,11 +270,11 @@ func LoadUser(env *vm.Env, evt *mauircdi.Event) {
 		}
 	})
 	env.Define("SendRawMessage", func(typ string, data string) {
-		evt.Network.GetOwner().GetMessageChan() <- mauircdi.Message{Type: typ, Object: data}
+		evt.Network.GetOwner().GetMessageChan() <- interfaces.Message{Type: typ, Object: data}
 	})
 	env.Define("GetNetworks", func() []string {
 		var networks []string
-		evt.Network.GetOwner().GetNetworks().ForEach(func(net mauircdi.Network) {
+		evt.Network.GetOwner().GetNetworks().ForEach(func(net interfaces.Network) {
 			networks = append(networks, evt.Network.GetName())
 		})
 		return networks

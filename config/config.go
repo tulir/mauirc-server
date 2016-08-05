@@ -1,4 +1,4 @@
-// mauIRCd - The IRC bouncer/backend system for mauIRC clients.
+// mauIRC-server - The IRC bouncer/backend system for mauIRC clients.
 // Copyright (C) 2016 Tulir Asokan
 
 // This program is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"maunium.net/go/mauircd/interfaces"
+	"maunium.net/go/mauirc-server/interfaces"
 	"maunium.net/go/maulogger"
 	"path/filepath"
 	"strings"
@@ -32,23 +32,23 @@ import (
 var log = maulogger.CreateSublogger("Net", maulogger.LevelInfo)
 
 // NewConfig creates a new Configuration instance
-func NewConfig(path string) mauircdi.Configuration {
+func NewConfig(path string) interfaces.Configuration {
 	path, _ = filepath.Abs(path)
 	return &configImpl{Path: path}
 }
 
 type configImpl struct {
-	Path          string             `json:"-"`
-	SQL           mysqlImpl          `json:"sql"`
-	Users         userListImpl       `json:"users"`
-	Mail          *mailConfig        `json:"mail"`
-	IP            string             `json:"ip"`
-	Port          int                `json:"port"`
-	TrustHeadersF bool               `json:"trust-headers"`
-	Address       string             `json:"external-address"`
-	CSecretB64    string             `json:"cookie-secret"`
-	Ident         mauircdi.IdentConf `json:"ident"`
-	CookieSecret  []byte             `json:"-"`
+	Path          string               `json:"-"`
+	SQL           mysqlImpl            `json:"sql"`
+	Users         userListImpl         `json:"users"`
+	Mail          *mailConfig          `json:"mail"`
+	IP            string               `json:"ip"`
+	Port          int                  `json:"port"`
+	TrustHeadersF bool                 `json:"trust-headers"`
+	Address       string               `json:"external-address"`
+	CSecretB64    string               `json:"cookie-secret"`
+	Ident         interfaces.IdentConf `json:"ident"`
+	CookieSecret  []byte               `json:"-"`
 }
 
 type mysqlImpl struct {
@@ -61,7 +61,7 @@ type mysqlImpl struct {
 
 type userListImpl []*userImpl
 
-func (ul userListImpl) ForEach(do func(user mauircdi.User)) {
+func (ul userListImpl) ForEach(do func(user interfaces.User)) {
 	for _, user := range ul {
 		do(user)
 	}
@@ -106,7 +106,7 @@ func (config *configImpl) Load() error {
 
 func (config *configImpl) Connect() {
 	for _, user := range config.Users {
-		user.NewMessages = make(chan mauircdi.Message, 64)
+		user.NewMessages = make(chan interfaces.Message, 64)
 		user.InitNetworks()
 	}
 }
@@ -122,12 +122,12 @@ func (config *configImpl) Save() error {
 }
 
 // GetUsers returns all users
-func (config *configImpl) GetUsers() mauircdi.UserList {
+func (config *configImpl) GetUsers() interfaces.UserList {
 	return config.Users
 }
 
 // GetUser gets the user with the given email
-func (config *configImpl) GetUser(email string) mauircdi.User {
+func (config *configImpl) GetUser(email string) interfaces.User {
 	email = strings.ToLower(email)
 	for _, user := range config.Users {
 		if user.Email == email {
@@ -137,7 +137,7 @@ func (config *configImpl) GetUser(email string) mauircdi.User {
 	return nil
 }
 
-func (config *configImpl) CreateUser(email, password string) mauircdi.User {
+func (config *configImpl) CreateUser(email, password string) interfaces.User {
 	email = strings.ToLower(email)
 	for _, user := range config.Users {
 		if user.Email == email {
@@ -146,7 +146,7 @@ func (config *configImpl) CreateUser(email, password string) mauircdi.User {
 	}
 	user := &userImpl{
 		HostConf:    config,
-		NewMessages: make(chan mauircdi.Message, 64),
+		NewMessages: make(chan interfaces.Message, 64),
 		Email:       email,
 	}
 	user.SetPassword(password)
@@ -163,11 +163,11 @@ func (config *configImpl) GetSQLString() string {
 	)
 }
 
-func (config *configImpl) GetMail() mauircdi.Mail {
+func (config *configImpl) GetMail() interfaces.Mail {
 	return config.Mail
 }
 
-func (config *configImpl) GetIDENTConfig() mauircdi.IdentConf {
+func (config *configImpl) GetIDENTConfig() interfaces.IdentConf {
 	return config.Ident
 }
 

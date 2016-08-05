@@ -1,4 +1,4 @@
-// mauIRCd - The IRC bouncer/backend system for mauIRC clients.
+// mauIRC-server - The IRC bouncer/backend system for mauIRC clients.
 // Copyright (C) 2016 Tulir Asokan
 
 // This program is free software: you can redistribute it and/or modify
@@ -19,29 +19,29 @@ package config
 
 import (
 	msg "github.com/sorcix/irc"
-	"maunium.net/go/mauircd/database"
-	"maunium.net/go/mauircd/interfaces"
+	"maunium.net/go/mauirc-server/database"
+	"maunium.net/go/mauirc-server/interfaces"
 	"strconv"
 )
 
 // HandleCommand handles mauIRC commands from clients
 func (user *userImpl) HandleCommand(data map[string]string) {
 	switch data["type"] {
-	case mauircdi.MsgRaw:
+	case interfaces.MsgRaw:
 		user.rawMessage(data)
-	case mauircdi.MsgMessage:
+	case interfaces.MsgMessage:
 		user.cmdMessage(data)
-	case mauircdi.MsgKick:
+	case interfaces.MsgKick:
 		user.cmdKick(data)
-	case mauircdi.MsgMode:
+	case interfaces.MsgMode:
 		user.cmdMode(data)
-	case mauircdi.MsgClear:
+	case interfaces.MsgClear:
 		user.cmdClearHistory(data)
-	case mauircdi.MsgClose:
+	case interfaces.MsgClose:
 		user.cmdCloseChannel(data)
-	case mauircdi.MsgOpen:
+	case interfaces.MsgOpen:
 		user.cmdOpenChannel(data)
-	case mauircdi.MsgDelete:
+	case interfaces.MsgDelete:
 		user.cmdDeleteMessage(data)
 	}
 }
@@ -75,7 +75,7 @@ func (user *userImpl) cmdDeleteMessage(data map[string]string) {
 		return
 	}
 
-	user.NewMessages <- mauircdi.Message{Type: mauircdi.MsgDelete, Object: id}
+	user.NewMessages <- interfaces.Message{Type: interfaces.MsgDelete, Object: id}
 }
 
 func (user *userImpl) cmdClearHistory(data map[string]string) {
@@ -89,7 +89,7 @@ func (user *userImpl) cmdClearHistory(data map[string]string) {
 		return
 	}
 
-	user.NewMessages <- mauircdi.Message{Type: mauircdi.MsgClear, Object: mauircdi.ClearHistory{Channel: data["channel"], Network: data["network"]}}
+	user.NewMessages <- interfaces.Message{Type: interfaces.MsgClear, Object: interfaces.ClearHistory{Channel: data["channel"], Network: data["network"]}}
 }
 
 func (user *userImpl) cmdCloseChannel(data map[string]string) {

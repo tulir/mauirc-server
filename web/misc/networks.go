@@ -1,4 +1,4 @@
-// mauIRCd - The IRC bouncer/backend system for mauIRC clients.
+// mauIRC-server - The IRC bouncer/backend system for mauIRC clients.
 // Copyright (C) 2016 Tulir Asokan
 
 // This program is free software: you can redistribute it and/or modify
@@ -20,9 +20,9 @@ package misc
 import (
 	"encoding/json"
 	"io/ioutil"
-	"maunium.net/go/mauircd/interfaces"
-	"maunium.net/go/mauircd/web/auth"
-	"maunium.net/go/mauircd/web/errors"
+	"maunium.net/go/mauirc-server/interfaces"
+	"maunium.net/go/mauirc-server/web/auth"
+	"maunium.net/go/mauirc-server/web/errors"
 	"net/http"
 	"strings"
 )
@@ -49,7 +49,7 @@ func Network(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func deleteNetwork(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
+func deleteNetwork(w http.ResponseWriter, r *http.Request, args []string, user interfaces.User) {
 	net := user.GetNetwork(args[0])
 	if net != nil {
 		if net.IsConnected() {
@@ -67,7 +67,7 @@ func deleteNetwork(w http.ResponseWriter, r *http.Request, args []string, user m
 	}
 }
 
-func addNetwork(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
+func addNetwork(w http.ResponseWriter, r *http.Request, args []string, user interfaces.User) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		errors.Write(w, errors.BodyNotFound)
@@ -110,11 +110,11 @@ type editRequest struct {
 }
 
 type editResponse struct {
-	New mauircdi.NetData `json:"new"`
-	Old mauircdi.NetData `json:"old"`
+	New interfaces.NetData `json:"new"`
+	Old interfaces.NetData `json:"old"`
 }
 
-func editNetwork(w http.ResponseWriter, r *http.Request, args []string, user mauircdi.User) {
+func editNetwork(w http.ResponseWriter, r *http.Request, args []string, user interfaces.User) {
 	net := user.GetNetwork(args[0])
 	if net == nil {
 		errors.Write(w, errors.NetworkNotFound)
@@ -145,7 +145,7 @@ func editNetwork(w http.ResponseWriter, r *http.Request, args []string, user mau
 	}
 }
 
-func connectedUpdate(net mauircdi.Network, data editRequest, oldData mauircdi.NetData) {
+func connectedUpdate(net interfaces.Network, data editRequest, oldData interfaces.NetData) {
 	if len(data.Connected) == 0 {
 		return
 	}
@@ -161,7 +161,7 @@ func connectedUpdate(net mauircdi.Network, data editRequest, oldData mauircdi.Ne
 	}
 }
 
-func nameUpdates(net mauircdi.Network, data editRequest, oldData mauircdi.NetData) {
+func nameUpdates(net interfaces.Network, data editRequest, oldData interfaces.NetData) {
 	if len(data.Name) > 0 && data.Name != oldData.Name {
 		net.SetName(data.Name)
 	}
@@ -179,7 +179,7 @@ func nameUpdates(net mauircdi.Network, data editRequest, oldData mauircdi.NetDat
 	}
 }
 
-func addrUpdates(net mauircdi.Network, data editRequest, oldData mauircdi.NetData) {
+func addrUpdates(net interfaces.Network, data editRequest, oldData interfaces.NetData) {
 	if len(data.IP) > 0 && data.IP != oldData.IP {
 		net.SetIP(data.IP)
 	}

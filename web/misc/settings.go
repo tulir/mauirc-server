@@ -1,4 +1,4 @@
-// mauIRCd - The IRC bouncer/backend system for mauIRC clients.
+// mauIRC-server - The IRC bouncer/backend system for mauIRC clients.
 // Copyright (C) 2016 Tulir Asokan
 
 // This program is free software: you can redistribute it and/or modify
@@ -20,9 +20,9 @@ package misc
 import (
 	"encoding/json"
 	"io/ioutil"
-	"maunium.net/go/mauircd/interfaces"
-	"maunium.net/go/mauircd/web/auth"
-	"maunium.net/go/mauircd/web/errors"
+	"maunium.net/go/mauirc-server/interfaces"
+	"maunium.net/go/mauirc-server/web/auth"
+	"maunium.net/go/mauirc-server/web/errors"
 	"net/http"
 	"strings"
 )
@@ -45,7 +45,7 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func putSettings(w http.ResponseWriter, r *http.Request, user mauircdi.User) {
+func putSettings(w http.ResponseWriter, r *http.Request, user interfaces.User) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		errors.Write(w, errors.BodyNotFound)
@@ -56,7 +56,7 @@ func putSettings(w http.ResponseWriter, r *http.Request, user mauircdi.User) {
 	user.SetSettings(settings)
 }
 
-func getSettings(w http.ResponseWriter, r *http.Request, user mauircdi.User) {
+func getSettings(w http.ResponseWriter, r *http.Request, user interfaces.User) {
 	data, err := json.Marshal(user.GetSettings())
 	if err != nil {
 		errors.Write(w, errors.Internal)
