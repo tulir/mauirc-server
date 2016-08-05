@@ -92,7 +92,7 @@ type User interface {
 	AddGlobalScript(s Script) bool
 	RemoveGlobalScript(name string) bool
 
-	GetMessageChan() chan messages.Message
+	GetMessageChan() chan messages.Container
 
 	GetSettings() interface{}
 	SetSettings(val interface{})

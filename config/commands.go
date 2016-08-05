@@ -75,7 +75,7 @@ func (user *userImpl) cmdDeleteMessage(data map[string]string) {
 		return
 	}
 
-	user.NewMessages <- messages.Message{Type: messages.MsgDelete, Object: id}
+	user.NewMessages <- messages.Container{Type: messages.MsgDelete, Object: id}
 }
 
 func (user *userImpl) cmdClearHistory(data map[string]string) {
@@ -89,7 +89,7 @@ func (user *userImpl) cmdClearHistory(data map[string]string) {
 		return
 	}
 
-	user.NewMessages <- messages.Message{Type: messages.MsgClear, Object: messages.ClearHistory{Channel: data["channel"], Network: data["network"]}}
+	user.NewMessages <- messages.Container{Type: messages.MsgClear, Object: messages.ClearHistory{Channel: data["channel"], Network: data["network"]}}
 }
 
 func (user *userImpl) cmdCloseChannel(data map[string]string) {

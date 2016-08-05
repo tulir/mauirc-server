@@ -20,7 +20,6 @@ package interfaces
 import (
 	"maunium.net/go/libmauirc"
 	"maunium.net/go/mauirc-common/messages"
-	"maunium.net/go/mauirc-server/database"
 	"maunium.net/go/mauirc-server/util/userlist"
 )
 
@@ -30,8 +29,8 @@ type Network interface {
 	Open()
 	ReceiveMessage(channel, sender, command, message string)
 	SendMessage(channel, command, message string)
-	SwitchMessageNetwork(msg database.Message, receiving bool) bool
-	InsertAndSend(msg database.Message)
+	SwitchMessageNetwork(msg messages.Message, receiving bool) bool
+	InsertAndSend(msg messages.Message)
 	Tunnel() libmauirc.Tunnel
 
 	Connect() error

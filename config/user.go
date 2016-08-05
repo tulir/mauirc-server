@@ -29,15 +29,15 @@ import (
 )
 
 type userImpl struct {
-	Networks      netListImpl           `json:"networks"`
-	Email         string                `json:"email"`
-	Password      string                `json:"password"`
-	AuthTokens    []authToken           `json:"authtokens,omitempty"`
-	PasswordReset authToken             `json:"passwordreset"`
-	NewMessages   chan messages.Message `json:"-"`
-	GlobalScripts []interfaces.Script   `json:"-"`
-	Settings      interface{}           `json:"settings,omitempty"`
-	HostConf      *configImpl           `json:"-"`
+	Networks      netListImpl             `json:"networks"`
+	Email         string                  `json:"email"`
+	Password      string                  `json:"password"`
+	AuthTokens    []authToken             `json:"authtokens,omitempty"`
+	PasswordReset authToken               `json:"passwordreset"`
+	NewMessages   chan messages.Container `json:"-"`
+	GlobalScripts []interfaces.Script     `json:"-"`
+	Settings      interface{}             `json:"settings,omitempty"`
+	HostConf      *configImpl             `json:"-"`
 }
 
 type authToken struct {
@@ -88,11 +88,11 @@ func (user *userImpl) InitNetworks() {
 }
 
 func (user *userImpl) SendNetworkData(net interfaces.Network) {
-	user.NewMessages <- messages.Message{Type: messages.MsgNetData, Object: net.GetNetData()}
+	user.NewMessages <- messages.Container{Type: messages.MsgNetData, Object: net.GetNetData()}
 	net.GetActiveChannels().ForEach(func(chd interfaces.ChannelData) {
-		user.NewMessages <- messages.Message{Type: messages.MsgChanData, Object: chd}
+		user.NewMessages <- messages.Container{Type: messages.MsgChanData, Object: chd}
 	})
-	user.NewMessages <- messages.Message{Type: messages.MsgChanList, Object: messages.ChanList{Network: net.GetName(), List: net.GetAllChannels()}}
+	user.NewMessages <- messages.Container{Type: messages.MsgChanList, Object: messages.ChanList{Network: net.GetName(), List: net.GetAllChannels()}}
 }
 
 // GetNetwork gets the network with the given name
@@ -206,7 +206,7 @@ func (user *userImpl) GetNameFromEmail() string {
 	return parts[0]
 }
 
-func (user *userImpl) GetMessageChan() chan messages.Message {
+func (user *userImpl) GetMessageChan() chan messages.Container {
 	return user.NewMessages
 }
 

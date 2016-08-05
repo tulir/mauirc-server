@@ -22,33 +22,13 @@ import (
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/mvdan/xurls"
 	"io/ioutil"
+	"maunium.net/go/mauirc-common/messages"
 	"net/http"
 	"strings"
 )
 
-// Preview is an URL preview
-type Preview struct {
-	Text  *Text  `json:"text,omitempty"`
-	Image *Image `json:"image,omitempty"`
-}
-
-// Text is some text to preview
-type Text struct {
-	Title       string `json:"title,omitempty"`
-	Description string `json:"description,omitempty"`
-	SiteName    string `json:"sitename,omitempty"`
-}
-
-// Image is an image to preview
-type Image struct {
-	URL    string `json:"url"`
-	Type   string `json:"type"`
-	Width  uint64 `json:"width"`
-	Height uint64 `json:"height"`
-}
-
 // GetPreview gets the preview for the first URL in the given text.
-func GetPreview(text string) (*Preview, error) {
+func GetPreview(text string) (*messages.Preview, error) {
 	url := xurls.Relaxed.FindString(text)
 
 	if len(url) <= 0 {
@@ -67,7 +47,7 @@ func GetPreview(text string) (*Preview, error) {
 	}
 	ct := http.DetectContentType(data)
 	if strings.HasPrefix(ct, "image/") {
-		return &Preview{Image: &Image{URL: url, Type: ct}}, nil
+		return &messages.Preview{Image: &messages.Image{URL: url, Type: ct}}, nil
 	}
 
 	og := opengraph.NewOpenGraph()
@@ -76,12 +56,12 @@ func GetPreview(text string) (*Preview, error) {
 		return nil, err
 	}
 
-	return &Preview{Text: getText(og), Image: getImage(og)}, nil
+	return &messages.Preview{Text: getText(og), Image: getImage(og)}, nil
 }
 
-func getText(og *opengraph.OpenGraph) *Text {
+func getText(og *opengraph.OpenGraph) *messages.Text {
 	if len(og.Title) != 0 || len(og.Description) != 0 || len(og.SiteName) != 0 {
-		var txt = &Text{Title: og.Title, Description: og.Description, SiteName: og.SiteName}
+		var txt = &messages.Text{Title: og.Title, Description: og.Description, SiteName: og.SiteName}
 		if txt.Title == txt.Description {
 			txt.Description = ""
 		}
@@ -90,13 +70,13 @@ func getText(og *opengraph.OpenGraph) *Text {
 	return nil
 }
 
-func getImage(og *opengraph.OpenGraph) *Image {
+func getImage(og *opengraph.OpenGraph) *messages.Image {
 	if len(og.Images) > 0 {
 		img := og.Images[0]
 		if len(img.SecureURL) > 0 {
-			return &Image{URL: img.SecureURL, Type: img.Type, Width: img.Width, Height: img.Height}
+			return &messages.Image{URL: img.SecureURL, Type: img.Type, Width: img.Width, Height: img.Height}
 		}
-		return &Image{URL: img.URL, Type: img.Type, Width: img.Width, Height: img.Height}
+		return &messages.Image{URL: img.URL, Type: img.Type, Width: img.Width, Height: img.Height}
 	}
 	return nil
 }

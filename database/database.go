@@ -21,21 +21,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"maunium.net/go/mauirc-server/util/preview"
+	"maunium.net/go/mauirc-common/messages"
 )
-
-// Message wraps an IRC message
-type Message struct {
-	ID        int64            `json:"id"`
-	Network   string           `json:"network"`
-	Channel   string           `json:"channel"`
-	Timestamp int64            `json:"timestamp"`
-	Sender    string           `json:"sender"`
-	Command   string           `json:"command"`
-	Message   string           `json:"message"`
-	OwnMsg    bool             `json:"ownmsg"`
-	Preview   *preview.Preview `json:"preview"`
-}
 
 var db *sql.DB
 
@@ -70,7 +57,7 @@ func Close() {
 }
 
 // GetHistory gets the last n messages
-func GetHistory(email string, n int) ([]Message, error) {
+func GetHistory(email string, n int) ([]messages.Message, error) {
 	results, err := db.Query("SELECT id, network, channel, timestamp, sender, command, message, ownmessage, preview FROM messages WHERE email=? ORDER BY id DESC LIMIT ?", email, n)
 	if err != nil {
 		return nil, err
@@ -79,7 +66,7 @@ func GetHistory(email string, n int) ([]Message, error) {
 }
 
 // GetNetworkHistory gets the last n messages on the given network
-func GetNetworkHistory(email, network string, n int) ([]Message, error) {
+func GetNetworkHistory(email, network string, n int) ([]messages.Message, error) {
 	results, err := db.Query("SELECT id, network, channel, timestamp, sender, command, message, ownmessage, preview FROM messages WHERE email=? AND network=? ORDER BY id DESC LIMIT ?", email, network, n)
 	if err != nil {
 		return nil, err
@@ -88,7 +75,7 @@ func GetNetworkHistory(email, network string, n int) ([]Message, error) {
 }
 
 // GetChannelHistory gets the last n messages on the given channel
-func GetChannelHistory(email, network, channel string, n int) ([]Message, error) {
+func GetChannelHistory(email, network, channel string, n int) ([]messages.Message, error) {
 	results, err := db.Query("SELECT id, network, channel, timestamp, sender, command, message, ownmessage, preview FROM messages WHERE email=? AND network=? AND channel=? ORDER BY id DESC LIMIT ?", email, network, channel, n)
 	if err != nil {
 		return nil, err
@@ -96,11 +83,11 @@ func GetChannelHistory(email, network, channel string, n int) ([]Message, error)
 	return scanMessages(results)
 }
 
-func scanMessages(results *sql.Rows) ([]Message, error) {
-	var messages []Message
+func scanMessages(results *sql.Rows) ([]messages.Message, error) {
+	var msgs []messages.Message
 	for results.Next() {
 		if results.Err() != nil {
-			return messages, results.Err()
+			return msgs, results.Err()
 		}
 
 		var network, channel, sender, command, message, previewStr string
@@ -109,14 +96,14 @@ func scanMessages(results *sql.Rows) ([]Message, error) {
 
 		results.Scan(&id, &network, &channel, &timestamp, &sender, &command, &message, &ownmessage, &previewStr)
 
-		var pw = &preview.Preview{}
+		var pw = &messages.Preview{}
 		if len(previewStr) > 0 {
 			json.Unmarshal([]byte(previewStr), pw)
 		} else {
 			pw = nil
 		}
 
-		messages = append(messages, Message{
+		msgs = append(msgs, messages.Message{
 			ID:        id,
 			Network:   network,
 			Channel:   channel,
@@ -128,7 +115,7 @@ func scanMessages(results *sql.Rows) ([]Message, error) {
 			Preview:   pw,
 		})
 	}
-	return messages, nil
+	return msgs, nil
 }
 
 // DeleteMessage deletes the message with the given ID
@@ -156,7 +143,7 @@ func ClearUser(email string) error {
 }
 
 // Insert a message into the database
-func Insert(email string, msg Message) int64 {
+func Insert(email string, msg messages.Message) int64 {
 	var preview = ""
 	if msg.Preview != nil {
 		data, err := json.Marshal(msg.Preview)

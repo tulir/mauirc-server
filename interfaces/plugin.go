@@ -18,7 +18,7 @@
 package interfaces
 
 import (
-	"maunium.net/go/mauirc-server/database"
+	"maunium.net/go/mauirc-common/messages"
 )
 
 // Script wraps the name and code of a script
@@ -31,6 +31,6 @@ type Script interface {
 // Event is a plugin event
 type Event struct {
 	Network   Network
-	Message   database.Message
+	Message   messages.Message
 	Cancelled bool
 }

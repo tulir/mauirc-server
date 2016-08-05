@@ -36,7 +36,6 @@ import (
 	anko_sort "github.com/mattn/anko/builtins/sort"
 	anko_strings "github.com/mattn/anko/builtins/strings"
 	"github.com/mattn/anko/vm"
-	"maunium.net/go/mauirc-server/database"
 	"maunium.net/go/mauirc-server/interfaces"
 	"maunium.net/go/mauirc-server/util/preview"
 )
@@ -161,9 +160,9 @@ func LoadPreview(env *vm.Env, evt *interfaces.Event) {
 			}
 			return
 		}
-		imgPreview := &preview.Image{URL: url, Type: typ}
+		imgPreview := &messages.Image{URL: url, Type: typ}
 		if evt.Message.Preview == nil {
-			evt.Message.Preview = &preview.Preview{}
+			evt.Message.Preview = &messages.Preview{}
 		}
 		evt.Message.Preview.Image = imgPreview
 	})
@@ -178,9 +177,9 @@ func LoadPreview(env *vm.Env, evt *interfaces.Event) {
 		} else if title == description {
 			description = ""
 		}
-		textPreview := &preview.Text{Title: title, Description: description, SiteName: sitename}
+		textPreview := &messages.Text{Title: title, Description: description, SiteName: sitename}
 		if evt.Message.Preview == nil {
-			evt.Message.Preview = &preview.Preview{}
+			evt.Message.Preview = &messages.Preview{}
 		}
 		evt.Message.Preview.Text = textPreview
 	})
@@ -245,7 +244,7 @@ func LoadIRC(env *vm.Env, evt *interfaces.Event) {
 func LoadUser(env *vm.Env, evt *interfaces.Event) {
 	env.Define("GetEmail", evt.Network.GetOwner().GetEmail)
 	env.Define("SendMessage", func(network, channel string, timestamp int64, sender, command, message string, ownmsg bool) {
-		evt.Network.InsertAndSend(database.Message{
+		evt.Network.InsertAndSend(messages.Message{
 			Network:   network,
 			Channel:   channel,
 			Timestamp: timestamp,
@@ -256,9 +255,9 @@ func LoadUser(env *vm.Env, evt *interfaces.Event) {
 		})
 	})
 	env.Define("SendDirectMessage", func(id int64, network, channel string, timestamp int64, sender, command, message string, ownmsg bool) {
-		evt.Network.GetOwner().GetMessageChan() <- messages.Message{
+		evt.Network.GetOwner().GetMessageChan() <- messages.Container{
 			Type: "message",
-			Object: database.Message{
+			Object: messages.Message{
 				ID:        id,
 				Network:   network,
 				Channel:   channel,
@@ -271,7 +270,7 @@ func LoadUser(env *vm.Env, evt *interfaces.Event) {
 		}
 	})
 	env.Define("SendRawMessage", func(typ string, data string) {
-		evt.Network.GetOwner().GetMessageChan() <- messages.Message{Type: typ, Object: data}
+		evt.Network.GetOwner().GetMessageChan() <- messages.Container{Type: typ, Object: data}
 	})
 	env.Define("GetNetworks", func() []string {
 		var networks []string

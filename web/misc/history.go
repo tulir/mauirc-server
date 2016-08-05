@@ -19,6 +19,7 @@ package misc
 
 import (
 	"encoding/json"
+	"maunium.net/go/mauirc-common/messages"
 	"maunium.net/go/mauirc-server/database"
 	"maunium.net/go/mauirc-server/web/auth"
 	"maunium.net/go/mauirc-server/web/errors"
@@ -69,7 +70,7 @@ func History(w http.ResponseWriter, r *http.Request) {
 	w.Write(json)
 }
 
-func getHistory(email, ip string, n int, args []string) ([]database.Message, error) {
+func getHistory(email, ip string, n int, args []string) ([]messages.Message, error) {
 	if len(args) == 0 {
 		log.Debugf("%s requested %d messages of history for %s\n", ip, n, email)
 		return database.GetHistory(email, n)

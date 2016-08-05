@@ -200,7 +200,7 @@ func (net *netImpl) IsConnected() bool {
 
 // ReceiveMessage stores the message and sends it to the client
 func (net *netImpl) ReceiveMessage(channel, sender, command, message string) {
-	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
+	msg := messages.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: sender, Command: command, Message: message}
 
 	if msg.Sender == net.IRC.GetNick() || (command == "nick" && message == net.IRC.GetNick()) {
 		msg.OwnMsg = true
@@ -229,7 +229,7 @@ func (net *netImpl) ReceiveMessage(channel, sender, command, message string) {
 
 // SendMessage sends the given message to the given channel
 func (net *netImpl) SendMessage(channel, command, message string) {
-	msg := database.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: net.IRC.GetNick(), Command: command, Message: message, OwnMsg: true}
+	msg := messages.Message{Network: net.Name, Channel: channel, Timestamp: time.Now().Unix(), Sender: net.IRC.GetNick(), Command: command, Message: message, OwnMsg: true}
 
 	var evt = &interfaces.Event{Message: msg, Network: net, Cancelled: false}
 	net.RunScripts(evt, true)
@@ -250,7 +250,7 @@ func (net *netImpl) SendMessage(channel, command, message string) {
 	}
 }
 
-func (net *netImpl) sendToIRC(msg database.Message) bool {
+func (net *netImpl) sendToIRC(msg messages.Message) bool {
 	if !strings.HasPrefix(msg.Channel, "*") {
 		switch msg.Command {
 		case "privmsg":
@@ -277,7 +277,7 @@ func (net *netImpl) sendToIRC(msg database.Message) bool {
 }
 
 // SwitchNetwork sends the given message to another network
-func (net *netImpl) SwitchMessageNetwork(msg database.Message, receiving bool) bool {
+func (net *netImpl) SwitchMessageNetwork(msg messages.Message, receiving bool) bool {
 	newNet := net.Owner.GetNetwork(msg.Network)
 	if newNet != nil {
 		if receiving {
@@ -291,13 +291,13 @@ func (net *netImpl) SwitchMessageNetwork(msg database.Message, receiving bool) b
 }
 
 // InsertAndSend inserts the given message into the database and sends it to the client
-func (net *netImpl) InsertAndSend(msg database.Message) {
+func (net *netImpl) InsertAndSend(msg messages.Message) {
 	if len(msg.Command) == 0 {
 		return
 	}
 	msg.Preview, _ = preview.GetPreview(msg.Message)
 	msg.ID = database.Insert(net.Owner.Email, msg)
-	net.Owner.NewMessages <- messages.Message{Type: messages.MsgMessage, Object: msg}
+	net.Owner.NewMessages <- messages.Container{Type: messages.MsgMessage, Object: msg}
 }
 
 func (net *netImpl) GetOwner() interfaces.User {
