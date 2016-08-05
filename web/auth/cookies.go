@@ -86,8 +86,8 @@ func HTTPCheck(w http.ResponseWriter, r *http.Request) {
 	log.Debugf("%s checked authentication (Authenticated: %t)\n", util.GetIP(r), success)
 	w.WriteHeader(http.StatusOK)
 	if !success {
-		w.Write([]byte("{\"authenticated\": \"false\"}"))
+		w.Write([]byte("{\"authenticated\": false}"))
 	} else {
-		w.Write([]byte("{\"authenticated\": \"true\"}"))
+		w.Write([]byte("{\"authenticated\": true}"))
 	}
 }
