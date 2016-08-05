@@ -48,10 +48,34 @@ type RawMessage struct {
 	Message string `json:"message"`
 }
 
+// ParseRawMessage parses a RawMessage object from a generic object
+func ParseRawMessage(obj interface{}) (msg RawMessage) {
+	mp, ok := obj.(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	msg.Network, _ = mp["network"].(string)
+	msg.Message, _ = mp["message"].(string)
+	return
+}
+
 // NickChange is the message for IRC nick changes
 type NickChange struct {
 	Network string `json:"network"`
 	Nick    string `json:"nick"`
+}
+
+// ParseNickChange parses a NickChange object from a generic object
+func ParseNickChange(obj interface{}) (msg NickChange) {
+	mp, ok := obj.(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	msg.Network, _ = mp["network"].(string)
+	msg.Nick, _ = mp["nick"].(string)
+	return
 }
 
 // NetData contains basic network data
@@ -66,10 +90,40 @@ type NetData struct {
 	Connected bool   `json:"connected"`
 }
 
+// ParseNetData parses a NetData object from a generic object
+func ParseNetData(obj interface{}) (msg NetData) {
+	mp, ok := obj.(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	msg.Name, _ = mp["name"].(string)
+	msg.User, _ = mp["user"].(string)
+	msg.Realname, _ = mp["realname"].(string)
+	msg.Nick, _ = mp["nick"].(string)
+	msg.IP, _ = mp["ip"].(string)
+	msg.Port, _ = mp["port"].(uint16)
+	msg.SSL, _ = mp["ssl"].(bool)
+	msg.Connected, _ = mp["connected"].(bool)
+	return
+}
+
 // ChanList contains a channel list and network name
 type ChanList struct {
 	Network string   `json:"network"`
 	List    []string `json:"list"`
+}
+
+// ParseChanList parses a ChanList object from a generic object
+func ParseChanList(obj interface{}) (msg ChanList) {
+	mp, ok := obj.(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	msg.Network, _ = mp["network"].(string)
+	msg.List, _ = mp["nick"].([]string)
+	return
 }
 
 // Invite an user to a channel
@@ -79,6 +133,19 @@ type Invite struct {
 	Sender  string `json:"sender"`
 }
 
+// ParseInvite parses a Invite object from a generic object
+func ParseInvite(obj interface{}) (msg Invite) {
+	mp, ok := obj.(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	msg.Network, _ = mp["network"].(string)
+	msg.Channel, _ = mp["channel"].(string)
+	msg.Sender, _ = mp["sender"].(string)
+	return
+}
+
 // CommandResponse is a response to an user-sent internal command
 type CommandResponse struct {
 	Success       bool   `json:"success"`
@@ -86,8 +153,33 @@ type CommandResponse struct {
 	Message       string `json:"message"`
 }
 
+// ParseCommandResponse parses a CommandResponse object from a generic object
+func ParseCommandResponse(obj interface{}) (msg CommandResponse) {
+	mp, ok := obj.(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	msg.Success, _ = mp["success"].(bool)
+	msg.SimpleMessage, _ = mp["simple-message"].(string)
+	msg.Message, _ = mp["message"].(string)
+	return
+}
+
 // ClearHistory tells the client to clear the specific channel
 type ClearHistory struct {
 	Network string `json:"network"`
 	Channel string `json:"channel"`
+}
+
+// ParseClearHistory parses a ClearHistory object from a generic object
+func ParseClearHistory(obj interface{}) (msg ClearHistory) {
+	mp, ok := obj.(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	msg.Network, _ = mp["network"].(string)
+	msg.Channel, _ = mp["channel"].(string)
+	return
 }
