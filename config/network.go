@@ -45,28 +45,14 @@ type netImpl struct {
 	SSL      bool     `json:"ssl"`
 	Chs      []string `json:"channels"`
 
-	Owner       *userImpl             `json:"-"`
-	IRC         irc.Connection        `json:"-"`
-	Scripts     []interfaces.Script   `json:"-"`
-	ChannelInfo cdlImpl               `json:"-"`
-	ChannelList []string              `json:"-"`
-	WhoisData   map[string]*whoisData `json:"-"`
-	IdentPort   int                   `json:"-"`
-	Sublogger   *maulogger.Sublogger  `json:"-"`
-}
-
-type whoisData struct {
-	Channels   map[string]string `json:"channels"`
-	Nick       string            `json:"nick"`
-	User       string            `json:"user"`
-	Host       string            `json:"host"`
-	RealName   string            `json:"realname"`
-	Away       string            `json:"away"`
-	Server     string            `json:"server"`
-	ServerInfo string            `json:"server-info"`
-	IdleTime   int64             `json:"idle"`
-	SecureConn bool              `json:"secure-connection"`
-	Operator   bool              `json:"operator"`
+	Owner       *userImpl                      `json:"-"`
+	IRC         irc.Connection                 `json:"-"`
+	Scripts     []interfaces.Script            `json:"-"`
+	ChannelInfo cdlImpl                        `json:"-"`
+	ChannelList []string                       `json:"-"`
+	WhoisData   map[string]*messages.WhoisData `json:"-"`
+	IdentPort   int                            `json:"-"`
+	Sublogger   *maulogger.Sublogger           `json:"-"`
 }
 
 func (net *netImpl) Save() {
@@ -100,7 +86,7 @@ func (net *netImpl) Open() {
 	for _, ch := range net.Chs {
 		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: ch})
 	}
-	net.WhoisData = make(map[string]*whoisData)
+	net.WhoisData = make(map[string]*messages.WhoisData)
 
 	net.IRC = i
 
@@ -402,16 +388,16 @@ func (net *netImpl) RemoveScript(name string) bool {
 	return false
 }
 
-func (net *netImpl) GetWhoisData(name string) *whoisData {
+func (net *netImpl) GetWhoisData(name string) *messages.WhoisData {
 	data, ok := net.WhoisData[name]
 	if !ok {
-		net.WhoisData[name] = &whoisData{Nick: name, Channels: make(map[string]string)}
+		net.WhoisData[name] = &messages.WhoisData{Nick: name, Channels: make(map[string]string)}
 		return net.WhoisData[name]
 	}
 	return data
 }
 
-func (net *netImpl) GetWhoisDataIfExists(name string) *whoisData {
+func (net *netImpl) GetWhoisDataIfExists(name string) *messages.WhoisData {
 	data, ok := net.WhoisData[name]
 	if !ok {
 		return nil
