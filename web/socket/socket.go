@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"maunium.net/go/mauirc-common/errors"
+	"maunium.net/go/mauirc-common/messages"
 	"maunium.net/go/mauirc-server/interfaces"
 	"maunium.net/go/mauirc-server/web/auth"
 	"maunium.net/go/mauirc-server/web/util"
@@ -61,7 +62,7 @@ func (c *connection) readPump() {
 			break
 		}
 
-		var data = make(map[string]string)
+		var data messages.Container
 		err = json.Unmarshal(message, &data)
 		if err != nil {
 			continue

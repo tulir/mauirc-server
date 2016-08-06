@@ -86,7 +86,7 @@ type User interface {
 	CheckPassword(password string) bool
 	SetPassword(newPassword string) error
 
-	HandleCommand(data map[string]string)
+	HandleCommand(data messages.Container)
 
 	GetGlobalScripts() []Script
 	AddGlobalScript(s Script) bool
