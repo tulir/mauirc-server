@@ -18,6 +18,7 @@
 package socket
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"maunium.net/go/mauirc-common/errors"
@@ -63,7 +64,9 @@ func (c *connection) readPump() {
 		}
 
 		var data messages.Container
-		err = json.Unmarshal(message, &data)
+		dec := json.NewDecoder(bytes.NewReader(message))
+		dec.UseNumber()
+		err = dec.Decode(&data)
 		if err != nil {
 			continue
 		}
