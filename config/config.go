@@ -151,6 +151,7 @@ func (config *configImpl) CreateUser(email, password string) interfaces.User {
 		Email:       email,
 	}
 	user.SetPassword(password)
+	config.Users = append(config.Users, user)
 	return user
 }
 
