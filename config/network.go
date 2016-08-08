@@ -66,7 +66,7 @@ func (net *netImpl) Save() {
 func (net *netImpl) Open() {
 	i := irc.Create(net.Nick, net.User, irc.IPv4Address{IP: net.IP, Port: net.Port})
 	i.SetRealName(net.Realname)
-	i.SetQuitMessage("mauIRC-server shutting down...")
+	i.SetQuitMessage("mauIRC server shutting down...")
 	i.SetUseTLS(net.SSL)
 
 	net.Sublogger = maulogger.CreateSublogger(net.Owner.GetNameFromEmail()+"/"+net.Name, maulogger.LevelDebug)
