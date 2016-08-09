@@ -8,7 +8,7 @@ package-prep: build
 	mkdir -p package/usr/bin/
 	mkdir -p package/etc/mauirc/
 	mkdir -p package/var/log/mauirc/
-	cp mauirc package/usr/bin/
+	cp mauirc-server package/usr/bin/
 	cp example-config.json package/etc/mauirc/config.json
 
 package: package-prep
