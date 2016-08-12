@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-// Package config contains configurations
-package config
+// Package mail contains mail configs
+package mail
 
 import (
 	"bytes"
@@ -24,13 +24,15 @@ import (
 	"strings"
 )
 
-type mailConfig struct {
+// Config contains mail sending instructions.
+type Config struct {
 	Enabled bool              `json:"enabled"`
 	Mode    string            `json:"mode"`
 	Config  map[string]string `json:"config"`
 }
 
-func (mail *mailConfig) Validate() error {
+// Validate the config.
+func (mail Config) Validate() error {
 	mail.Mode = strings.ToLower(mail.Mode)
 	switch mail.Mode {
 	case "smtp":
@@ -52,11 +54,13 @@ func (mail *mailConfig) Validate() error {
 	return nil
 }
 
-func (mail *mailConfig) IsEnabled() bool {
+// IsEnabled returns whether or not the mailing system is enabled.
+func (mail Config) IsEnabled() bool {
 	return mail.Enabled
 }
 
-func (mail *mailConfig) Send(to, subject, body string) {
+// Send mail.
+func (mail Config) Send(to, subject, template string, args map[string]interface{}) {
 	switch mail.Mode {
 	case "smtp":
 		host := mail.Config["host"]
@@ -70,14 +74,17 @@ func (mail *mailConfig) Send(to, subject, body string) {
 		}
 
 		var buf bytes.Buffer
+		buf.WriteString("From: ")
+		buf.WriteString(sender)
+		buf.WriteString("\n")
 		buf.WriteString("To: ")
 		buf.WriteString(to)
-		buf.WriteString("\r\n")
+		buf.WriteString("\n")
 		buf.WriteString("Subject: ")
 		buf.WriteString(subject)
-		buf.WriteString("\r\n\r\n")
-		buf.WriteString(strings.Replace(body, "\n", "\r\n", -1))
+		buf.WriteString("\n\n")
+		tmpl.ExecuteTemplate(&buf, template, args)
 
-		smtp.SendMail(host, auth, sender, []string{to}, buf.Bytes())
+		smtp.SendMail(host, auth, sender, []string{to}, bytes.Replace([]byte{'\n'}, buf.Bytes(), []byte{'\n', '\r'}, -1))
 	}
 }

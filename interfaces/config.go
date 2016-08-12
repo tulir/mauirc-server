@@ -50,7 +50,8 @@ type Configuration interface {
 type Mail interface {
 	Validate() error
 	IsEnabled() bool
-	Send(to, subject, body string)
+	Send(to, subject, template string, args map[string]interface{})
+	LoadTemplates(path string)
 }
 
 // IdentConf tells the IDENT server what ip and port to bind to

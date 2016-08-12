@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"maunium.net/go/mauirc-common/messages"
+	"maunium.net/go/mauirc-server/config/mail"
 	"maunium.net/go/mauirc-server/interfaces"
 	"maunium.net/go/maulogger"
 	"path/filepath"
@@ -42,7 +43,7 @@ type configImpl struct {
 	Path          string               `json:"-"`
 	SQL           mysqlImpl            `json:"sql"`
 	Users         userListImpl         `json:"users"`
-	Mail          *mailConfig          `json:"mail"`
+	Mail          mail.Config          `json:"mail"`
 	IP            string               `json:"ip"`
 	Port          int                  `json:"port"`
 	TrustHeadersF bool                 `json:"trust-headers"`

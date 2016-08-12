@@ -66,6 +66,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	if config.GetMail().IsEnabled() {
+		config.GetMail().LoadTemplates(*confPath)
+	}
+
 	if config.GetIDENTConfig().Enabled {
 		log.Debugln("Enabling the IDENTd")
 		err = ident.Load(config.GetIDENTConfig())
