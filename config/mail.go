@@ -47,6 +47,7 @@ func (mail *mailConfig) Validate() error {
 		if !ok {
 			return fmt.Errorf("Sendmail binary not given")
 		}
+		return fmt.Errorf("Sendmail mailing not yet implemented")
 	}
 	return nil
 }
