@@ -33,7 +33,8 @@ type userImpl struct {
 	Email         string                  `json:"email"`
 	Password      string                  `json:"password"`
 	AuthTokens    []authToken             `json:"authtokens,omitempty"`
-	PasswordReset authToken               `json:"passwordreset"`
+	PasswordReset *authToken              `json:"passwordreset"`
+	EmailVerify   *authToken              `json:"emailverify"`
 	NewMessages   chan messages.Container `json:"-"`
 	GlobalScripts []interfaces.Script     `json:"-"`
 	Settings      interface{}             `json:"settings,omitempty"`
@@ -173,15 +174,27 @@ func (user *userImpl) NewAuthToken() string {
 func (user *userImpl) NewResetToken() (token string, timed time.Time) {
 	token = generateAuthToken()
 	timed = time.Now().Add(30 * time.Minute)
-	user.PasswordReset = authToken{Token: token, Time: timed.Unix()}
+	user.PasswordReset = &authToken{Token: token, Time: timed.Unix()}
 	return token, timed
 }
 
 func (user *userImpl) CheckResetToken(token string) bool {
-	if user.PasswordReset.Time < time.Now().Unix() || user.PasswordReset.Token != token {
+	if user.PasswordReset == nil || user.PasswordReset.Time < time.Now().Unix() || user.PasswordReset.Token != token {
 		return false
 	}
 	return true
+}
+
+func (user *userImpl) ClearResetToken() {
+	user.PasswordReset = nil
+}
+
+func (user *userImpl) IsVerified() bool {
+	return !user.HostConf.Mail.Enabled || user.EmailVerify == nil
+}
+
+func (user *userImpl) SetVerified() {
+	user.EmailVerify = nil
 }
 
 func generateAuthToken() string {

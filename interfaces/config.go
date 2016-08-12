@@ -37,7 +37,7 @@ type Configuration interface {
 
 	GetUsers() UserList
 	GetUser(name string) User
-	CreateUser(email, password string) User
+	CreateUser(email, password string) (User, string, time.Time)
 
 	GetAddr() string
 	GetExternalAddr() string
@@ -80,12 +80,19 @@ type User interface {
 
 	GetEmail() string
 	GetNameFromEmail() string
+
+	IsVerified() bool
+	SetVerified()
+
 	NewResetToken() (string, time.Time)
 	CheckResetToken(token string) bool
-	NewAuthToken() string
-	CheckAuthToken(token string) bool
+	ClearResetToken()
+
 	CheckPassword(password string) bool
 	SetPassword(newPassword string) error
+
+	NewAuthToken() string
+	CheckAuthToken(token string) bool
 
 	HandleCommand(data messages.Container)
 

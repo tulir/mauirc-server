@@ -22,6 +22,7 @@ import (
 	"maunium.net/go/mauirc-common/errors"
 	"maunium.net/go/mauirc-server/web/util"
 	"net/http"
+	"time"
 )
 
 // Register HTTP handler
@@ -41,7 +42,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := config.CreateUser(af.Email, af.Password)
+	user, token, timeStamp := config.CreateUser(af.Email, af.Password)
 	if user == nil {
 		log.Debugf("%s tried to register existing user %s\n", util.GetIP(r), af.Email)
 		errors.Write(w, errors.EmailUsed)
@@ -49,5 +50,15 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Debugf("%s registered %s\n", util.GetIP(r), af.Email)
 
-	w.WriteHeader(http.StatusOK)
+	if config.GetMail().IsEnabled() {
+		config.GetMail().Send(user.GetEmail(), "mauIRC account created", "account-created", map[string]interface{}{
+			"SenderIP":   util.GetIP(r),
+			"ServerAddr": config.GetExternalAddr(),
+			"ServerIP":   config.GetAddr(),
+			"Token":      token,
+			"Expiry":     timeStamp.Format(time.RFC1123),
+		})
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
 }

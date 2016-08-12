@@ -57,6 +57,7 @@ func PasswordReset(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user.ClearResetToken()
 	user.SetPassword(prf.Password)
 	w.WriteHeader(http.StatusOK)
 }
@@ -98,7 +99,7 @@ func PasswordForgot(w http.ResponseWriter, r *http.Request) {
 		"ServerAddr": config.GetExternalAddr(),
 		"ServerIP":   config.GetAddr(),
 		"Token":      token,
-		"Time":       timeStamp.Format(time.RFC1123),
+		"Expiry":     timeStamp.Format(time.RFC1123),
 	})
 }
 

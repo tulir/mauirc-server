@@ -29,6 +29,7 @@ import (
 	"maunium.net/go/maulogger"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 var log = maulogger.CreateSublogger("Net", maulogger.LevelInfo)
@@ -139,21 +140,30 @@ func (config *configImpl) GetUser(email string) interfaces.User {
 	return nil
 }
 
-func (config *configImpl) CreateUser(email, password string) interfaces.User {
+func (config *configImpl) CreateUser(email, password string) (user interfaces.User, token string, timed time.Time) {
 	email = strings.ToLower(email)
-	for _, user := range config.Users {
-		if user.Email == email {
-			return nil
+	for _, u := range config.Users {
+		if u.Email == email {
+			return
 		}
 	}
-	user := &userImpl{
+	userInt := &userImpl{
 		HostConf:    config,
 		NewMessages: make(chan messages.Container, 64),
 		Email:       email,
 	}
-	user.SetPassword(password)
-	config.Users = append(config.Users, user)
-	return user
+
+	if config.Mail.Enabled {
+		token = generateAuthToken()
+		timed = time.Now().Add(1 * time.Hour)
+		userInt.EmailVerify = &authToken{Token: token, Time: timed.Unix()}
+	} else {
+		userInt.EmailVerify = nil
+	}
+
+	userInt.SetPassword(password)
+	config.Users = append(config.Users, userInt)
+	return user, token, timed
 }
 
 func (config *configImpl) GetSQLString() string {
