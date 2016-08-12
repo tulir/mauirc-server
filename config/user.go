@@ -46,6 +46,10 @@ type authToken struct {
 	Time  int64  `json:"expire"`
 }
 
+func (at authToken) HasExpired() bool {
+	return at.Time > time.Now().Unix()
+}
+
 type netListImpl []*netImpl
 
 func (nl netListImpl) ForEach(do func(net interfaces.Network)) {
@@ -153,7 +157,7 @@ func (user *userImpl) CheckAuthToken(token string) bool {
 
 	var newAt = user.AuthTokens
 	for i := 0; i < len(user.AuthTokens); i++ {
-		if user.AuthTokens[i].Time < time.Now().Unix() {
+		if user.AuthTokens[i].HasExpired() {
 			newAt[i] = newAt[len(newAt)-1]
 			newAt = newAt[:len(newAt)-1]
 		} else if user.AuthTokens[i].Token == token {
@@ -179,7 +183,7 @@ func (user *userImpl) NewResetToken() (token string, timed time.Time) {
 }
 
 func (user *userImpl) CheckResetToken(token string) bool {
-	if user.PasswordReset == nil || user.PasswordReset.Time < time.Now().Unix() || user.PasswordReset.Token != token {
+	if user.PasswordReset == nil || user.PasswordReset.HasExpired() || user.PasswordReset.Token != token {
 		return false
 	}
 	return true
