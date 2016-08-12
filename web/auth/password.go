@@ -23,6 +23,7 @@ import (
 	"maunium.net/go/mauirc-common/errors"
 	"maunium.net/go/mauirc-server/web/util"
 	"net/http"
+	timepkg "time"
 )
 
 type passwordResetForm struct {
@@ -102,7 +103,7 @@ func PasswordForgot(w http.ResponseWriter, r *http.Request) {
 		If you did not request this, it is safe to ignore.
 		The person requesting this was not granted access to any personal information.
 		The link will expire in 30 minutes (%[4]s).`,
-		util.GetIP(r), config.GetExternalAddr(), token, time.Format("15:04:05 02.01.2006 UTC-07")))
+		util.GetIP(r), config.GetExternalAddr(), token, time.Format(timepkg.RFC1123)))
 }
 
 type passwordChangeForm struct {
