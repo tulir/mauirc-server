@@ -129,10 +129,36 @@ func (config *configImpl) GetUsers() interfaces.UserList {
 	return config.Users
 }
 
+func (config *configImpl) PurgeUnverifiedUsers() {
+	if !config.Mail.Enabled {
+		return
+	}
+	deleted := 0
+	for i := range config.Users {
+		j := i - deleted
+		user := config.Users[j]
+		if user.EmailVerify != nil && user.EmailVerify.HasExpired() {
+			config.Users = append(config.Users[:j], config.Users[j+1:]...)
+			deleted++
+		}
+	}
+}
+
 // GetUser gets the user with the given email
 func (config *configImpl) GetUser(email string) interfaces.User {
 	email = strings.ToLower(email)
-	for _, user := range config.Users {
+	deleted := 0
+	for i := range config.Users {
+		j := i - deleted
+		user := config.Users[j]
+		if config.Mail.Enabled && user.EmailVerify != nil && user.EmailVerify.HasExpired() {
+			config.Users = append(config.Users[:j], config.Users[j+1:]...)
+			deleted++
+			if user.Email == email {
+				return nil
+			}
+			continue
+		}
 		if user.Email == email {
 			return user
 		}

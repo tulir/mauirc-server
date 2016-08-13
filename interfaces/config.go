@@ -37,6 +37,7 @@ type Configuration interface {
 
 	GetUsers() UserList
 	GetUser(name string) User
+	PurgeUnverifiedUsers()
 	CreateUser(email, password string) (User, string, time.Time)
 
 	GetAddr() string
