@@ -50,6 +50,10 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		log.Debugf("%s tried to log in as %s with invalid password\n", util.GetIP(r), af.Email)
 		errors.Write(w, errors.InvalidCredentials)
 		return
+	} else if !user.IsVerified() {
+		log.Debugf("%s tried to log in as non-verified user %s\n", util.GetIP(r), af.Email)
+		errors.Write(w, errors.UserNotActivated)
+		return
 	}
 	log.Debugf("%s logged in as %s\n", util.GetIP(r), af.Email)
 
