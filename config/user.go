@@ -33,8 +33,8 @@ type userImpl struct {
 	Email         string                  `json:"email"`
 	Password      string                  `json:"password"`
 	AuthTokens    []authToken             `json:"authtokens,omitempty"`
-	PasswordReset *authToken              `json:"passwordreset"`
-	EmailVerify   *authToken              `json:"emailverify"`
+	PasswordReset *authToken              `json:"passwordreset,omitempty"`
+	EmailVerify   *authToken              `json:"emailverify,omitempty"`
 	NewMessages   chan messages.Container `json:"-"`
 	GlobalScripts []interfaces.Script     `json:"-"`
 	Settings      interface{}             `json:"settings,omitempty"`
