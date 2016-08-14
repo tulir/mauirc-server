@@ -47,7 +47,7 @@ type authToken struct {
 }
 
 func (at authToken) HasExpired() bool {
-	return at.Time > time.Now().Unix()
+	return at.Time < time.Now().Unix()
 }
 
 type netListImpl []*netImpl
