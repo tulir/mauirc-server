@@ -1,7 +1,7 @@
 # mauIRC-server
 [![License](http://img.shields.io/:license-gpl3-blue.svg?style=flat-square)](http://www.gnu.org/licenses/gpl-3.0.html)
-[![GitHub release](https://img.shields.io/github/release/tulir293/mauirc-server.svg?maxAge=2592000&style=flat-square)](https://github.com/tulir293/mauirc-server/releases)
-[![GitHub commits](https://img.shields.io/github/commits-since/tulir293/mauirc-server/v1.1.0.svg?maxAge=2592000&style=flat-square)]()
+[![GitHub release](https://img.shields.io/github/release/tulir293/mauirc-server.svg?maxAge=600&style=flat-square)](https://github.com/tulir293/mauirc-server/releases)
+[![GitHub commits](https://img.shields.io/github/commits-since/tulir293/mauirc-server/v2.0.0.svg?maxAge=600&style=flat-square)]()
 
 The backend for mauIRC that handles communication, message storage and other possibly important things between the client and IRC networks.
 
