@@ -48,12 +48,9 @@ func (s Script) Run(evt *interfaces.Event) {
 
 	builtins.Import(env)
 	LoadImport(env)
-	var event = env.NewModule("event")
-	LoadEvent(event, evt)
-	var network = env.NewModule("network")
-	LoadNetwork(network, evt)
-	var user = env.NewModule("user")
-	LoadUser(user, evt)
+	LoadEvent(env.NewModule("event"), evt)
+	LoadNetwork(env.NewModule("network"), evt)
+	LoadUser(env.NewModule("user"), evt)
 
 	val, err := env.Execute(s.GetScript())
 	if err != nil {
