@@ -37,7 +37,7 @@ var confPath = flag.Make().LongKey("config").ShortKey("c").Default("/etc/mauirc/
 var logPath = flag.Make().LongKey("logs").ShortKey("l").Default("/var/log/mauirc/").Usage("The path to mauIRC server logs").String()
 var debug = flag.Make().LongKey("debug").ShortKey("d").Default("false").Usage("Use to enable debug prints").Bool()
 var config interfaces.Configuration
-var version = "2.0.0-B1"
+var version = "2.0.0"
 
 func init() {
 	libmauirc.Version = "mauIRC Server " + version
