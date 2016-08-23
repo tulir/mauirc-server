@@ -52,7 +52,7 @@ func (s Script) Run(evt *interfaces.Event) {
 	LoadNetwork(env.NewModule("network"), evt)
 	LoadUser(env.NewModule("user"), evt)
 
-	val, err := env.Execute(s.GetScript())
+	val, err := env.Execute(s.GetScript() + ";OnMessage();")
 	if err != nil {
 		log.Warnln("Error executing script:", val, err)
 	}
