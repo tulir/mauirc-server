@@ -75,8 +75,12 @@ func getImage(og *opengraph.OpenGraph) *messages.Image {
 		img := og.Images[0]
 		if len(img.SecureURL) > 0 {
 			return &messages.Image{URL: img.SecureURL, Type: img.Type, Width: img.Width, Height: img.Height}
+		} else if strings.HasPrefix(img.URL, "https://") {
+			return &messages.Image{URL: img.URL, Type: img.Type, Width: img.Width, Height: img.Height}
+		} else {
+			// TODO secure image proxy
+			return &messages.Image{URL: "https://img.mau.lu/ZgbEz.png", Type: img.Type, Width: img.Width, Height: img.Height}
 		}
-		return &messages.Image{URL: img.URL, Type: img.Type, Width: img.Width, Height: img.Height}
 	}
 	return nil
 }
