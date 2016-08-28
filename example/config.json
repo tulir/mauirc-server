@@ -29,5 +29,6 @@
   "ip": "127.0.0.1",
   "port": 29304,
   "trust-headers": true,
+  "save-config-on-edit": true,
   "external-address": "irc.example.com"
 }

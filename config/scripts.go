@@ -103,3 +103,14 @@ func (net *netImpl) RunScript(s interfaces.Script, evt *interfaces.Event, receiv
 	}
 	return false
 }
+
+// DeleteScript deletes an entry from a script array
+func DeleteScript(scripts []interfaces.Script, i int) []interfaces.Script {
+	if i == 0 {
+		return scripts[1:]
+	} else if i == len(scripts)-1 {
+		return scripts[:len(scripts)-1]
+	} else {
+		return append(scripts[:i], scripts[i+1:]...)
+	}
+}

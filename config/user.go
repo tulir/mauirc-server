@@ -245,13 +245,7 @@ func (user *userImpl) AddGlobalScript(s interfaces.Script) bool {
 func (user *userImpl) RemoveGlobalScript(name string) bool {
 	for i := 0; i < len(user.GlobalScripts); i++ {
 		if user.GlobalScripts[i].GetName() == name {
-			if i == 0 {
-				user.GlobalScripts = user.GlobalScripts[1:]
-			} else if i == len(user.GlobalScripts)-1 {
-				user.GlobalScripts = user.GlobalScripts[:len(user.GlobalScripts)-1]
-			} else {
-				user.GlobalScripts = append(user.GlobalScripts[:i], user.GlobalScripts[i+1:]...)
-			}
+			user.GlobalScripts = DeleteScript(user.GlobalScripts, i)
 			return true
 		}
 	}

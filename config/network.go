@@ -301,6 +301,7 @@ func (net *netImpl) GetNick() string {
 func (net *netImpl) SetName(name string) {
 	net.Name = name
 	net.Sublogger.SetModule(net.Owner.GetNameFromEmail() + "/" + name)
+	net.Owner.HostConf.Autosave()
 }
 
 func (net *netImpl) SetNick(nick string) {
@@ -317,19 +318,25 @@ func (net *netImpl) SetRealname(realname string) {
 
 func (net *netImpl) SetUser(user string) {
 	net.User = user
+	net.Owner.HostConf.Autosave()
 }
 
 func (net *netImpl) SetIP(ip string) {
 	net.IP = ip
+	net.Owner.HostConf.Autosave()
 }
 
 func (net *netImpl) SetPort(port uint16) {
 	net.Port = port
+	net.Owner.HostConf.Autosave()
 }
 
 func (net *netImpl) SetSSL(ssl bool) {
 	net.SSL = ssl
-	net.IRC.SetUseTLS(ssl)
+	if net.IRC != nil {
+		net.IRC.SetUseTLS(ssl)
+	}
+	net.Owner.HostConf.Autosave()
 }
 
 func (net *netImpl) GetNetData() messages.NetData {
@@ -369,22 +376,18 @@ func (net *netImpl) AddScript(s interfaces.Script) bool {
 		}
 	}
 	net.Scripts = append(net.Scripts, s)
+	net.SaveScripts(net.Owner.HostConf.Path)
 	return true
 }
 
 func (net *netImpl) RemoveScript(name string) bool {
 	for i := 0; i < len(net.Scripts); i++ {
 		if net.Scripts[i].GetName() == name {
-			if i == 0 {
-				net.Scripts = net.Scripts[1:]
-			} else if i == len(net.Scripts)-1 {
-				net.Scripts = net.Scripts[:len(net.Scripts)-1]
-			} else {
-				net.Scripts = append(net.Scripts[:i], net.Scripts[i+1:]...)
-			}
+			net.Scripts = DeleteScript(net.Scripts, i)
 			return true
 		}
 	}
+	net.SaveScripts(net.Owner.HostConf.Path)
 	return false
 }
 

@@ -41,17 +41,18 @@ func NewConfig(path string) interfaces.Configuration {
 }
 
 type configImpl struct {
-	Path          string               `json:"-"`
-	SQL           mysqlImpl            `json:"sql"`
-	Users         userListImpl         `json:"users"`
-	Mail          mail.Config          `json:"mail"`
-	IP            string               `json:"ip"`
-	Port          int                  `json:"port"`
-	TrustHeadersF bool                 `json:"trust-headers"`
-	Address       string               `json:"external-address"`
-	CSecretB64    string               `json:"cookie-secret"`
-	Ident         interfaces.IdentConf `json:"ident"`
-	CookieSecret  []byte               `json:"-"`
+	Path           string               `json:"-"`
+	SQL            mysqlImpl            `json:"sql"`
+	Users          userListImpl         `json:"users"`
+	Mail           mail.Config          `json:"mail"`
+	IP             string               `json:"ip"`
+	Port           int                  `json:"port"`
+	TrustHeadersF  bool                 `json:"trust-headers"`
+	AutosaveConfig bool                 `json:"save-config-on-edit"`
+	Address        string               `json:"external-address"`
+	CSecretB64     string               `json:"cookie-secret"`
+	Ident          interfaces.IdentConf `json:"ident"`
+	CookieSecret   []byte               `json:"-"`
 }
 
 type mysqlImpl struct {
@@ -124,6 +125,13 @@ func (config *configImpl) Save() error {
 	return err
 }
 
+func (config *configImpl) Autosave() error {
+	if config.AutosaveConfig {
+		return config.Save()
+	}
+	return nil
+}
+
 // GetUsers returns all users
 func (config *configImpl) GetUsers() interfaces.UserList {
 	return config.Users
@@ -142,6 +150,7 @@ func (config *configImpl) PurgeUnverifiedUsers() {
 			deleted++
 		}
 	}
+	config.Autosave()
 }
 
 // GetUser gets the user with the given email
@@ -155,9 +164,13 @@ func (config *configImpl) GetUser(email string) interfaces.User {
 			config.Users = append(config.Users[:j], config.Users[j+1:]...)
 			deleted++
 			if user.Email == email {
+				config.Autosave()
 				return nil
 			}
 			continue
+		}
+		if deleted > 0 {
+			config.Autosave()
 		}
 		if user.Email == email {
 			return user
@@ -189,6 +202,7 @@ func (config *configImpl) CreateUser(email, password string) (user interfaces.Us
 
 	userInt.SetPassword(password)
 	config.Users = append(config.Users, userInt)
+	config.Autosave()
 	return user, token, timed
 }
 
