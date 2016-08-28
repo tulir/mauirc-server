@@ -32,7 +32,7 @@ func (net *netImpl) LoadScripts(path string) error {
 
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
-		err = os.MkdirAll(path, 0755)
+		err = os.MkdirAll(path, 0700)
 		if err != nil {
 			return err
 		}
@@ -59,7 +59,7 @@ func (net *netImpl) SaveScripts(path string) error {
 
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
-		err = os.MkdirAll(path, 0755)
+		err = os.MkdirAll(path, 0700)
 		if err != nil {
 			return err
 		}
@@ -80,7 +80,7 @@ func (user *userImpl) LoadGlobalScripts(path string) error {
 
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
-		err = os.MkdirAll(path, 0755)
+		err = os.MkdirAll(path, 0700)
 		if err != nil {
 			return err
 		}
@@ -107,7 +107,7 @@ func (user *userImpl) SaveGlobalScripts(path string) error {
 
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
-		err = os.MkdirAll(path, 0755)
+		err = os.MkdirAll(path, 0700)
 		if err != nil {
 			return err
 		}
