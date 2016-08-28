@@ -239,6 +239,7 @@ func (user *userImpl) AddGlobalScript(s interfaces.Script) bool {
 		}
 	}
 	user.GlobalScripts = append(user.GlobalScripts, s)
+	user.SaveGlobalScripts(user.HostConf.Path)
 	return true
 }
 
@@ -249,6 +250,7 @@ func (user *userImpl) RemoveGlobalScript(name string) bool {
 			return true
 		}
 	}
+	user.SaveGlobalScripts(user.HostConf.Path)
 	return false
 }
 

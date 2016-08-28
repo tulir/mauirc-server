@@ -51,15 +51,14 @@ type Network interface {
 	SetPort(port uint16)
 	SetSSL(ssl bool)
 
-	SaveScripts(path string) error
-	LoadScripts(path string) error
-
 	GetActiveChannels() ChannelDataList
 	GetAllChannels() []string
 
 	GetScripts() []Script
 	AddScript(s Script) bool
 	RemoveScript(name string) bool
+	SaveScripts(path string) error
+	LoadScripts(path string) error
 }
 
 // ChannelDataList contains a list of channel data objects

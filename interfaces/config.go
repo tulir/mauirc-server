@@ -100,6 +100,7 @@ type User interface {
 	GetGlobalScripts() []Script
 	AddGlobalScript(s Script) bool
 	RemoveGlobalScript(name string) bool
+	SaveGlobalScripts(path string) error
 
 	GetMessageChan() chan messages.Container
 

@@ -74,6 +74,54 @@ func (net *netImpl) SaveScripts(path string) error {
 	return nil
 }
 
+// LoadGlobalScripts loads the global scripts of this user
+func (user *userImpl) LoadGlobalScripts(path string) error {
+	path = filepath.Join(path, user.Email, "global")
+
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		err = os.MkdirAll(path, 0755)
+		if err != nil {
+			return err
+		}
+	}
+
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		return err
+	}
+
+	for _, f := range files {
+		data, err := ioutil.ReadFile(filepath.Join(path, f.Name()))
+		if err != nil {
+			log.Errorf("Failed to read global script \"%s\" owned by %s\n", f.Name(), user.Email)
+		}
+		user.GlobalScripts = append(user.GlobalScripts, plugin.Script{TheScript: string(data), Name: strings.Split(f.Name(), ".")[0]})
+	}
+	return nil
+}
+
+// SaveGlobalScripts saves the global scripts of this user
+func (user *userImpl) SaveGlobalScripts(path string) error {
+	path = filepath.Join(path, user.Email, "global")
+
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		err = os.MkdirAll(path, 0755)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, script := range user.GlobalScripts {
+		err := ioutil.WriteFile(filepath.Join(path, script.GetName()+".ank"), []byte(script.GetScript()), 0644)
+		if err != nil {
+			log.Errorf("Failed to save global script \"%s\" owned by %s\n", script.GetName()+".ank", user.Email)
+		}
+	}
+	return nil
+}
+
 // RunScripts runs all the scripts of this network and all global scripts on the given message
 func (net *netImpl) RunScripts(evt *interfaces.Event, receiving bool) {
 	netChanged := false

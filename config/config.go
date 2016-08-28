@@ -110,6 +110,7 @@ func (config *configImpl) Load() error {
 
 func (config *configImpl) Connect() {
 	for _, user := range config.Users {
+		user.LoadGlobalScripts(config.Path)
 		user.NewMessages = make(chan messages.Container, 64)
 		user.InitNetworks()
 	}

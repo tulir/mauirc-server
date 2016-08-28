@@ -111,6 +111,7 @@ func main() {
 				net.SaveScripts(config.GetPath())
 				net.Save()
 			})
+			user.SaveGlobalScripts(config.GetPath())
 		})
 		log.Debugln("Waiting for all connections to close properly")
 		time.Sleep(2 * time.Second)
