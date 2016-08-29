@@ -9,7 +9,7 @@
   "ident": {
     "enabled": true,
     "ip": "127.0.0.1",
-    "port": "113"
+    "port": 113
   },
   "mail": {
     "enabled": true,
