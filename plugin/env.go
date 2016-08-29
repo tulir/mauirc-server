@@ -20,24 +20,28 @@ package plugin
 import (
 	"fmt"
 	anko_encoding_json "github.com/mattn/anko/builtins/encoding/json"
-	"github.com/sorcix/irc"
-	"maunium.net/go/mauirc-common/messages"
-	//anko_io "github.com/mattn/anko/builtins/io"
-	//anko_io_ioutil "github.com/mattn/anko/builtins/io/ioutil"
+	anko_errors "github.com/mattn/anko/builtins/errors"
+	anko_fmt "github.com/mattn/anko/builtins/fmt"
 	anko_math "github.com/mattn/anko/builtins/math"
+	anko_math_rand "github.com/mattn/anko/builtins/math/rand"
 	anko_net "github.com/mattn/anko/builtins/net"
 	anko_net_http "github.com/mattn/anko/builtins/net/http"
 	anko_net_url "github.com/mattn/anko/builtins/net/url"
-	//anko_os "github.com/mattn/anko/builtins/os"
-	//anko_os_exec "github.com/mattn/anko/builtins/os/exec"
 	anko_path "github.com/mattn/anko/builtins/path"
 	anko_path_filepath "github.com/mattn/anko/builtins/path/filepath"
 	anko_regexp "github.com/mattn/anko/builtins/regexp"
 	anko_sort "github.com/mattn/anko/builtins/sort"
 	anko_strings "github.com/mattn/anko/builtins/strings"
+	anko_time "github.com/mattn/anko/builtins/time"
 	"github.com/mattn/anko/vm"
+	"github.com/sorcix/irc"
+	"maunium.net/go/mauirc-common/messages"
 	"maunium.net/go/mauirc-server/interfaces"
 	"maunium.net/go/mauirc-server/util/preview"
+	//anko_io "github.com/mattn/anko/builtins/io"
+	//anko_io_ioutil "github.com/mattn/anko/builtins/io/ioutil"
+	//anko_os "github.com/mattn/anko/builtins/os"
+	//anko_os_exec "github.com/mattn/anko/builtins/os/exec")
 )
 
 // LoadImport loads the import() function into the given environment to allow importing some Go packages
@@ -46,10 +50,11 @@ func LoadImport(env *vm.Env) {
 		"encoding/json": anko_encoding_json.Import,
 		//"io":            anko_io.Import,
 		//"io/ioutil":     anko_io_ioutil.Import,
-		"math":     anko_math.Import,
-		"net":      anko_net.Import,
-		"net/http": anko_net_http.Import,
-		"net/url":  anko_net_url.Import,
+		"math":      anko_math.Import,
+		"math/rand": anko_math_rand.Import,
+		"net":       anko_net.Import,
+		"net/http":  anko_net_http.Import,
+		"net/url":   anko_net_url.Import,
 		//"os":            anko_os.Import,
 		//"os/exec":       anko_os_exec.Import,
 		"path":          anko_path.Import,
@@ -57,6 +62,9 @@ func LoadImport(env *vm.Env) {
 		"regexp":        anko_regexp.Import,
 		"sort":          anko_sort.Import,
 		"strings":       anko_strings.Import,
+		"time":          anko_time.Import,
+		"fmt":           anko_fmt.Import,
+		"errors":        anko_errors.Import,
 	}
 
 	env.Define("import", func(s string) interface{} {
