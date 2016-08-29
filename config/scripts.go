@@ -142,7 +142,7 @@ func (net *netImpl) RunScripts(evt *interfaces.Event, receiving bool) {
 
 // RunScript runs a single script and sends it to another network if needed.
 func (net *netImpl) RunScript(s interfaces.Script, evt *interfaces.Event, receiving bool) bool {
-	s.Run(evt)
+	s.RunEvent(interfaces.PluginOnMessage, evt)
 	if evt.Message.Network != net.Name {
 		if net.SwitchMessageNetwork(evt.Message, receiving) {
 			return true

@@ -21,11 +21,18 @@ import (
 	"maunium.net/go/mauirc-common/messages"
 )
 
+// Plugin commands
+const (
+	PluginOnMessage = "OnMessage"
+)
+
 // Script wraps the name and code of a script
 type Script interface {
 	GetName() string
 	GetScript() string
-	Run(evt *Event)
+	RunUser(event string, user User)
+	RunNetwork(event string, net Network)
+	RunEvent(event string, evt *Event)
 }
 
 // Event is a plugin event

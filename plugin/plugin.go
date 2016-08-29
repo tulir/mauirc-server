@@ -42,18 +42,47 @@ func (s Script) GetScript() string {
 	return s.TheScript
 }
 
-// Run the script with the given values.
-func (s Script) Run(evt *interfaces.Event) {
+// RunUser the script with the given values.
+func (s Script) RunUser(command string, user interfaces.User) {
+	var env = vm.NewEnv()
+
+	builtins.Import(env)
+	LoadImport(env)
+	LoadUser(env.NewModule("user"), user)
+
+	_, err := env.Execute(s.GetScript() + ";" + command + "();")
+	if err != nil {
+		log.Warnln("Error executing script:", err)
+	}
+}
+
+// RunNetwork the script with the given values.
+func (s Script) RunNetwork(command string, net interfaces.Network) {
+	var env = vm.NewEnv()
+
+	builtins.Import(env)
+	LoadImport(env)
+	LoadNetwork(env.NewModule("network"), net)
+	LoadUser(env.NewModule("user"), net.GetOwner())
+
+	_, err := env.Execute(s.GetScript() + ";" + command + "();")
+	if err != nil {
+		log.Warnln("Error executing script:", err)
+	}
+}
+
+// RunEvent the script with the given values.
+func (s Script) RunEvent(command string, evt *interfaces.Event) {
 	var env = vm.NewEnv()
 
 	builtins.Import(env)
 	LoadImport(env)
 	LoadEvent(env.NewModule("event"), evt)
-	LoadNetwork(env.NewModule("network"), evt)
-	LoadUser(env.NewModule("user"), evt)
+	LoadNetwork(env.NewModule("network"), evt.Network)
+	LoadUser(env.NewModule("user"), evt.Network.GetOwner())
 
-	val, err := env.Execute(s.GetScript() + ";OnMessage();")
+	_, err := env.Execute(s.GetScript() + ";" + command + "();")
 	if err != nil {
-		log.Warnln("Error executing script:", val, err)
+		log.Warnln("Error executing script:", err)
 	}
 }

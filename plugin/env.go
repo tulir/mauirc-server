@@ -35,6 +35,7 @@ import (
 	anko_time "github.com/mattn/anko/builtins/time"
 	"github.com/mattn/anko/vm"
 	"github.com/sorcix/irc"
+	"maunium.net/go/libmauirc"
 	"maunium.net/go/mauirc-common/messages"
 	"maunium.net/go/mauirc-server/interfaces"
 	"maunium.net/go/mauirc-server/util/preview"
@@ -78,8 +79,8 @@ func LoadImport(env *vm.Env) {
 // LoadAll load all the bindings into the given Anko VM environment
 func LoadAll(env *vm.Env, evt *interfaces.Event) {
 	LoadEvent(env.NewModule("event"), evt)
-	LoadNetwork(env.NewModule("network"), evt)
-	LoadUser(env.NewModule("user"), evt)
+	LoadNetwork(env.NewModule("network"), evt.Network)
+	LoadUser(env.NewModule("user"), evt.Network.GetOwner())
 }
 
 // LoadEvent loads event things into the given Anko VM environment
@@ -194,10 +195,10 @@ func LoadPreview(env *vm.Env, evt *interfaces.Event) {
 }
 
 // LoadNetwork loads network things into the given Anko VM environment
-func LoadNetwork(env *vm.Env, evt *interfaces.Event) {
-	env.Define("GetNick", evt.Network.GetNick)
+func LoadNetwork(env *vm.Env, net interfaces.Network) {
+	env.Define("GetNick", net.GetNick)
 	env.Define("GetTopic", func(channel string) string {
-		ch, ok := evt.Network.GetActiveChannels().Get(channel)
+		ch, ok := net.GetActiveChannels().Get(channel)
 		if !ok {
 			return ""
 		}
@@ -205,65 +206,68 @@ func LoadNetwork(env *vm.Env, evt *interfaces.Event) {
 	})
 	env.Define("GetChannels", func() []string {
 		var channels []string
-		evt.Network.GetActiveChannels().ForEach(func(ch interfaces.ChannelData) {
+		net.GetActiveChannels().ForEach(func(ch interfaces.ChannelData) {
 			channels = append(channels, ch.GetName())
 		})
 		return channels
 	})
-	env.Define("GetAllChannels", evt.Network.GetAllChannels)
-	env.Define("SendFakeMessage", evt.Network.SendMessage)
-	env.Define("ReceiveFakeMessage", evt.Network.ReceiveMessage)
+	env.Define("GetAllChannels", net.GetAllChannels)
+	env.Define("SendFakeMessage", net.SendMessage)
+	env.Define("ReceiveFakeMessage", net.ReceiveMessage)
 
-	LoadIRC(env.NewModule("irc"), evt)
+	LoadIRC(env.NewModule("irc"), net.Tunnel())
 }
 
 // LoadIRC loads irc command bindings into the given Anko VM environment
-func LoadIRC(env *vm.Env, evt *interfaces.Event) {
+func LoadIRC(env *vm.Env, tun libmauirc.Tunnel) {
 	env.Define("Nick", func(nick string) {
-		evt.Network.Tunnel().SetNick(nick)
+		tun.SetNick(nick)
 	})
 	env.Define("Join", func(channels string, keys string) {
-		evt.Network.Tunnel().Join(channels, keys)
+		tun.Join(channels, keys)
 	})
 	env.Define("Part", func(channel string, reason string) {
-		evt.Network.Tunnel().Part(channel, reason)
+		tun.Part(channel, reason)
 	})
 	env.Define("Topic", func(channel string, topic string) {
-		evt.Network.Tunnel().Topic(channel, topic)
+		tun.Topic(channel, topic)
 	})
 	env.Define("Privmsg", func(channel string, message string) {
-		evt.Network.Tunnel().Privmsg(channel, message)
+		tun.Privmsg(channel, message)
 	})
 	env.Define("Action", func(channel string, message string) {
-		evt.Network.Tunnel().Action(channel, message)
+		tun.Action(channel, message)
 	})
 	env.Define("Away", func(message string) {
-		evt.Network.Tunnel().Away(message)
+		tun.Away(message)
 	})
 	env.Define("RemoveAway", func() {
-		evt.Network.Tunnel().RemoveAway()
+		tun.RemoveAway()
 	})
 	env.Define("Raw", func(message string) {
-		evt.Network.Tunnel().Send(irc.ParseMessage(message))
+		tun.Send(irc.ParseMessage(message))
 	})
 }
 
 // LoadUser loads user things into the given Anko VM environment
-func LoadUser(env *vm.Env, evt *interfaces.Event) {
-	env.Define("GetEmail", evt.Network.GetOwner().GetEmail)
+func LoadUser(env *vm.Env, user interfaces.User) {
+	env.Define("GetEmail", user.GetEmail)
 	env.Define("SendMessage", func(network, channel string, timestamp int64, sender, command, message string, ownmsg bool) {
-		evt.Network.InsertAndSend(messages.Message{
-			Network:   network,
-			Channel:   channel,
-			Timestamp: timestamp,
-			Sender:    sender,
-			Command:   command,
-			Message:   message,
-			OwnMsg:    ownmsg,
-		})
+		net := user.GetNetwork(network)
+		if net != nil {
+			net.InsertAndSend(messages.Message{
+				Network:   network,
+				Channel:   channel,
+				Timestamp: timestamp,
+				Sender:    sender,
+				Command:   command,
+				Message:   message,
+				OwnMsg:    ownmsg,
+			})
+		}
 	})
 	env.Define("SendDirectMessage", func(id int64, network, channel string, timestamp int64, sender, command, message string, ownmsg bool) {
-		evt.Network.GetOwner().GetMessageChan() <- messages.Container{
+		user.GetMessageChan() <- messages.Container{
 			Type: "message",
 			Object: messages.Message{
 				ID:        id,
@@ -278,12 +282,12 @@ func LoadUser(env *vm.Env, evt *interfaces.Event) {
 		}
 	})
 	env.Define("SendRawMessage", func(typ string, data string) {
-		evt.Network.GetOwner().GetMessageChan() <- messages.Container{Type: typ, Object: data}
+		user.GetMessageChan() <- messages.Container{Type: typ, Object: data}
 	})
 	env.Define("GetNetworks", func() []string {
 		var networks []string
-		evt.Network.GetOwner().GetNetworks().ForEach(func(net interfaces.Network) {
-			networks = append(networks, evt.Network.GetName())
+		user.GetNetworks().ForEach(func(net interfaces.Network) {
+			networks = append(networks, net.GetName())
 		})
 		return networks
 	})
