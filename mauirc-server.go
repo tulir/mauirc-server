@@ -46,7 +46,7 @@ func init() {
 func main() {
 	flag.Parse()
 
-	os.MkdirAll(*logPath, 0700)
+	os.MkdirAll(*logPath, 0755)
 	log.DefaultLogger.FileFormat = func(date string, i int) string {
 		return filepath.Join(*logPath, fmt.Sprintf("%[1]s-%02[2]d.log", date, i))
 	}
