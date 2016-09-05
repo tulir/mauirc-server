@@ -97,24 +97,18 @@ func main() {
 	go func() {
 		log.Debugln("Now listening to interruptions and SIGTERMs")
 		<-c
-		go func() {
-			time.Sleep(time.Second * 15)
-			log.Fatalln("mauIRC server not closed within 15 seconds. Terminating.")
-			log.Close()
-			os.Exit(5)
-		}()
 		log.Infoln("Closing mauIRC server", version)
 		config.GetUsers().ForEach(func(user interfaces.User) {
 			log.Debugln("Closing connections and saving scripts of", user.GetNameFromEmail())
 			user.GetNetworks().ForEach(func(net interfaces.Network) {
-				net.Disconnect()
+				go net.Disconnect()
 				net.SaveScripts(config.GetPath())
 				net.Save()
 			})
 			user.SaveGlobalScripts(config.GetPath())
 		})
 		log.Debugln("Waiting for all connections to close properly")
-		time.Sleep(2 * time.Second)
+		time.Sleep(3 * time.Second)
 		log.Debugln("Closing the database connection")
 		database.Close()
 		log.Debugln("Saving config")
