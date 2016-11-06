@@ -101,14 +101,13 @@ func main() {
 		config.GetUsers().ForEach(func(user interfaces.User) {
 			log.Debugln("Closing connections and saving scripts of", user.GetNameFromEmail())
 			user.GetNetworks().ForEach(func(net interfaces.Network) {
-				go net.Disconnect()
+				net.Disconnect()
 				net.SaveScripts(config.GetPath())
 				net.Save()
 			})
 			user.SaveGlobalScripts(config.GetPath())
 		})
-		log.Debugln("Waiting for all connections to close properly")
-		time.Sleep(3 * time.Second)
+		time.Sleep(1 * time.Second)
 		log.Debugln("Closing the database connection")
 		database.Close()
 		log.Debugln("Saving config")
