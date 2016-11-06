@@ -1,0 +1,5 @@
+package/usr/
+package/var/
+package/etc/mauirc
+testing/
+mauirc-server*
