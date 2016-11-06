@@ -283,7 +283,7 @@ func (net *netImpl) InsertAndSend(msg messages.Message) {
 	}
 	msg.Preview, _ = preview.GetPreview(msg.Message)
 	msg.ID = database.Insert(net.Owner.Email, msg)
-	net.Owner.NewMessages <- messages.Container{Type: messages.MsgMessage, Object: msg}
+	net.Owner.SendMessage(messages.Container{Type: messages.MsgMessage, Object: msg})
 }
 
 func (net *netImpl) GetOwner() interfaces.User {

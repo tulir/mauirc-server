@@ -103,6 +103,7 @@ type User interface {
 	SaveGlobalScripts(path string) error
 
 	GetMessageChan() chan messages.Container
+	SendMessage(msg messages.Container)
 
 	GetSettings() interface{}
 	SetSettings(val interface{})

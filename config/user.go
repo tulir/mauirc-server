@@ -93,11 +93,11 @@ func (user *userImpl) InitNetworks() {
 }
 
 func (user *userImpl) SendNetworkData(net interfaces.Network) {
-	user.NewMessages <- messages.Container{Type: messages.MsgNetData, Object: net.GetNetData()}
+	user.SendMessage(messages.Container{Type: messages.MsgNetData, Object: net.GetNetData()})
 	net.GetActiveChannels().ForEach(func(chd interfaces.ChannelData) {
-		user.NewMessages <- messages.Container{Type: messages.MsgChanData, Object: chd}
+		user.SendMessage(messages.Container{Type: messages.MsgChanData, Object: chd})
 	})
-	user.NewMessages <- messages.Container{Type: messages.MsgChanList, Object: messages.ChanList{Network: net.GetName(), List: net.GetAllChannels()}}
+	user.SendMessage(messages.Container{Type: messages.MsgChanList, Object: messages.ChanList{Network: net.GetName(), List: net.GetAllChannels()}})
 }
 
 // GetNetwork gets the network with the given name
@@ -221,6 +221,13 @@ func (user *userImpl) GetEmail() string {
 func (user *userImpl) GetNameFromEmail() string {
 	parts := strings.Split(user.GetEmail(), "@")
 	return parts[0]
+}
+
+func (user *userImpl) SendMessage(msg messages.Container) {
+	if len(user.NewMessages) >= MessageBufferSize {
+		<-user.NewMessages
+	}
+	user.NewMessages <- msg
 }
 
 func (user *userImpl) GetMessageChan() chan messages.Container {

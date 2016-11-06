@@ -32,6 +32,8 @@ import (
 	"time"
 )
 
+const MessageBufferSize = 128
+
 var log = maulogger.CreateSublogger("Net", maulogger.LevelInfo)
 
 // NewConfig creates a new Configuration instance
@@ -111,7 +113,7 @@ func (config *configImpl) Load() error {
 func (config *configImpl) Connect() {
 	for _, user := range config.Users {
 		user.LoadGlobalScripts(config.Path)
-		user.NewMessages = make(chan messages.Container, 64)
+		user.NewMessages = make(chan messages.Container, MessageBufferSize)
 		user.InitNetworks()
 	}
 }
@@ -189,7 +191,7 @@ func (config *configImpl) CreateUser(email, password string) (user interfaces.Us
 	}
 	userInt := &userImpl{
 		HostConf:    config,
-		NewMessages: make(chan messages.Container, 64),
+		NewMessages: make(chan messages.Container, MessageBufferSize),
 		Email:       email,
 	}
 

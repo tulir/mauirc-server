@@ -267,7 +267,7 @@ func LoadUser(env *vm.Env, user interfaces.User) {
 		}
 	})
 	env.Define("SendDirectMessage", func(id int64, network, channel string, timestamp int64, sender, command, message string, ownmsg bool) {
-		user.GetMessageChan() <- messages.Container{
+		user.SendMessage(messages.Container{
 			Type: "message",
 			Object: messages.Message{
 				ID:        id,
@@ -279,10 +279,10 @@ func LoadUser(env *vm.Env, user interfaces.User) {
 				Message:   message,
 				OwnMsg:    ownmsg,
 			},
-		}
+		})
 	})
 	env.Define("SendRawMessage", func(typ string, data string) {
-		user.GetMessageChan() <- messages.Container{Type: typ, Object: data}
+		user.SendMessage(messages.Container{Type: typ, Object: data})
 	})
 	env.Define("GetNetworks", func() []string {
 		var networks []string
