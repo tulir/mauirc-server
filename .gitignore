@@ -3,3 +3,4 @@ package/var/
 package/etc/mauirc
 testing/
 mauirc-server*
+!mauirc-server.go
