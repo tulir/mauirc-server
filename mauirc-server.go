@@ -17,6 +17,12 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
+	"path/filepath"
+	"syscall"
+	"time"
+
 	_ "github.com/go-sql-driver/mysql"
 	"maunium.net/go/libmauirc"
 	flag "maunium.net/go/mauflag"
@@ -26,16 +32,12 @@ import (
 	"maunium.net/go/mauirc-server/interfaces"
 	"maunium.net/go/mauirc-server/web"
 	log "maunium.net/go/maulogger"
-	"os"
-	"os/signal"
-	"path/filepath"
-	"syscall"
-	"time"
 )
 
 var confPath = flag.Make().LongKey("config").ShortKey("c").Default("/etc/mauirc/").Usage("The path to mauIRC server configurations").String()
 var logPath = flag.Make().LongKey("logs").ShortKey("l").Default("/var/log/mauirc/").Usage("The path to mauIRC server logs").String()
 var debug = flag.Make().LongKey("debug").ShortKey("d").Default("false").Usage("Use to enable debug prints").Bool()
+var wantHelp, _ = flag.MakeHelpFlag()
 var config interfaces.Configuration
 var version = "2.0.0"
 
@@ -44,7 +46,12 @@ func init() {
 }
 
 func main() {
+	flag.SetHelpTitles(fmt.Sprintf("mauIRC Server %s - The IRC bouncer/backend system for mauIRC clients.", version), "mauirc-server [-h] [-d] [-c configPath] [-l logPath]")
 	flag.Parse()
+	if *wantHelp {
+		flag.PrintHelp()
+		return
+	}
 
 	os.MkdirAll(*logPath, 0755)
 	log.DefaultLogger.FileFormat = func(date string, i int) string {
