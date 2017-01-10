@@ -20,7 +20,7 @@ package config
 import (
 	"fmt"
 	msg "github.com/sorcix/irc"
-	"maunium.net/go/mauirc-common/messages"
+	"maunium.net/go/mauirc-server/common/messages"
 	"maunium.net/go/mauirc-server/util/userlist"
 	"sort"
 	"strconv"

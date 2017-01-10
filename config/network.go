@@ -21,7 +21,7 @@ import (
 	"fmt"
 	msg "github.com/sorcix/irc"
 	irc "maunium.net/go/libmauirc"
-	"maunium.net/go/mauirc-common/messages"
+	"maunium.net/go/mauirc-server/common/messages"
 	"maunium.net/go/mauirc-server/database"
 	"maunium.net/go/mauirc-server/ident"
 	"maunium.net/go/mauirc-server/interfaces"

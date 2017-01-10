@@ -22,7 +22,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"golang.org/x/crypto/bcrypt"
-	"maunium.net/go/mauirc-common/messages"
+	"maunium.net/go/mauirc-server/common/messages"
 	"maunium.net/go/mauirc-server/interfaces"
 	"strings"
 	"time"

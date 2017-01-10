@@ -19,8 +19,8 @@ package misc
 
 import (
 	"encoding/json"
-	"maunium.net/go/mauirc-common/errors"
-	"maunium.net/go/mauirc-common/messages"
+	"maunium.net/go/mauirc-server/common/errors"
+	"maunium.net/go/mauirc-server/common/messages"
 	"maunium.net/go/mauirc-server/database"
 	"maunium.net/go/mauirc-server/web/auth"
 	"maunium.net/go/mauirc-server/web/util"

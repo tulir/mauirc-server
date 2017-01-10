@@ -36,7 +36,7 @@ import (
 	"github.com/mattn/anko/vm"
 	"github.com/sorcix/irc"
 	"maunium.net/go/libmauirc"
-	"maunium.net/go/mauirc-common/messages"
+	"maunium.net/go/mauirc-server/common/messages"
 	"maunium.net/go/mauirc-server/interfaces"
 	"maunium.net/go/mauirc-server/util/preview"
 	//anko_io "github.com/mattn/anko/builtins/io"

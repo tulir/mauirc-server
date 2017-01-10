@@ -19,7 +19,7 @@ package config
 
 import (
 	msg "github.com/sorcix/irc"
-	"maunium.net/go/mauirc-common/messages"
+	"maunium.net/go/mauirc-server/common/messages"
 	"maunium.net/go/mauirc-server/database"
 )
 

@@ -19,7 +19,7 @@ package interfaces
 
 import (
 	"maunium.net/go/libmauirc"
-	"maunium.net/go/mauirc-common/messages"
+	"maunium.net/go/mauirc-server/common/messages"
 	"maunium.net/go/mauirc-server/util/userlist"
 )
 

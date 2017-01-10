@@ -23,7 +23,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"maunium.net/go/mauirc-common/messages"
+	"maunium.net/go/mauirc-server/common/messages"
 	"maunium.net/go/mauirc-server/config/mail"
 	"maunium.net/go/mauirc-server/interfaces"
 	"maunium.net/go/maulogger"

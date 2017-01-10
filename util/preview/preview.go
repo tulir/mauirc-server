@@ -22,7 +22,7 @@ import (
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/mvdan/xurls"
 	"io/ioutil"
-	"maunium.net/go/mauirc-common/messages"
+	"maunium.net/go/mauirc-server/common/messages"
 	"net/http"
 	"strings"
 )

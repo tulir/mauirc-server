@@ -18,7 +18,7 @@
 package interfaces
 
 import (
-	"maunium.net/go/mauirc-common/messages"
+	"maunium.net/go/mauirc-server/common/messages"
 )
 
 // Plugin commands
