@@ -3,5 +3,5 @@ Version: 2.0.0-1
 Section: base
 Priority: optional
 Architecture: amd64
-Maintainer: Tulir293 <tulir293@maunium.net>
+Maintainer: Tulir Asokan <tulir@maunium.net>
 Description: The backend for mauIRC
