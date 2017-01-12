@@ -52,7 +52,7 @@ func (s Script) RunUser(command string, user interfaces.User) {
 
 	_, err := env.Execute(s.GetScript() + ";" + command + "();")
 	if err != nil {
-		log.Warnln("Error executing script:", err)
+		log.Warnf("Error executing script %s: %v\n", s.Name, err)
 	}
 }
 
@@ -67,7 +67,7 @@ func (s Script) RunNetwork(command string, net interfaces.Network) {
 
 	_, err := env.Execute(s.GetScript() + ";" + command + "();")
 	if err != nil {
-		log.Warnln("Error executing script:", err)
+		log.Warnf("Error executing script %s: %v\n", s.Name, err)
 	}
 }
 
@@ -83,6 +83,6 @@ func (s Script) RunEvent(command string, evt *interfaces.Event) {
 
 	_, err := env.Execute(s.GetScript() + ";" + command + "();")
 	if err != nil {
-		log.Warnln("Error executing script:", err)
+		log.Warnf("Error executing script %s: %v\n", s.Name, err)
 	}
 }
