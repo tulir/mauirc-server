@@ -19,9 +19,11 @@ package plugin
 
 import (
 	"fmt"
+
+	"io"
+
 	anko_encoding_json "github.com/mattn/anko/builtins/encoding/json"
 	anko_errors "github.com/mattn/anko/builtins/errors"
-	anko_fmt "github.com/mattn/anko/builtins/fmt"
 	anko_math "github.com/mattn/anko/builtins/math"
 	anko_math_rand "github.com/mattn/anko/builtins/math/rand"
 	anko_net "github.com/mattn/anko/builtins/net"
@@ -46,7 +48,7 @@ import (
 )
 
 // LoadImport loads the import() function into the given environment to allow importing some Go packages
-func LoadImport(env *vm.Env) {
+func LoadImport(env *vm.Env, proxy io.Writer) {
 	tbl := map[string]func(env *vm.Env) *vm.Env{
 		"encoding/json": anko_encoding_json.Import,
 		//"io":            anko_io.Import,
@@ -64,7 +66,7 @@ func LoadImport(env *vm.Env) {
 		"sort":          anko_sort.Import,
 		"strings":       anko_strings.Import,
 		"time":          anko_time.Import,
-		"fmt":           anko_fmt.Import,
+		"fmt":           Fmt(proxy),
 		"errors":        anko_errors.Import,
 	}
 

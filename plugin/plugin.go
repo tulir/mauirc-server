@@ -18,6 +18,12 @@
 package plugin
 
 import (
+	"bytes"
+	"fmt"
+	"io/ioutil"
+	"strings"
+	"time"
+
 	builtins "github.com/mattn/anko/builtins"
 	"github.com/mattn/anko/vm"
 	"maunium.net/go/mauirc-server/interfaces"
@@ -40,6 +46,31 @@ func (s Script) GetName() string {
 // GetScript returns the script data
 func (s Script) GetScript() string {
 	return s.TheScript
+}
+
+type logger struct {
+	buf     *bytes.Buffer
+	section string
+}
+
+func (l logger) Write(p []byte) (n int, err error) {
+	n, err = fmt.Fprintf(l.buf, "[%s] [%s] ", time.Now().Format("2006-01-02 15:04:05"), l.section)
+	if err != nil {
+		return n, err
+	}
+
+	n2, err := l.buf.Write(p)
+	return n + n2, err
+}
+
+func (l logger) ReadAll() []string {
+	data, _ := ioutil.ReadAll(l.buf)
+	return strings.Split(string(data), "\n")
+}
+
+func (l logger) Read() string {
+	str, _ := l.buf.ReadString('\n')
+	return str[:len(str)-1]
 }
 
 // RunUser the script with the given values.

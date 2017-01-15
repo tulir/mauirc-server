@@ -21,11 +21,12 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"strings"
+	"time"
+
 	"golang.org/x/crypto/bcrypt"
 	"maunium.net/go/mauirc-server/common/messages"
 	"maunium.net/go/mauirc-server/interfaces"
-	"strings"
-	"time"
 )
 
 type userImpl struct {
