@@ -18,8 +18,9 @@
 package interfaces
 
 import (
-	"maunium.net/go/mauirc-server/common/messages"
 	"time"
+
+	"maunium.net/go/mauirc-server/common/messages"
 )
 
 // Configuration contains the main config

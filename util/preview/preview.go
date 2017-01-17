@@ -19,12 +19,13 @@ package preview
 
 import (
 	"bytes"
-	"github.com/dyatlov/go-opengraph/opengraph"
-	"github.com/mvdan/xurls"
 	"io/ioutil"
-	"maunium.net/go/mauirc-server/common/messages"
 	"net/http"
 	"strings"
+
+	"github.com/dyatlov/go-opengraph/opengraph"
+	"github.com/mvdan/xurls"
+	"maunium.net/go/mauirc-server/common/messages"
 )
 
 // GetPreview gets the preview for the first URL in the given text.

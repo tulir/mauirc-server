@@ -19,6 +19,10 @@ package config
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	msg "github.com/sorcix/irc"
 	irc "maunium.net/go/libmauirc"
 	"maunium.net/go/mauirc-server/common/messages"
@@ -29,9 +33,6 @@ import (
 	"maunium.net/go/mauirc-server/util/split"
 	"maunium.net/go/mauirc-server/util/userlist"
 	"maunium.net/go/maulogger"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type netImpl struct {
@@ -93,6 +94,8 @@ func (net *netImpl) Open() {
 	i.AddHandler(msg.PRIVMSG, net.privmsg)
 	i.AddHandler(msg.NOTICE, net.privmsg)
 	i.AddHandler(msg.INVITE, net.invite)
+	i.AddHandler(msg.RPL_INVITING, net.invited)
+	i.AddHandler(msg.ERR_USERONCHANNEL, net.inviteFail)
 	i.AddHandler("CPRIVMSG", net.privmsg)
 	i.AddHandler("CNOTICE", net.privmsg)
 	i.AddHandler("CTCP_ACTION", net.action)

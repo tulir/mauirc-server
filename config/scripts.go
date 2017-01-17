@@ -19,11 +19,12 @@ package config
 
 import (
 	"io/ioutil"
-	"maunium.net/go/mauirc-server/interfaces"
-	"maunium.net/go/mauirc-server/plugin"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"maunium.net/go/mauirc-server/interfaces"
+	"maunium.net/go/mauirc-server/plugin"
 )
 
 // LoadScripts loads the scripts of this network

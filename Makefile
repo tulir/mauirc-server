@@ -17,3 +17,6 @@ package: package-prep
 
 clean:
 	rm -rf mauirc-server mauirc-server.deb package/usr package/var package/etc/mauirc
+
+nil:
+	true

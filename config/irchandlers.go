@@ -19,13 +19,14 @@ package config
 
 import (
 	"fmt"
-	msg "github.com/sorcix/irc"
-	"maunium.net/go/mauirc-server/common/messages"
-	"maunium.net/go/mauirc-server/util/userlist"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	msg "github.com/sorcix/irc"
+	"maunium.net/go/mauirc-server/common/messages"
+	"maunium.net/go/mauirc-server/util/userlist"
 )
 
 func (net *netImpl) mode(evt *msg.Message) {
@@ -235,6 +236,14 @@ func (net *netImpl) invite(evt *msg.Message) {
 		Channel: evt.Params[1],
 		Sender:  evt.Name,
 	}})
+}
+
+func (net *netImpl) invited(evt *msg.Message) {
+	net.ReceiveMessage(evt.Params[2], evt.Params[0], "invited", evt.Params[1])
+}
+
+func (net *netImpl) inviteFail(evt *msg.Message) {
+	net.ReceiveMessage(evt.Params[2], evt.Params[0], "invitefail", evt.Params[1])
 }
 
 func (net *netImpl) connected(evt *msg.Message) {
