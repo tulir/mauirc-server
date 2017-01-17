@@ -20,12 +20,13 @@ package config
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
 	"time"
+
+	yaml "gopkg.in/yaml.v2"
 
 	"maunium.net/go/mauirc-server/common/messages"
 	"maunium.net/go/mauirc-server/config/mail"
@@ -45,27 +46,27 @@ func NewConfig(path string) interfaces.Configuration {
 }
 
 type configImpl struct {
-	Path             string               `json:"-"`
-	SQL              mysqlImpl            `json:"sql"`
-	Users            userListImpl         `json:"users"`
-	Mail             mail.Config          `json:"mail"`
-	IP               string               `json:"ip"`
-	Port             int                  `json:"port"`
-	TrustHeadersF    bool                 `json:"trust-headers"`
-	AutosaveConfig   bool                 `json:"save-config-on-edit"`
-	Address          string               `json:"external-address"`
-	CSecretB64       string               `json:"cookie-secret"`
-	HTTPSOnlyCookies bool                 `json:"https-only"`
-	Ident            interfaces.IdentConf `json:"ident"`
-	CookieSecret     []byte               `json:"-"`
+	Path             string               `yaml:"-"`
+	SQL              mysqlImpl            `yaml:"sql"`
+	Users            userListImpl         `yaml:"users"`
+	Mail             mail.Config          `yaml:"mail"`
+	IP               string               `yaml:"ip"`
+	Port             int                  `yaml:"port"`
+	TrustHeadersF    bool                 `yaml:"trust-headers"`
+	AutosaveConfig   bool                 `yaml:"save-config-on-edit"`
+	Address          string               `yaml:"external-address"`
+	CSecretB64       string               `yaml:"cookie-secret"`
+	HTTPSOnlyCookies bool                 `yaml:"https-only"`
+	Ident            interfaces.IdentConf `yaml:"ident"`
+	CookieSecret     []byte               `yaml:"-"`
 }
 
 type mysqlImpl struct {
-	IP       string `json:"ip"`
-	Port     int    `json:"port"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Database string `json:"database"`
+	IP       string `yaml:"ip"`
+	Port     int    `yaml:"port"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+	Database string `yaml:"database"`
 }
 
 type userListImpl []*userImpl
@@ -80,12 +81,12 @@ func (ul userListImpl) ForEach(do func(user interfaces.User)) {
 func (config *configImpl) Load() error {
 	var err error
 
-	data, err := ioutil.ReadFile(filepath.Join(config.Path, "config.json"))
+	data, err := ioutil.ReadFile(filepath.Join(config.Path, "config.yml"))
 	if err != nil {
 		return err
 	}
 
-	err = json.Unmarshal(data, config)
+	err = yaml.Unmarshal(data, config)
 	if err != nil {
 		return err
 	}
@@ -123,11 +124,11 @@ func (config *configImpl) Connect() {
 
 // Save the configuration file
 func (config *configImpl) Save() error {
-	data, err := json.MarshalIndent(config, "", "  ")
+	data, err := yaml.Marshal(config)
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(filepath.Join(config.Path, "config.json"), data, 0644)
+	err = ioutil.WriteFile(filepath.Join(config.Path, "config.yml"), data, 0644)
 	return err
 }
 

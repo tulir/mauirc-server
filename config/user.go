@@ -20,9 +20,10 @@ package config
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"encoding/json"
 	"strings"
 	"time"
+
+	yaml "gopkg.in/yaml.v2"
 
 	"golang.org/x/crypto/bcrypt"
 	"maunium.net/go/mauirc-server/common/messages"
@@ -30,21 +31,21 @@ import (
 )
 
 type userImpl struct {
-	Networks      netListImpl             `json:"networks"`
-	Email         string                  `json:"email"`
-	Password      string                  `json:"password"`
-	AuthTokens    []authToken             `json:"authtokens,omitempty"`
-	PasswordReset *authToken              `json:"passwordreset,omitempty"`
-	EmailVerify   *authToken              `json:"emailverify,omitempty"`
-	NewMessages   chan messages.Container `json:"-"`
-	GlobalScripts []interfaces.Script     `json:"-"`
-	Settings      interface{}             `json:"settings,omitempty"`
-	HostConf      *configImpl             `json:"-"`
+	Networks      netListImpl             `yaml:"networks"`
+	Email         string                  `yaml:"email"`
+	Password      string                  `yaml:"password"`
+	AuthTokens    []authToken             `yaml:"authtokens,omitempty"`
+	PasswordReset *authToken              `yaml:"passwordreset,omitempty"`
+	EmailVerify   *authToken              `yaml:"emailverify,omitempty"`
+	NewMessages   chan messages.Container `yaml:"-"`
+	GlobalScripts []interfaces.Script     `yaml:"-"`
+	Settings      interface{}             `yaml:"settings,omitempty"`
+	HostConf      *configImpl             `yaml:"-"`
 }
 
 type authToken struct {
-	Token string `json:"token"`
-	Time  int64  `json:"expire"`
+	Token string `yaml:"token"`
+	Time  int64  `yaml:"expire"`
 }
 
 func (at authToken) HasExpired() bool {
@@ -141,7 +142,7 @@ func (user *userImpl) AddNetwork(net interfaces.Network) bool {
 
 func (user *userImpl) CreateNetwork(name string, data []byte) (interfaces.Network, bool) {
 	var net = &netImpl{}
-	err := json.Unmarshal(data, net)
+	err := yaml.Unmarshal(data, net)
 	if err != nil {
 		return nil, false
 	}
