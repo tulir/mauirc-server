@@ -125,7 +125,7 @@ func (user *userImpl) SaveGlobalScripts(path string) error {
 
 // RunScripts runs all the scripts of this network and all global scripts on the given message
 func (net *netImpl) RunScripts(evt *interfaces.Event, receiving bool) {
-	netChanged := false
+	var netChanged bool
 	for _, s := range net.Scripts {
 		netChanged = net.RunScript(s, evt, receiving)
 		if netChanged {

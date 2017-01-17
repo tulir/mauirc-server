@@ -46,6 +46,7 @@ type Configuration interface {
 	TrustHeaders() bool
 
 	GetCookieSecret() []byte
+	SecureCookies() bool
 }
 
 // Mail (er)

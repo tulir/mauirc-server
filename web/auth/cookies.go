@@ -44,7 +44,7 @@ func InitStore(cfg interfaces.Configuration) {
 		Domain:   config.GetExternalAddr(),
 		Path:     "/",
 		MaxAge:   86400 * 30,
-		Secure:   true,
+		Secure:   config.SecureCookies(),
 		HttpOnly: true,
 	}
 }

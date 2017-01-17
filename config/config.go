@@ -33,6 +33,7 @@ import (
 	"maunium.net/go/maulogger"
 )
 
+// MessageBufferSize is a magical value
 const MessageBufferSize = 128
 
 var log = maulogger.CreateSublogger("Net", maulogger.LevelInfo)
@@ -44,18 +45,19 @@ func NewConfig(path string) interfaces.Configuration {
 }
 
 type configImpl struct {
-	Path           string               `json:"-"`
-	SQL            mysqlImpl            `json:"sql"`
-	Users          userListImpl         `json:"users"`
-	Mail           mail.Config          `json:"mail"`
-	IP             string               `json:"ip"`
-	Port           int                  `json:"port"`
-	TrustHeadersF  bool                 `json:"trust-headers"`
-	AutosaveConfig bool                 `json:"save-config-on-edit"`
-	Address        string               `json:"external-address"`
-	CSecretB64     string               `json:"cookie-secret"`
-	Ident          interfaces.IdentConf `json:"ident"`
-	CookieSecret   []byte               `json:"-"`
+	Path             string               `json:"-"`
+	SQL              mysqlImpl            `json:"sql"`
+	Users            userListImpl         `json:"users"`
+	Mail             mail.Config          `json:"mail"`
+	IP               string               `json:"ip"`
+	Port             int                  `json:"port"`
+	TrustHeadersF    bool                 `json:"trust-headers"`
+	AutosaveConfig   bool                 `json:"save-config-on-edit"`
+	Address          string               `json:"external-address"`
+	CSecretB64       string               `json:"cookie-secret"`
+	HTTPSOnlyCookies bool                 `json:"https-only"`
+	Ident            interfaces.IdentConf `json:"ident"`
+	CookieSecret     []byte               `json:"-"`
 }
 
 type mysqlImpl struct {
@@ -246,4 +248,8 @@ func (config *configImpl) GetExternalAddr() string {
 
 func (config *configImpl) GetCookieSecret() []byte {
 	return config.CookieSecret
+}
+
+func (config *configImpl) SecureCookies() bool {
+	return config.HTTPSOnlyCookies
 }
