@@ -38,6 +38,7 @@ func Load(c interfaces.Configuration) {
 	log.Debugln("Loading HTTP server")
 	config = c
 	auth.InitStore(config)
+	misc.Init(config)
 	util.Init(config)
 
 	http.HandleFunc("/history/", misc.History)

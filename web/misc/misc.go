@@ -21,14 +21,21 @@ import (
 	"net/http"
 	"strings"
 
+	"maunium.net/go/mauirc-server/interfaces"
 	"maunium.net/go/maulogger"
 )
 
 var log = maulogger.CreateSublogger("Web/HTTP", maulogger.LevelInfo)
+var config interfaces.Configuration
+
+// Init stores the config
+func Init(cfg interfaces.Configuration) {
+	config = cfg
+}
 
 func getIP(r *http.Request) string {
-	//if config.TrustHeaders() {
-	//	return r.Header.Get("X-Forwarded-For")
-	//}
+	if config.TrustHeaders() {
+		return r.Header.Get("X-Forwarded-For")
+	}
 	return strings.Split(r.RemoteAddr, ":")[0]
 }
