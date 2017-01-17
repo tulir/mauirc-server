@@ -20,11 +20,12 @@ package ident
 import (
 	"bufio"
 	"fmt"
-	interfaces "maunium.net/go/mauirc-server/interfaces"
-	"maunium.net/go/maulogger"
 	"net"
 	"strconv"
 	"strings"
+
+	interfaces "maunium.net/go/mauirc-server/interfaces"
+	"maunium.net/go/maulogger"
 )
 
 // Ports is the port->name mapping

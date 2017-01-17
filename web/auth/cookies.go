@@ -18,12 +18,13 @@
 package auth
 
 import (
+	"net/http"
+
 	"github.com/gorilla/sessions"
 	"maunium.net/go/mauirc-server/common/errors"
 	"maunium.net/go/mauirc-server/interfaces"
 	"maunium.net/go/mauirc-server/web/util"
 	"maunium.net/go/maulogger"
-	"net/http"
 )
 
 type authform struct {

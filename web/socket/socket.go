@@ -20,6 +20,9 @@ package socket
 import (
 	"bytes"
 	"encoding/json"
+	"net/http"
+	"time"
+
 	"github.com/gorilla/websocket"
 	"maunium.net/go/mauirc-server/common/errors"
 	"maunium.net/go/mauirc-server/common/messages"
@@ -27,8 +30,6 @@ import (
 	"maunium.net/go/mauirc-server/web/auth"
 	"maunium.net/go/mauirc-server/web/util"
 	"maunium.net/go/maulogger"
-	"net/http"
-	"time"
 )
 
 var log = maulogger.CreateSublogger("Web/Socket", maulogger.LevelInfo)

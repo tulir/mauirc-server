@@ -18,6 +18,9 @@
 package web
 
 import (
+	"net/http"
+	"os"
+
 	"github.com/gorilla/context"
 	"maunium.net/go/mauirc-server/interfaces"
 	"maunium.net/go/mauirc-server/web/auth"
@@ -25,8 +28,6 @@ import (
 	"maunium.net/go/mauirc-server/web/socket"
 	"maunium.net/go/mauirc-server/web/util"
 	"maunium.net/go/maulogger"
-	"net/http"
-	"os"
 )
 
 var config interfaces.Configuration

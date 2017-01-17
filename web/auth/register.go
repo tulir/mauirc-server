@@ -19,10 +19,11 @@ package auth
 
 import (
 	"encoding/json"
-	"maunium.net/go/mauirc-server/common/errors"
-	"maunium.net/go/mauirc-server/web/util"
 	"net/http"
 	"time"
+
+	"maunium.net/go/mauirc-server/common/errors"
+	"maunium.net/go/mauirc-server/web/util"
 )
 
 // Register HTTP handler

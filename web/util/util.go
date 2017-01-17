@@ -18,9 +18,10 @@
 package util
 
 import (
-	"maunium.net/go/mauirc-server/interfaces"
 	"net/http"
 	"strings"
+
+	"maunium.net/go/mauirc-server/interfaces"
 )
 
 var config interfaces.Configuration

@@ -19,10 +19,11 @@ package mail
 
 import (
 	"io/ioutil"
-	"maunium.net/go/maulogger"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"maunium.net/go/maulogger"
 )
 
 var log = maulogger.CreateSublogger("Config/Mail", maulogger.LevelInfo)

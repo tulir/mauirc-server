@@ -20,11 +20,12 @@ package misc
 import (
 	"encoding/json"
 	"io/ioutil"
+	"net/http"
+	"strings"
+
 	"maunium.net/go/mauirc-server/common/errors"
 	"maunium.net/go/mauirc-server/interfaces"
 	"maunium.net/go/mauirc-server/web/auth"
-	"net/http"
-	"strings"
 )
 
 // Settings HTTP handler

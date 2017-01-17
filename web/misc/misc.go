@@ -18,9 +18,10 @@
 package misc
 
 import (
-	"maunium.net/go/maulogger"
 	"net/http"
 	"strings"
+
+	"maunium.net/go/maulogger"
 )
 
 var log = maulogger.CreateSublogger("Web/HTTP", maulogger.LevelInfo)

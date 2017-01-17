@@ -19,9 +19,10 @@ package auth
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"maunium.net/go/mauirc-server/common/errors"
 	"maunium.net/go/mauirc-server/web/util"
-	"net/http"
 )
 
 // Login HTTP handler

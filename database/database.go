@@ -21,6 +21,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+
 	"maunium.net/go/mauirc-server/common/messages"
 )
 

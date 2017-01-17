@@ -19,15 +19,16 @@ package misc
 
 import (
 	"encoding/json"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
+
 	"maunium.net/go/mauirc-server/common/errors"
 	"maunium.net/go/mauirc-server/common/messages"
 	"maunium.net/go/mauirc-server/database"
 	"maunium.net/go/mauirc-server/web/auth"
 	"maunium.net/go/mauirc-server/web/util"
-	"net/http"
-	"net/url"
-	"strconv"
-	"strings"
 )
 
 // History HTTP handler

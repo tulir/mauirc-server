@@ -23,13 +23,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
+	"strings"
+	"time"
+
 	"maunium.net/go/mauirc-server/common/messages"
 	"maunium.net/go/mauirc-server/config/mail"
 	"maunium.net/go/mauirc-server/interfaces"
 	"maunium.net/go/maulogger"
-	"path/filepath"
-	"strings"
-	"time"
 )
 
 const MessageBufferSize = 128

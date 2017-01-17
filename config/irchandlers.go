@@ -19,13 +19,14 @@ package config
 
 import (
 	"fmt"
-	msg "github.com/sorcix/irc"
-	"maunium.net/go/mauirc-server/common/messages"
-	"maunium.net/go/mauirc-server/util/userlist"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	msg "github.com/sorcix/irc"
+	"maunium.net/go/mauirc-server/common/messages"
+	"maunium.net/go/mauirc-server/util/userlist"
 )
 
 func (net *netImpl) mode(evt *msg.Message) {
