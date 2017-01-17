@@ -31,21 +31,21 @@ import (
 )
 
 type userImpl struct {
-	Networks      netListImpl             `yaml:"networks"`
-	Email         string                  `yaml:"email"`
-	Password      string                  `yaml:"password"`
-	AuthTokens    []authToken             `yaml:"authtokens,omitempty"`
-	PasswordReset *authToken              `yaml:"passwordreset,omitempty"`
-	EmailVerify   *authToken              `yaml:"emailverify,omitempty"`
-	NewMessages   chan messages.Container `yaml:"-"`
-	GlobalScripts []interfaces.Script     `yaml:"-"`
-	Settings      interface{}             `yaml:"settings,omitempty"`
-	HostConf      *configImpl             `yaml:"-"`
+	Networks      netListImpl             `yaml:"networks" json:"networks"`
+	Email         string                  `yaml:"email" json:"email"`
+	Password      string                  `yaml:"password" json:"password"`
+	AuthTokens    []authToken             `yaml:"authtokens,omitempty" json:"authtokens,omitempty"`
+	PasswordReset *authToken              `yaml:"passwordreset,omitempty" json:"passwordreset,omitempty"`
+	EmailVerify   *authToken              `yaml:"emailverify,omitempty" json:"emailverify,omitempty"`
+	NewMessages   chan messages.Container `yaml:"-" json:"-"`
+	GlobalScripts []interfaces.Script     `yaml:"-" json:"-"`
+	Settings      interface{}             `yaml:"settings,omitempty" json:"settings,omitempty"`
+	HostConf      *configImpl             `yaml:"-" json:"-"`
 }
 
 type authToken struct {
-	Token string `yaml:"token"`
-	Time  int64  `yaml:"expire"`
+	Token string `yaml:"token" json:"token"`
+	Time  int64  `yaml:"expire" json:"expire"`
 }
 
 func (at authToken) HasExpired() bool {

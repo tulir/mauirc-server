@@ -46,27 +46,27 @@ func NewConfig(path string) interfaces.Configuration {
 }
 
 type configImpl struct {
-	Path             string               `yaml:"-"`
-	SQL              mysqlImpl            `yaml:"sql"`
-	Users            userListImpl         `yaml:"users"`
-	Mail             mail.Config          `yaml:"mail"`
-	IP               string               `yaml:"ip"`
-	Port             int                  `yaml:"port"`
-	TrustHeadersF    bool                 `yaml:"trust-headers"`
-	AutosaveConfig   bool                 `yaml:"save-config-on-edit"`
-	Address          string               `yaml:"external-address"`
-	CSecretB64       string               `yaml:"cookie-secret"`
-	HTTPSOnlyCookies bool                 `yaml:"https-only"`
-	Ident            interfaces.IdentConf `yaml:"ident"`
-	CookieSecret     []byte               `yaml:"-"`
+	Path             string               `yaml:"-" json:"-"`
+	SQL              mysqlImpl            `yaml:"sql" json:"sql"`
+	Users            userListImpl         `yaml:"users" json:"users"`
+	Mail             mail.Config          `yaml:"mail" json:"mail"`
+	IP               string               `yaml:"ip" json:"ip"`
+	Port             int                  `yaml:"port" json:"port"`
+	TrustHeadersF    bool                 `yaml:"trust-headers" json:"trust-headers"`
+	AutosaveConfig   bool                 `yaml:"save-config-on-edit" json:"save-config-on-edit"`
+	Address          string               `yaml:"external-address" json:"external-address"`
+	CSecretB64       string               `yaml:"cookie-secret" json:"cookie-secret"`
+	HTTPSOnlyCookies bool                 `yaml:"https-only" json:"https-only"`
+	Ident            interfaces.IdentConf `yaml:"ident" json:"ident"`
+	CookieSecret     []byte               `yaml:"-" json:"-"`
 }
 
 type mysqlImpl struct {
-	IP       string `yaml:"ip"`
-	Port     int    `yaml:"port"`
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
-	Database string `yaml:"database"`
+	IP       string `yaml:"ip" json:"ip"`
+	Port     int    `yaml:"port" json:"port"`
+	Username string `yaml:"username" json:"username"`
+	Password string `yaml:"password" json:"password"`
+	Database string `yaml:"database" json:"database"`
 }
 
 type userListImpl []*userImpl

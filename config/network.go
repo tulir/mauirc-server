@@ -36,24 +36,24 @@ import (
 )
 
 type netImpl struct {
-	Name     string   `yaml:"name"`
-	Nick     string   `yaml:"nick"`
-	User     string   `yaml:"user"`
-	Realname string   `yaml:"realname"`
-	Password string   `yaml:"password"`
-	IP       string   `yaml:"ip"`
-	Port     uint16   `yaml:"port"`
-	SSL      bool     `yaml:"ssl"`
-	Chs      []string `yaml:"channels"`
+	Name     string   `yaml:"name" json:"name"`
+	Nick     string   `yaml:"nick" json:"nick"`
+	User     string   `yaml:"user" json:"user"`
+	Realname string   `yaml:"realname" json:"realname"`
+	Password string   `yaml:"password" json:"password"`
+	IP       string   `yaml:"ip" json:"ip"`
+	Port     uint16   `yaml:"port" json:"port"`
+	SSL      bool     `yaml:"ssl" json:"ssl"`
+	Chs      []string `yaml:"channels" json:"channels"`
 
-	Owner       *userImpl                      `yaml:"-"`
-	IRC         irc.Connection                 `yaml:"-"`
-	Scripts     []interfaces.Script            `yaml:"-"`
-	ChannelInfo cdlImpl                        `yaml:"-"`
-	ChannelList []string                       `yaml:"-"`
-	WhoisData   map[string]*messages.WhoisData `yaml:"-"`
-	IdentPort   int                            `yaml:"-"`
-	Sublogger   *maulogger.Sublogger           `yaml:"-"`
+	Owner       *userImpl                      `yaml:"-" json:"-"`
+	IRC         irc.Connection                 `yaml:"-" json:"-"`
+	Scripts     []interfaces.Script            `yaml:"-" json:"-"`
+	ChannelInfo cdlImpl                        `yaml:"-" json:"-"`
+	ChannelList []string                       `yaml:"-" json:"-"`
+	WhoisData   map[string]*messages.WhoisData `yaml:"-" json:"-"`
+	IdentPort   int                            `yaml:"-" json:"-"`
+	Sublogger   *maulogger.Sublogger           `yaml:"-" json:"-"`
 }
 
 func (net *netImpl) Save() {
@@ -417,14 +417,14 @@ func (net *netImpl) RemoveWhoisData(name string) {
 }
 
 type chanDataImpl struct {
-	Network           string              `yaml:"network"`
-	Name              string              `yaml:"name"`
-	UserList          userlist.List       `yaml:"userlist"`
-	Topic             string              `yaml:"topic"`
-	TopicSetBy        string              `yaml:"topicsetby"`
-	TopicSetAt        int64               `yaml:"topicsetat"`
-	ModeList          interfaces.ModeList `yaml:"modes"`
-	ReceivingUserList bool                `yaml:"-"`
+	Network           string              `yaml:"network" json:"network"`
+	Name              string              `yaml:"name" json:"name"`
+	UserList          userlist.List       `yaml:"userlist" json:"userlist"`
+	Topic             string              `yaml:"topic" json:"topic"`
+	TopicSetBy        string              `yaml:"topicsetby" json:"topicsetby"`
+	TopicSetAt        int64               `yaml:"topicsetat" json:"topicsetat"`
+	ModeList          interfaces.ModeList `yaml:"modes" json:"modes"`
+	ReceivingUserList bool                `yaml:"-" json:"-"`
 }
 
 func (cd *chanDataImpl) GetUsers() []string {
