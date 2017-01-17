@@ -265,6 +265,7 @@ func (net *netImpl) joinpart(user, channel string, part bool) {
 	ci := net.ChannelInfo.get(channel)
 	if ci == nil {
 		net.ChannelInfo.Put(&chanDataImpl{Network: net.Name, Name: channel})
+		net.Owner.HostConf.Autosave()
 		ci = net.ChannelInfo.get(channel)
 	}
 	contains, i := ci.UserList.Contains(user)
@@ -283,6 +284,7 @@ func (net *netImpl) joinpart(user, channel string, part bool) {
 
 	if user == net.IRC.GetNick() && part {
 		net.ChannelInfo.Remove(channel)
+		net.Owner.HostConf.Autosave()
 	}
 }
 

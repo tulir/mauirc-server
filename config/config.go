@@ -124,6 +124,9 @@ func (config *configImpl) Connect() {
 
 // Save the configuration file
 func (config *configImpl) Save() error {
+	for _, user := range config.Users {
+		user.Save()
+	}
 	data, err := yaml.Marshal(config)
 	if err != nil {
 		return err
