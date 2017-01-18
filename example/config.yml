@@ -1,0 +1,48 @@
+sql:
+  ip: 127.0.0.1
+  port: 3306
+  username: root
+  password: password
+  database: mauirc
+ident:
+  enabled: true
+  ip: 127.0.0.1
+  port: 113
+mail:
+  enabled: true
+
+  # Option 1: SMTP
+  mode: smtp
+  config:
+    username: root
+    password: password
+    host: 127.0.0.1:25
+    sender: mauirc@localhost
+
+  # Option 2: Sendmail
+  mode: sendmail
+  config:
+    binary: /usr/bin/sendmail
+
+users:
+- email: you@localhost
+  networks:
+  - name: freenode
+    nick: you
+    user: you
+    realname: Y. Ou
+    password: ""
+    ip: chat.freenode.net
+    port: 6697
+    ssl: true
+    channels: []
+  password: <insert 10-round bcrypted password>
+  # These are generated automatically
+  authtokens: []
+
+ip: 127.0.0.1
+port: 29304
+https-only: true
+trust-headers: true
+save-config-on-edit: true
+external-address: irc.example.com
