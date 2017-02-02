@@ -5,6 +5,9 @@
 
 The backend for mauIRC that handles communication, message storage and other possibly important things between the client and IRC networks.
 
+## No longer maintained!
+I've stopped using IRC in favor of [Matrix](https://matrix.org).
+
 ## Setup
 You can get Debian packages from the [Release section](https://github.com/tulir/mauirc-server/releases).
 
